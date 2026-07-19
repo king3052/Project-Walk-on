@@ -11,6 +11,10 @@ const LINKS = [
   { href: "/journal", label: "Journal" },
   { href: "/goals", label: "Goals" },
   { href: "/profile", label: "Profile" },
+  { href: "/film", label: "Film" },
+  { href: "/coach", label: "AI Coach" },
+  { href: "/achievements", label: "Achievements" },
+  { href: "/resume", label: "Resume" },
 ];
 
 export function NavBar() {

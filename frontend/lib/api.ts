@@ -152,6 +152,23 @@ export type AthleteProfile = {
   goal_deadlift_lb: number | null;
 };
 
+export type UserRecord = {
+  id: string;
+  email: string;
+  name: string;
+  height_in: number | null;
+  weight_lb: number | null;
+  position: string | null;
+  dominant_hand: string | null;
+  created_at: string;
+};
+
+export async function getUser(userId: string): Promise<UserRecord> {
+  const res = await fetch(`${API_BASE}/users/${userId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`User fetch failed: ${res.status}`);
+  return res.json();
+}
+
 export async function getProfile(userId: string): Promise<AthleteProfile> {
   const res = await fetch(`${API_BASE}/users/${userId}/profile`, { cache: "no-store" });
   if (!res.ok) throw new Error(`Profile fetch failed: ${res.status}`);
@@ -233,4 +250,67 @@ export function updateGoalStatus(goalId: string, status: Goal["status"]) {
       return res.json();
     }
   );
+}
+
+export type FilmTag = { id: string; film_session_id: string; timestamp_sec: number; tag_type: string; note: string | null };
+export type FilmSession = {
+  id: string;
+  user_id: string;
+  date: string;
+  title: string;
+  video_url: string;
+  notes: string | null;
+  tags: FilmTag[];
+};
+
+export async function getFilmSessions(userId: string): Promise<FilmSession[]> {
+  const res = await fetch(`${API_BASE}/film-sessions/user/${userId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Film sessions fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export function createFilmSession(
+  userId: string,
+  date: string,
+  title: string,
+  videoUrl: string,
+  notes?: string
+) {
+  return post("/film-sessions/", { user_id: userId, date, title, video_url: videoUrl, notes: notes || null });
+}
+
+export function addFilmTag(sessionId: string, timestampSec: number, tagType: string, note?: string) {
+  return post(`/film-sessions/${sessionId}/tags`, { timestamp_sec: timestampSec, tag_type: tagType, note: note || null });
+}
+
+export type AICoachSummary = { id: string; user_id: string; week_start: string; summary_text: string; created_at: string };
+
+export async function getAICoachSummaries(userId: string): Promise<AICoachSummary[]> {
+  const res = await fetch(`${API_BASE}/ai-coach/user/${userId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`AI Coach fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function generateAICoachSummary(userId: string, weekStart: string): Promise<AICoachSummary> {
+  const res = await fetch(`${API_BASE}/ai-coach/${userId}/generate?week_start=${weekStart}`, { method: "POST" });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(detail.detail || `AI Coach generation failed: ${res.status}`);
+  }
+  return res.json();
+}
+
+export type Achievement = {
+  key: string;
+  name: string;
+  description: string;
+  earned: boolean;
+  progress_current: number;
+  progress_target: number;
+};
+
+export async function getAchievements(userId: string): Promise<Achievement[]> {
+  const res = await fetch(`${API_BASE}/achievements/${userId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Achievements fetch failed: ${res.status}`);
+  return res.json();
 }
