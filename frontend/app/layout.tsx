@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Barlow_Condensed, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Sidebar } from "@/components/Sidebar";
 
 const display = Barlow_Condensed({
   subsets: ["latin"],
@@ -18,7 +19,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
-      <body className="font-body text-fg antialiased">{children}</body>
+      <body className="font-body text-fg antialiased">
+        <div className="flex">
+          <Sidebar />
+          <div className="flex-1 min-w-0">{children}</div>
+        </div>
+      </body>
     </html>
   );
 }

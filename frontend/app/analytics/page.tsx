@@ -11,8 +11,8 @@ import {
   CartesianGrid,
 } from "recharts";
 import { getAnalytics, type AnalyticsData } from "@/lib/api";
-import { NavBar } from "@/components/NavBar";
 import { ActivityCalendar } from "@/components/ActivityCalendar";
+import { PageHeader } from "@/components/PageHeader";
 
 const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
@@ -102,11 +102,7 @@ export default function AnalyticsPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 space-y-8">
-      <NavBar />
-      <header className="border-b border-surface-border pb-6">
-        <p className="text-xs tracking-wide text-accent mb-1">Project Walk-On</p>
-        <h1 className="font-display text-3xl tracking-tight text-fg">Analytics</h1>
-      </header>
+      <PageHeader title="Analytics" />
 
       {error && <p className="text-warn text-sm">{error}</p>}
 

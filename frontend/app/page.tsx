@@ -1,7 +1,6 @@
 import { getDashboard, type DashboardData } from "@/lib/api";
 import { StatCard, Section } from "@/components/StatCard";
 import { Mission } from "@/components/Mission";
-import { NavBar } from "@/components/NavBar";
 
 const MOCK: DashboardData = {
   athlete_score: 84,
@@ -33,11 +32,10 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 space-y-8">
-      <NavBar />
       <header className="flex items-baseline justify-between border-b border-surface-border pb-6">
         <div>
-          <p className="text-xs tracking-wide text-accent mb-1">Project</p>
-          <h1 className="font-display text-4xl tracking-tight text-fg">Walk-On</h1>
+          <p className="text-xs tracking-wide text-accent mb-1">Overview</p>
+          <h1 className="font-display text-4xl tracking-tight text-fg">Dashboard</h1>
         </div>
         <div className="text-right">
           <p className="text-xs tracking-wide text-fg-dim">Athlete score</p>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { PageHeader } from "@/components/PageHeader";
 import { StrengthForm, ShootingForm, NutritionForm, RecoveryForm, BodyweightForm, ConditioningForm } from "@/components/LogForms";
-import { NavBar } from "@/components/NavBar";
 
 const TABS = [
   { id: "strength", label: "Strength" },
@@ -33,11 +33,7 @@ export default function LogPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-8">
-      <NavBar />
-      <header className="border-b border-surface-border pb-6">
-        <p className="text-xs tracking-wide text-accent mb-1">Project Walk-On</p>
-        <h1 className="font-display text-3xl tracking-tight text-fg">Log today</h1>
-      </header>
+<PageHeader title="Log today" />
 
       <nav className="flex gap-1 border-b border-surface-border">
         {TABS.map((t) => (

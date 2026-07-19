@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getUser, getProfile, getDashboard, getAchievements, type UserRecord, type AthleteProfile, type DashboardData, type Achievement } from "@/lib/api";
-import { NavBar } from "@/components/NavBar";
 
 const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
@@ -43,10 +42,6 @@ export default function ResumePage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-8 print:max-w-none">
-      <div className="print:hidden">
-        <NavBar />
-      </div>
-
       <header className="border-b border-surface-border pb-6 flex items-center justify-between">
         <div>
           <p className="text-xs tracking-wide text-accent mb-1">Athlete resume</p>

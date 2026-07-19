@@ -211,6 +211,21 @@ class AICoachSummaryOut(BaseModel):
         from_attributes = True
 
 
+# ---------- Scouting Report ----------
+class ScoutingReportOut(BaseModel):
+    id: str
+    user_id: str
+    report_month: date
+    strengths: Optional[str] = None
+    needs_improvement: Optional[str] = None
+    overall_grade: Optional[str] = None
+    next_priority: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # ---------- Achievements (computed, read-only) ----------
 class Achievement(BaseModel):
     key: str

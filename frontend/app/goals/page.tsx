@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PageHeader } from "@/components/PageHeader";
 import { getGoals, createGoal, updateGoalStatus, type Goal } from "@/lib/api";
-import { NavBar } from "@/components/NavBar";
 
 const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
@@ -84,11 +84,7 @@ export default function GoalsPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 space-y-8">
-      <NavBar />
-      <header className="border-b border-surface-border pb-6">
-        <p className="text-xs tracking-wide text-accent mb-1">Project Walk-On</p>
-        <h1 className="font-display text-3xl tracking-tight text-fg">Goals</h1>
-      </header>
+<PageHeader title="Goals" />
 
       <form onSubmit={onSubmit} className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-4">
         <h2 className="text-xs uppercase tracking-wide text-fg-dim">Add a goal</h2>

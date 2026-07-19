@@ -314,3 +314,29 @@ export async function getAchievements(userId: string): Promise<Achievement[]> {
   if (!res.ok) throw new Error(`Achievements fetch failed: ${res.status}`);
   return res.json();
 }
+
+export type ScoutingReport = {
+  id: string;
+  user_id: string;
+  report_month: string;
+  strengths: string | null;
+  needs_improvement: string | null;
+  overall_grade: string | null;
+  next_priority: string | null;
+  created_at: string;
+};
+
+export async function getScoutingReports(userId: string): Promise<ScoutingReport[]> {
+  const res = await fetch(`${API_BASE}/scouting-reports/user/${userId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Scouting reports fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function generateScoutingReport(userId: string): Promise<ScoutingReport> {
+  const res = await fetch(`${API_BASE}/scouting-reports/${userId}/generate`, { method: "POST" });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => ({}));
+    throw new Error(detail.detail || `Scouting report generation failed: ${res.status}`);
+  }
+  return res.json();
+}

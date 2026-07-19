@@ -149,6 +149,19 @@ class AICoachSummary(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class ScoutingReport(Base):
+    __tablename__ = "scouting_reports"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    report_month = Column(Date, nullable=False)  # first of the month it covers
+    strengths = Column(Text, nullable=True)  # newline-separated
+    needs_improvement = Column(Text, nullable=True)  # newline-separated
+    overall_grade = Column(String, nullable=True)  # e.g. "B+"
+    next_priority = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class TrainingSession(Base):
     __tablename__ = "training_sessions"
 

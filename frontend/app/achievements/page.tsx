@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PageHeader } from "@/components/PageHeader";
 import { getAchievements, type Achievement } from "@/lib/api";
-import { NavBar } from "@/components/NavBar";
 
 const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
@@ -29,11 +29,7 @@ export default function AchievementsPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 space-y-8">
-      <NavBar />
-      <header className="border-b border-surface-border pb-6">
-        <p className="text-xs tracking-wide text-accent mb-1">Project Walk-On</p>
-        <h1 className="font-display text-3xl tracking-tight text-fg">Achievements</h1>
-      </header>
+<PageHeader title="Achievements" />
 
       <div className="grid md:grid-cols-2 gap-4">
         {achievements.map((a) => {

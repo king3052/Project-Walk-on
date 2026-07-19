@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getFilmSessions, createFilmSession, addFilmTag, type FilmSession } from "@/lib/api";
-import { NavBar } from "@/components/NavBar";
+import { PageHeader } from "@/components/PageHeader";
 
 const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 const today = () => new Date().toISOString().slice(0, 10);
@@ -120,14 +120,10 @@ export default function FilmPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 space-y-8">
-      <NavBar />
-      <header className="border-b border-surface-border pb-6">
-        <p className="text-xs tracking-wide text-accent mb-1">Project Walk-On</p>
-        <h1 className="font-display text-3xl tracking-tight text-fg">Film room</h1>
-        <p className="text-sm text-fg-dim mt-2">
-          Paste a link to game or practice film (YouTube, Google Drive, Hudl…) and tag moments with a timestamp.
-        </p>
-      </header>
+      <PageHeader
+        title="Film room"
+        description="Paste a link to game or practice film (YouTube, Google Drive, Hudl…) and tag moments with a timestamp."
+      />
 
       <form onSubmit={onSubmit} className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-4">
         <h2 className="text-xs uppercase tracking-wide text-fg-dim">Add film</h2>
