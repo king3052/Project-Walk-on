@@ -5,6 +5,7 @@ import { NavBar } from "@/components/NavBar";
 
 const MOCK: DashboardData = {
   athlete_score: 84,
+  score_breakdown: { strength: 78, basketball: 68, recovery: 95, nutrition: 90, consistency: 85 },
   weight_lb: 159.8,
   goal_weight_lb: 185,
   bench_lb: 120,
@@ -44,6 +45,15 @@ export default async function DashboardPage() {
             {data.athlete_score}
             <span className="text-xl text-fg-dim">/100</span>
           </p>
+          {Object.keys(data.score_breakdown).length > 0 && (
+            <p className="text-xs text-fg-dim mt-1 space-x-2">
+              {Object.entries(data.score_breakdown).map(([name, value]) => (
+                <span key={name}>
+                  {name} <span className="text-fg-muted">{Math.round(value)}</span>
+                </span>
+              ))}
+            </p>
+          )}
         </div>
       </header>
 

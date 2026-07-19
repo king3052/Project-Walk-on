@@ -53,19 +53,69 @@ def get_dashboard(user_id: str, db: Session = Depends(get_db)):
         .scalar()
     )
 
-    # Simple composite score for MVP: weighted progress toward strength + shooting goals.
-    # Refine this once you have real data — this is intentionally simple to start.
-    score_components = []
+    week_nutrition_days = (
+        db.query(func.count(func.distinct(models.NutritionLog.date)))
+        .filter(models.NutritionLog.user_id == user_id, models.NutritionLog.date >= week_ago)
+        .scalar()
+    ) or 0
+
+    active_dates_this_week = set()
+    for model, date_col in [
+        (models.NutritionLog, models.NutritionLog.date),
+        (models.RecoveryLog, models.RecoveryLog.date),
+        (models.ShootingLog, models.ShootingLog.date),
+        (models.BodyweightLog, models.BodyweightLog.date),
+        (models.ConditioningLog, models.ConditioningLog.date),
+    ]:
+        rows = db.query(date_col).filter(model.user_id == user_id, date_col >= week_ago).distinct().all()
+        active_dates_this_week.update(r[0] for r in rows)
+    strength_dates = (
+        db.query(models.TrainingSession.date)
+        .filter(models.TrainingSession.user_id == user_id, models.TrainingSession.date >= week_ago)
+        .distinct()
+        .all()
+    )
+    active_dates_this_week.update(r[0] for r in strength_dates)
+
+    # Athlete Score v2 — weighted across five pillars. Each pillar is 0-100 and
+    # only counted if there's real data for it; weights are renormalized over
+    # whichever pillars are actually present, so missing data doesn't drag
+    # the score down artificially for a new athlete.
+    pillars: dict[str, tuple[float, float]] = {}  # name -> (value_0_100, weight)
+
+    strength_progress = []
     if profile and profile.goal_bench_lb and bench:
-        score_components.append(min(bench / profile.goal_bench_lb, 1.0))
+        strength_progress.append(min(bench / profile.goal_bench_lb, 1.0))
     if profile and profile.goal_squat_lb and squat:
-        score_components.append(min(squat / profile.goal_squat_lb, 1.0))
+        strength_progress.append(min(squat / profile.goal_squat_lb, 1.0))
+    if profile and profile.goal_deadlift_lb and deadlift:
+        strength_progress.append(min(deadlift / profile.goal_deadlift_lb, 1.0))
+    if strength_progress:
+        pillars["strength"] = (sum(strength_progress) / len(strength_progress) * 100, 25)
+
     if total_attempts:
-        score_components.append(total_makes / total_attempts)
-    athlete_score = round((sum(score_components) / len(score_components)) * 100) if score_components else 0
+        pillars["basketball"] = (shooting_pct, 25)
+
+    if avg_sleep:
+        pillars["recovery"] = (min(avg_sleep / 8.0, 1.0) * 100, 20)
+
+    if week_nutrition_days:
+        pillars["nutrition"] = (min(week_nutrition_days / 7.0, 1.0) * 100, 15)
+
+    if active_dates_this_week:
+        pillars["consistency"] = (min(len(active_dates_this_week) / 7.0, 1.0) * 100, 15)
+
+    if pillars:
+        total_weight = sum(w for _, w in pillars.values())
+        athlete_score = round(sum(v * w for v, w in pillars.values()) / total_weight)
+    else:
+        athlete_score = 0
+
+    score_breakdown = {name: round(v) for name, (v, _) in pillars.items()}
 
     return schemas.DashboardOut(
         athlete_score=athlete_score,
+        score_breakdown=score_breakdown,
         weight_lb=user.weight_lb,
         goal_weight_lb=profile.goal_weight_lb if profile else None,
         bench_lb=bench,

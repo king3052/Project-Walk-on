@@ -2,6 +2,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export type DashboardData = {
   athlete_score: number;
+  score_breakdown: Record<string, number>;
   weight_lb: number | null;
   goal_weight_lb: number | null;
   bench_lb: number | null;

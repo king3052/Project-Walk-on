@@ -258,6 +258,7 @@ class AnalyticsOut(BaseModel):
 # ---------- Dashboard (aggregate, read-only) ----------
 class DashboardOut(BaseModel):
     athlete_score: int
+    score_breakdown: dict[str, float]
     weight_lb: Optional[float]
     goal_weight_lb: Optional[float]
     bench_lb: Optional[float]
