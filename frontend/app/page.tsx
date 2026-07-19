@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getDashboard, type DashboardData } from "@/lib/api";
 import { StatCard, Section } from "@/components/StatCard";
 import { Mission } from "@/components/Mission";
@@ -38,12 +39,20 @@ export default async function DashboardPage() {
           </p>
           <h1 className="font-display text-5xl tracking-tight">Walk-On</h1>
         </div>
-        <div className="text-right">
-          <p className="text-xs uppercase tracking-widest text-chalk-dim">Athlete Score</p>
-          <p className="font-display text-6xl text-hardwood-light tabular-nums leading-none">
-            {data.athlete_score}
-            <span className="text-2xl text-chalk-dim">/100</span>
-          </p>
+        <div className="text-right space-y-2">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-chalk-dim">Athlete Score</p>
+            <p className="font-display text-6xl text-hardwood-light tabular-nums leading-none">
+              {data.athlete_score}
+              <span className="text-2xl text-chalk-dim">/100</span>
+            </p>
+          </div>
+          <Link
+            href="/log"
+            className="inline-block font-display uppercase tracking-widest text-xs bg-hardwood hover:bg-hardwood-light text-court-bg px-4 py-1.5 rounded transition-colors"
+          >
+            Log Today
+          </Link>
         </div>
       </header>
 

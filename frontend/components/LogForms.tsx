@@ -1,0 +1,361 @@
+"use client";
+
+import { useState } from "react";
+import {
+  logStrengthSession,
+  logShootingSession,
+  logNutrition,
+  logRecovery,
+  type StrengthSetInput,
+} from "@/lib/api";
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <label className="text-xs uppercase tracking-widest text-chalk-dim block mb-1">{children}</label>;
+}
+
+const inputClass =
+  "w-full bg-court-panelLight border border-court-line rounded px-3 py-2 text-chalk focus:outline-none focus:border-hardwood";
+
+function SubmitButton({ pending }: { pending: boolean }) {
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="font-display uppercase tracking-widest text-sm bg-hardwood hover:bg-hardwood-light disabled:opacity-50 text-court-bg px-5 py-2 rounded transition-colors"
+    >
+      {pending ? "Saving…" : "Log it"}
+    </button>
+  );
+}
+
+function StatusMessage({ status }: { status: { type: "success" | "error"; text: string } | null }) {
+  if (!status) return null;
+  return (
+    <p className={status.type === "success" ? "text-scoreboard-green text-sm" : "text-scoreboard-red text-sm"}>
+      {status.text}
+    </p>
+  );
+}
+
+export function StrengthForm({ userId }: { userId: string }) {
+  const [date, setDate] = useState(today());
+  const [exercise, setExercise] = useState("Back Squat");
+  const [sets, setSets] = useState(3);
+  const [reps, setReps] = useState(5);
+  const [weight, setWeight] = useState(185);
+  const [notes, setNotes] = useState("");
+  const [pending, setPending] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    setStatus(null);
+    try {
+      const strengthLogs: StrengthSetInput[] = [{ exercise, sets, reps, weight_lb: weight }];
+      await logStrengthSession(userId, date, strengthLogs, notes);
+      setStatus({ type: "success", text: `Logged ${exercise}: ${sets}x${reps} @ ${weight}lb.` });
+    } catch (err) {
+      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4 max-w-md">
+      <div>
+        <FieldLabel>Date</FieldLabel>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+      </div>
+      <div>
+        <FieldLabel>Exercise</FieldLabel>
+        <input
+          type="text"
+          value={exercise}
+          onChange={(e) => setExercise(e.target.value)}
+          placeholder="Back Squat, Bench Press, Deadlift…"
+          className={inputClass}
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <FieldLabel>Sets</FieldLabel>
+          <input
+            type="number"
+            value={sets}
+            onChange={(e) => setSets(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Reps</FieldLabel>
+          <input
+            type="number"
+            value={reps}
+            onChange={(e) => setReps(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Weight (lb)</FieldLabel>
+          <input
+            type="number"
+            value={weight}
+            onChange={(e) => setWeight(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+      </div>
+      <div>
+        <FieldLabel>Notes (optional)</FieldLabel>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} rows={2} />
+      </div>
+      <SubmitButton pending={pending} />
+      <StatusMessage status={status} />
+    </form>
+  );
+}
+
+export function ShootingForm({ userId }: { userId: string }) {
+  const [date, setDate] = useState(today());
+  const [shotType, setShotType] = useState("Corner 3");
+  const [attempts, setAttempts] = useState(100);
+  const [makes, setMakes] = useState(70);
+  const [location, setLocation] = useState("");
+  const [pending, setPending] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    setStatus(null);
+    try {
+      await logShootingSession(userId, date, shotType, attempts, makes, location);
+      const pct = attempts ? Math.round((makes / attempts) * 100) : 0;
+      setStatus({ type: "success", text: `Logged ${shotType}: ${makes}/${attempts} (${pct}%).` });
+    } catch (err) {
+      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4 max-w-md">
+      <div>
+        <FieldLabel>Date</FieldLabel>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+      </div>
+      <div>
+        <FieldLabel>Shot type</FieldLabel>
+        <input
+          type="text"
+          value={shotType}
+          onChange={(e) => setShotType(e.target.value)}
+          placeholder="Corner 3, Wing 3, Pull-up, Free Throw…"
+          className={inputClass}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Attempts</FieldLabel>
+          <input
+            type="number"
+            value={attempts}
+            onChange={(e) => setAttempts(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Makes</FieldLabel>
+          <input
+            type="number"
+            value={makes}
+            onChange={(e) => setMakes(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+      </div>
+      <div>
+        <FieldLabel>Location (optional)</FieldLabel>
+        <input
+          type="text"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="Gregory Gym, home hoop…"
+          className={inputClass}
+        />
+      </div>
+      <SubmitButton pending={pending} />
+      <StatusMessage status={status} />
+    </form>
+  );
+}
+
+export function NutritionForm({ userId }: { userId: string }) {
+  const [date, setDate] = useState(today());
+  const [calories, setCalories] = useState(3500);
+  const [protein, setProtein] = useState(180);
+  const [carbs, setCarbs] = useState(400);
+  const [fat, setFat] = useState(90);
+  const [water, setWater] = useState(4);
+  const [pending, setPending] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    setStatus(null);
+    try {
+      await logNutrition(userId, date, {
+        calories,
+        protein_g: protein,
+        carbs_g: carbs,
+        fat_g: fat,
+        water_l: water,
+      });
+      setStatus({ type: "success", text: `Logged nutrition for ${date}.` });
+    } catch (err) {
+      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4 max-w-md">
+      <div>
+        <FieldLabel>Date</FieldLabel>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Calories</FieldLabel>
+          <input
+            type="number"
+            value={calories}
+            onChange={(e) => setCalories(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Protein (g)</FieldLabel>
+          <input
+            type="number"
+            value={protein}
+            onChange={(e) => setProtein(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Carbs (g)</FieldLabel>
+          <input
+            type="number"
+            value={carbs}
+            onChange={(e) => setCarbs(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Fat (g)</FieldLabel>
+          <input type="number" value={fat} onChange={(e) => setFat(Number(e.target.value))} className={inputClass} />
+        </div>
+      </div>
+      <div>
+        <FieldLabel>Water (L)</FieldLabel>
+        <input
+          type="number"
+          step="0.1"
+          value={water}
+          onChange={(e) => setWater(Number(e.target.value))}
+          className={inputClass}
+        />
+      </div>
+      <SubmitButton pending={pending} />
+      <StatusMessage status={status} />
+    </form>
+  );
+}
+
+export function RecoveryForm({ userId }: { userId: string }) {
+  const [date, setDate] = useState(today());
+  const [sleep, setSleep] = useState(8);
+  const [energy, setEnergy] = useState(7);
+  const [stress, setStress] = useState(4);
+  const [soreness, setSoreness] = useState(3);
+  const [pending, setPending] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    setStatus(null);
+    try {
+      await logRecovery(userId, date, { sleep_hours: sleep, energy, stress, soreness });
+      setStatus({ type: "success", text: `Logged recovery for ${date}.` });
+    } catch (err) {
+      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4 max-w-md">
+      <div>
+        <FieldLabel>Date</FieldLabel>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+      </div>
+      <div>
+        <FieldLabel>Sleep (hours)</FieldLabel>
+        <input
+          type="number"
+          step="0.1"
+          value={sleep}
+          onChange={(e) => setSleep(Number(e.target.value))}
+          className={inputClass}
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <FieldLabel>Energy (1-10)</FieldLabel>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={energy}
+            onChange={(e) => setEnergy(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Stress (1-10)</FieldLabel>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={stress}
+            onChange={(e) => setStress(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Soreness (1-10)</FieldLabel>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={soreness}
+            onChange={(e) => setSoreness(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+      </div>
+      <SubmitButton pending={pending} />
+      <StatusMessage status={status} />
+    </form>
+  );
+}
