@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { getDashboard, type DashboardData } from "@/lib/api";
 import { StatCard, Section } from "@/components/StatCard";
 import { Mission } from "@/components/Mission";
+import { NavBar } from "@/components/NavBar";
 
 const MOCK: DashboardData = {
   athlete_score: 84,
@@ -32,25 +32,18 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 space-y-8">
+      <NavBar />
       <header className="flex items-baseline justify-between border-b border-surface-border pb-6">
         <div>
           <p className="text-xs tracking-wide text-accent mb-1">Project</p>
           <h1 className="font-display text-4xl tracking-tight text-fg">Walk-On</h1>
         </div>
-        <div className="text-right space-y-2">
-          <div>
-            <p className="text-xs tracking-wide text-fg-dim">Athlete score</p>
-            <p className="font-display text-5xl text-accent tabular-nums leading-none">
-              {data.athlete_score}
-              <span className="text-xl text-fg-dim">/100</span>
-            </p>
-          </div>
-          <Link
-            href="/log"
-            className="inline-block text-xs tracking-wide bg-accent hover:bg-accent-dim text-accent-deep px-4 py-1.5 rounded-md transition-colors"
-          >
-            Log today
-          </Link>
+        <div className="text-right">
+          <p className="text-xs tracking-wide text-fg-dim">Athlete score</p>
+          <p className="font-display text-5xl text-accent tabular-nums leading-none">
+            {data.athlete_score}
+            <span className="text-xl text-fg-dim">/100</span>
+          </p>
         </div>
       </header>
 

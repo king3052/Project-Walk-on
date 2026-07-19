@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { StrengthForm, ShootingForm, NutritionForm, RecoveryForm } from "@/components/LogForms";
+import { StrengthForm, ShootingForm, NutritionForm, RecoveryForm, BodyweightForm } from "@/components/LogForms";
+import { NavBar } from "@/components/NavBar";
 
 const TABS = [
   { id: "strength", label: "Strength" },
   { id: "shooting", label: "Shooting" },
   { id: "nutrition", label: "Nutrition" },
   { id: "recovery", label: "Recovery" },
+  { id: "body", label: "Body" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -31,14 +32,10 @@ export default function LogPage() {
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-8">
-      <header className="flex items-baseline justify-between border-b border-surface-border pb-6">
-        <div>
-          <p className="text-xs tracking-wide text-accent mb-1">Project Walk-On</p>
-          <h1 className="font-display text-3xl tracking-tight text-fg">Log today</h1>
-        </div>
-        <Link href="/" className="text-sm text-fg-muted hover:text-accent transition-colors">
-          ← Dashboard
-        </Link>
+      <NavBar />
+      <header className="border-b border-surface-border pb-6">
+        <p className="text-xs tracking-wide text-accent mb-1">Project Walk-On</p>
+        <h1 className="font-display text-3xl tracking-tight text-fg">Log today</h1>
       </header>
 
       <nav className="flex gap-1 border-b border-surface-border">
@@ -62,6 +59,7 @@ export default function LogPage() {
         {tab === "shooting" && <ShootingForm userId={DEMO_USER_ID} />}
         {tab === "nutrition" && <NutritionForm userId={DEMO_USER_ID} />}
         {tab === "recovery" && <RecoveryForm userId={DEMO_USER_ID} />}
+        {tab === "body" && <BodyweightForm userId={DEMO_USER_ID} />}
       </div>
     </main>
   );

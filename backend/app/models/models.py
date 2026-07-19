@@ -163,3 +163,24 @@ class Goal(Base):
     status = Column(Enum(GoalStatus), default=GoalStatus.NOT_STARTED)
 
     user = relationship("User", back_populates="goals")
+
+
+class BodyweightLog(Base):
+    __tablename__ = "bodyweight_logs"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    weight_lb = Column(Float, nullable=False)
+
+
+class WeeklyReview(Base):
+    __tablename__ = "weekly_reviews"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    week_start = Column(Date, nullable=False)
+    wins = Column(Text, nullable=True)
+    weakness = Column(Text, nullable=True)
+    next_focus = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -86,3 +86,44 @@ export function logRecovery(
 ) {
   return post("/recovery-logs/", { user_id: userId, date, ...data });
 }
+
+export function logBodyweight(userId: string, date: string, weightLb: number) {
+  return post("/bodyweight-logs/", { user_id: userId, date, weight_lb: weightLb });
+}
+
+export function logWeeklyReview(
+  userId: string,
+  weekStart: string,
+  data: { wins?: string; weakness?: string; next_focus?: string }
+) {
+  return post("/weekly-reviews/", { user_id: userId, week_start: weekStart, ...data });
+}
+
+export type WeeklyReview = {
+  id: string;
+  user_id: string;
+  week_start: string;
+  wins: string | null;
+  weakness: string | null;
+  next_focus: string | null;
+  created_at: string;
+};
+
+export async function getWeeklyReviews(userId: string): Promise<WeeklyReview[]> {
+  const res = await fetch(`${API_BASE}/weekly-reviews/user/${userId}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Weekly reviews fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export type AnalyticsData = {
+  weight: { date: string; weight_lb: number }[];
+  strength: { date: string; exercise: string; estimated_1rm: number }[];
+  shooting: { date: string; shot_type: string; attempts: number; makes: number }[];
+  active_dates: string[];
+};
+
+export async function getAnalytics(userId: string, days = 90): Promise<AnalyticsData> {
+  const res = await fetch(`${API_BASE}/analytics/${userId}?days=${days}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Analytics fetch failed: ${res.status}`);
+  return res.json();
+}

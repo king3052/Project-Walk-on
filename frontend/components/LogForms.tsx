@@ -6,6 +6,7 @@ import {
   logShootingSession,
   logNutrition,
   logRecovery,
+  logBodyweight,
   type StrengthSetInput,
 } from "@/lib/api";
 
@@ -353,6 +354,48 @@ export function RecoveryForm({ userId }: { userId: string }) {
             className={inputClass}
           />
         </div>
+      </div>
+      <SubmitButton pending={pending} />
+      <StatusMessage status={status} />
+    </form>
+  );
+}
+
+export function BodyweightForm({ userId }: { userId: string }) {
+  const [date, setDate] = useState(today());
+  const [weight, setWeight] = useState(160);
+  const [pending, setPending] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    setStatus(null);
+    try {
+      await logBodyweight(userId, date, weight);
+      setStatus({ type: "success", text: `Logged ${weight}lb for ${date}.` });
+    } catch (err) {
+      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4 max-w-md">
+      <div>
+        <FieldLabel>Date</FieldLabel>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+      </div>
+      <div>
+        <FieldLabel>Weight (lb)</FieldLabel>
+        <input
+          type="number"
+          step="0.1"
+          value={weight}
+          onChange={(e) => setWeight(Number(e.target.value))}
+          className={inputClass}
+        />
       </div>
       <SubmitButton pending={pending} />
       <StatusMessage status={status} />

@@ -3,7 +3,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.database import Base, engine
 from app.models import models  # noqa: F401 (ensures models are registered before create_all)
-from app.routers import users, training, shooting, nutrition, recovery, goals, dashboard
+from app.routers import (
+    users,
+    training,
+    shooting,
+    nutrition,
+    recovery,
+    goals,
+    dashboard,
+    bodyweight,
+    reviews,
+    analytics,
+)
 
 app = FastAPI(title="Project Walk-On OS API", version="0.1.0")
 
@@ -22,6 +33,9 @@ app.include_router(nutrition.router)
 app.include_router(recovery.router)
 app.include_router(goals.router)
 app.include_router(dashboard.router)
+app.include_router(bodyweight.router)
+app.include_router(reviews.router)
+app.include_router(analytics.router)
 
 
 @app.on_event("startup")

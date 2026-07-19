@@ -153,6 +153,63 @@ class GoalOut(GoalCreate):
         from_attributes = True
 
 
+# ---------- Bodyweight ----------
+class BodyweightLogCreate(BaseModel):
+    user_id: str
+    date: date
+    weight_lb: float
+
+
+class BodyweightLogOut(BodyweightLogCreate):
+    id: str
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Weekly Review ----------
+class WeeklyReviewCreate(BaseModel):
+    user_id: str
+    week_start: date
+    wins: Optional[str] = None
+    weakness: Optional[str] = None
+    next_focus: Optional[str] = None
+
+
+class WeeklyReviewOut(WeeklyReviewCreate):
+    id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Analytics (aggregate, read-only) ----------
+class WeightPoint(BaseModel):
+    date: date
+    weight_lb: float
+
+
+class StrengthPoint(BaseModel):
+    date: date
+    exercise: str
+    estimated_1rm: float
+
+
+class ShootingPoint(BaseModel):
+    date: date
+    shot_type: str
+    attempts: int
+    makes: int
+
+
+class AnalyticsOut(BaseModel):
+    weight: list[WeightPoint]
+    strength: list[StrengthPoint]
+    shooting: list[ShootingPoint]
+    active_dates: list[date]  # any date with at least one logged entry, for the activity calendar
+
+
 # ---------- Dashboard (aggregate, read-only) ----------
 class DashboardOut(BaseModel):
     athlete_score: int
