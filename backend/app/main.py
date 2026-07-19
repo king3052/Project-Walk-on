@@ -14,6 +14,8 @@ from app.routers import (
     bodyweight,
     reviews,
     analytics,
+    conditioning,
+    journal,
 )
 
 app = FastAPI(title="Project Walk-On OS API", version="0.1.0")
@@ -36,6 +38,8 @@ app.include_router(dashboard.router)
 app.include_router(bodyweight.router)
 app.include_router(reviews.router)
 app.include_router(analytics.router)
+app.include_router(conditioning.router)
+app.include_router(journal.router)
 
 
 @app.on_event("startup")

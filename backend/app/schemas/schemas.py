@@ -26,9 +26,19 @@ class UserOut(UserCreate):
 # ---------- Athlete Profile ----------
 class AthleteProfileUpsert(BaseModel):
     vertical_in: Optional[float] = None
+    broad_jump_in: Optional[float] = None
     wingspan_in: Optional[float] = None
     standing_reach_in: Optional[float] = None
     body_fat_pct: Optional[float] = None
+    shoe_size: Optional[str] = None
+    dominant_foot: Optional[str] = None
+    age: Optional[int] = None
+    sprint_20m_sec: Optional[float] = None
+    lane_agility_sec: Optional[float] = None
+    shuttle_sec: Optional[float] = None
+    max_pullups: Optional[int] = None
+    max_pushups: Optional[int] = None
+    grip_strength_lb: Optional[float] = None
     goal_weight_lb: Optional[float] = None
     goal_bench_lb: Optional[float] = None
     goal_squat_lb: Optional[float] = None
@@ -148,6 +158,41 @@ class GoalCreate(BaseModel):
 class GoalOut(GoalCreate):
     id: str
     status: GoalStatus
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Conditioning ----------
+class ConditioningLogCreate(BaseModel):
+    user_id: str
+    date: date
+    activity: str
+    distance_m: Optional[float] = None
+    duration_sec: Optional[int] = None
+    notes: Optional[str] = None
+
+
+class ConditioningLogOut(ConditioningLogCreate):
+    id: str
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Journal ----------
+class JournalEntryCreate(BaseModel):
+    user_id: str
+    date: date
+    went_well: Optional[str] = None
+    mistakes: Optional[str] = None
+    confidence: Optional[int] = None
+    focus: Optional[str] = None
+
+
+class JournalEntryOut(JournalEntryCreate):
+    id: str
+    created_at: datetime
 
     class Config:
         from_attributes = True

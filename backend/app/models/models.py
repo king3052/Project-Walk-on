@@ -62,17 +62,56 @@ class AthleteProfile(Base):
     id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
     user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
 
+    # Measurements
     vertical_in = Column(Float, nullable=True)
+    broad_jump_in = Column(Float, nullable=True)
     wingspan_in = Column(Float, nullable=True)
     standing_reach_in = Column(Float, nullable=True)
     body_fat_pct = Column(Float, nullable=True)
+    shoe_size = Column(String, nullable=True)
+    dominant_foot = Column(String, nullable=True)
+    age = Column(Integer, nullable=True)
 
+    # Athletic testing
+    sprint_20m_sec = Column(Float, nullable=True)
+    lane_agility_sec = Column(Float, nullable=True)
+    shuttle_sec = Column(Float, nullable=True)
+    max_pullups = Column(Integer, nullable=True)
+    max_pushups = Column(Integer, nullable=True)
+    grip_strength_lb = Column(Float, nullable=True)
+
+    # Goals
     goal_weight_lb = Column(Float, nullable=True)
     goal_bench_lb = Column(Float, nullable=True)
     goal_squat_lb = Column(Float, nullable=True)
     goal_deadlift_lb = Column(Float, nullable=True)
 
     user = relationship("User", back_populates="profile")
+
+
+class ConditioningLog(Base):
+    __tablename__ = "conditioning_logs"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    activity = Column(String, nullable=False)  # "Sprints", "Suicides", "Tempo Run", "Bike", "Row", "Jump Rope"
+    distance_m = Column(Float, nullable=True)
+    duration_sec = Column(Integer, nullable=True)
+    notes = Column(Text, nullable=True)
+
+
+class JournalEntry(Base):
+    __tablename__ = "journal_entries"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    went_well = Column(Text, nullable=True)
+    mistakes = Column(Text, nullable=True)
+    confidence = Column(Integer, nullable=True)  # 1-10
+    focus = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class TrainingSession(Base):

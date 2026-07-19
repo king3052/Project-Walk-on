@@ -8,13 +8,16 @@ const LINKS = [
   { href: "/log", label: "Log today" },
   { href: "/analytics", label: "Analytics" },
   { href: "/review", label: "Weekly review" },
+  { href: "/journal", label: "Journal" },
+  { href: "/goals", label: "Goals" },
+  { href: "/profile", label: "Profile" },
 ];
 
 export function NavBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-4 mb-6">
+    <nav className="flex flex-wrap gap-x-4 gap-y-2 mb-6">
       {LINKS.map((link) => {
         const active = pathname === link.href;
         return (

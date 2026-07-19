@@ -7,6 +7,7 @@ import {
   logNutrition,
   logRecovery,
   logBodyweight,
+  logConditioning,
   type StrengthSetInput,
 } from "@/lib/api";
 
@@ -396,6 +397,79 @@ export function BodyweightForm({ userId }: { userId: string }) {
           onChange={(e) => setWeight(Number(e.target.value))}
           className={inputClass}
         />
+      </div>
+      <SubmitButton pending={pending} />
+      <StatusMessage status={status} />
+    </form>
+  );
+}
+
+export function ConditioningForm({ userId }: { userId: string }) {
+  const [date, setDate] = useState(today());
+  const [activity, setActivity] = useState("Sprints");
+  const [distance, setDistance] = useState(400);
+  const [duration, setDuration] = useState(180);
+  const [notes, setNotes] = useState("");
+  const [pending, setPending] = useState(false);
+  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPending(true);
+    setStatus(null);
+    try {
+      await logConditioning(userId, date, activity, {
+        distance_m: distance || undefined,
+        duration_sec: duration || undefined,
+        notes: notes || undefined,
+      });
+      setStatus({ type: "success", text: `Logged ${activity} for ${date}.` });
+    } catch (err) {
+      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-4 max-w-md">
+      <div>
+        <FieldLabel>Date</FieldLabel>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
+      </div>
+      <div>
+        <FieldLabel>Activity</FieldLabel>
+        <input
+          type="text"
+          value={activity}
+          onChange={(e) => setActivity(e.target.value)}
+          placeholder="Sprints, Suicides, Tempo run, Bike, Row, Jump rope…"
+          className={inputClass}
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Distance (m)</FieldLabel>
+          <input
+            type="number"
+            value={distance}
+            onChange={(e) => setDistance(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>Duration (sec)</FieldLabel>
+          <input
+            type="number"
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+      </div>
+      <div>
+        <FieldLabel>Notes (optional)</FieldLabel>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} rows={2} />
       </div>
       <SubmitButton pending={pending} />
       <StatusMessage status={status} />

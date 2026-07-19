@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { StrengthForm, ShootingForm, NutritionForm, RecoveryForm, BodyweightForm } from "@/components/LogForms";
+import { StrengthForm, ShootingForm, NutritionForm, RecoveryForm, BodyweightForm, ConditioningForm } from "@/components/LogForms";
 import { NavBar } from "@/components/NavBar";
 
 const TABS = [
   { id: "strength", label: "Strength" },
   { id: "shooting", label: "Shooting" },
+  { id: "conditioning", label: "Conditioning" },
   { id: "nutrition", label: "Nutrition" },
   { id: "recovery", label: "Recovery" },
   { id: "body", label: "Body" },
@@ -57,6 +58,7 @@ export default function LogPage() {
       <div>
         {tab === "strength" && <StrengthForm userId={DEMO_USER_ID} />}
         {tab === "shooting" && <ShootingForm userId={DEMO_USER_ID} />}
+        {tab === "conditioning" && <ConditioningForm userId={DEMO_USER_ID} />}
         {tab === "nutrition" && <NutritionForm userId={DEMO_USER_ID} />}
         {tab === "recovery" && <RecoveryForm userId={DEMO_USER_ID} />}
         {tab === "body" && <BodyweightForm userId={DEMO_USER_ID} />}

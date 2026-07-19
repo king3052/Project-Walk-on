@@ -28,6 +28,18 @@ def get_user(user_id: str, db: Session = Depends(get_db)):
     return user
 
 
+@router.get("/{user_id}/profile", response_model=schemas.AthleteProfileOut)
+def get_profile(user_id: str, db: Session = Depends(get_db)):
+    profile = db.query(models.AthleteProfile).filter(models.AthleteProfile.user_id == user_id).first()
+    if not profile:
+        # Return an empty profile shell rather than a 404 — frontend treats "no profile yet" as normal.
+        profile = models.AthleteProfile(user_id=user_id)
+        db.add(profile)
+        db.commit()
+        db.refresh(profile)
+    return profile
+
+
 @router.put("/{user_id}/profile", response_model=schemas.AthleteProfileOut)
 def upsert_profile(user_id: str, payload: schemas.AthleteProfileUpsert, db: Session = Depends(get_db)):
     profile = db.query(models.AthleteProfile).filter(models.AthleteProfile.user_id == user_id).first()
