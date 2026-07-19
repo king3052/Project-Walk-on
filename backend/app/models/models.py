@@ -114,6 +114,41 @@ class JournalEntry(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class FilmSession(Base):
+    __tablename__ = "film_sessions"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    title = Column(String, nullable=False)
+    video_url = Column(String, nullable=False)
+    notes = Column(Text, nullable=True)
+
+    tags = relationship("FilmTag", back_populates="session", cascade="all, delete-orphan")
+
+
+class FilmTag(Base):
+    __tablename__ = "film_tags"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    film_session_id = Column(UUID(as_uuid=False), ForeignKey("film_sessions.id"), nullable=False)
+    timestamp_sec = Column(Integer, nullable=False)
+    tag_type = Column(String, nullable=False)  # good_possession | bad_turnover | late_rotation | missed_closeout | shot_selection
+    note = Column(Text, nullable=True)
+
+    session = relationship("FilmSession", back_populates="tags")
+
+
+class AICoachSummary(Base):
+    __tablename__ = "ai_coach_summaries"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    week_start = Column(Date, nullable=False)
+    summary_text = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class TrainingSession(Base):
     __tablename__ = "training_sessions"
 

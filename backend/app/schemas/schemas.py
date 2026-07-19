@@ -163,6 +163,64 @@ class GoalOut(GoalCreate):
         from_attributes = True
 
 
+# ---------- Film Room ----------
+class FilmTagCreate(BaseModel):
+    timestamp_sec: int
+    tag_type: str
+    note: Optional[str] = None
+
+
+class FilmTagOut(FilmTagCreate):
+    id: str
+    film_session_id: str
+
+    class Config:
+        from_attributes = True
+
+
+class FilmSessionCreate(BaseModel):
+    user_id: str
+    date: date
+    title: str
+    video_url: str
+    notes: Optional[str] = None
+
+
+class FilmSessionOut(BaseModel):
+    id: str
+    user_id: str
+    date: date
+    title: str
+    video_url: str
+    notes: Optional[str] = None
+    tags: list[FilmTagOut] = []
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- AI Coach ----------
+class AICoachSummaryOut(BaseModel):
+    id: str
+    user_id: str
+    week_start: date
+    summary_text: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Achievements (computed, read-only) ----------
+class Achievement(BaseModel):
+    key: str
+    name: str
+    description: str
+    earned: bool
+    progress_current: float
+    progress_target: float
+
+
 # ---------- Conditioning ----------
 class ConditioningLogCreate(BaseModel):
     user_id: str
