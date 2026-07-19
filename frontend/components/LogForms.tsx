@@ -12,18 +12,18 @@ import {
 const today = () => new Date().toISOString().slice(0, 10);
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="text-xs uppercase tracking-widest text-chalk-dim block mb-1">{children}</label>;
+  return <label className="text-xs tracking-wide text-fg-dim block mb-1">{children}</label>;
 }
 
 const inputClass =
-  "w-full bg-court-panelLight border border-court-line rounded px-3 py-2 text-chalk focus:outline-none focus:border-hardwood";
+  "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
 
 function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
       disabled={pending}
-      className="font-display uppercase tracking-widest text-sm bg-hardwood hover:bg-hardwood-light disabled:opacity-50 text-court-bg px-5 py-2 rounded transition-colors"
+      className="text-sm bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-5 py-2 rounded-md transition-colors"
     >
       {pending ? "Saving…" : "Log it"}
     </button>
@@ -33,7 +33,7 @@ function SubmitButton({ pending }: { pending: boolean }) {
 function StatusMessage({ status }: { status: { type: "success" | "error"; text: string } | null }) {
   if (!status) return null;
   return (
-    <p className={status.type === "success" ? "text-scoreboard-green text-sm" : "text-scoreboard-red text-sm"}>
+    <p className={status.type === "success" ? "text-accent text-sm" : "text-warn text-sm"}>
       {status.text}
     </p>
   );

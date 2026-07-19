@@ -9,11 +9,7 @@
 }
 
 body {
-  background-color: #0B0D10;
-  background-image:
-    linear-gradient(#2A2F36 1px, transparent 1px);
-  background-size: 100% 64px;
-  background-attachment: fixed;
+  background-color: #0A0A0A;
 }
 
 .tabular-nums {

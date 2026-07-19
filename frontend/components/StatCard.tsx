@@ -2,23 +2,23 @@ type StatCardProps = {
   label: string;
   value: string;
   sub?: string;
-  accent?: "hardwood" | "green" | "red";
+  accent?: "accent" | "muted" | "warn";
 };
 
 const accentMap = {
-  hardwood: "text-hardwood-light",
-  green: "text-scoreboard-green",
-  red: "text-scoreboard-red",
+  accent: "text-accent",
+  muted: "text-fg",
+  warn: "text-warn",
 };
 
-export function StatCard({ label, value, sub, accent = "hardwood" }: StatCardProps) {
+export function StatCard({ label, value, sub, accent = "muted" }: StatCardProps) {
   return (
-    <div className="rounded-md border border-court-line bg-court-panel px-5 py-4">
-      <div className="text-xs uppercase tracking-widest text-chalk-dim">{label}</div>
-      <div className={`font-display text-4xl leading-none tabular-nums mt-1 ${accentMap[accent]}`}>
+    <div className="rounded-lg border border-surface-border bg-surface-panel px-5 py-4">
+      <div className="text-xs tracking-wide text-fg-dim">{label}</div>
+      <div className={`font-display text-3xl leading-none tabular-nums mt-1.5 ${accentMap[accent]}`}>
         {value}
       </div>
-      {sub && <div className="text-xs text-chalk-muted mt-1">{sub}</div>}
+      {sub && <div className="text-xs text-fg-muted mt-1">{sub}</div>}
     </div>
   );
 }
@@ -31,12 +31,7 @@ type SectionProps = {
 export function Section({ title, children }: SectionProps) {
   return (
     <section>
-      <div className="flex items-center gap-3 mb-3">
-        <h2 className="font-display text-lg uppercase tracking-widest text-chalk-muted">
-          {title}
-        </h2>
-        <div className="h-px flex-1 bg-court-line" />
-      </div>
+      <h2 className="text-xs uppercase tracking-wide text-fg-dim mb-3">{title}</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">{children}</div>
     </section>
   );
