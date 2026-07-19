@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 from app.core.database import Base, engine
 from app.models import models  # noqa: F401 (ensures models are registered before create_all)
@@ -23,9 +24,16 @@ from app.routers import (
 
 app = FastAPI(title="Project Walk-On OS API", version="0.1.0")
 
+# Comma-separated list, e.g. "http://localhost:3000,https://your-app.vercel.app"
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # add your deployed frontend URL too
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
