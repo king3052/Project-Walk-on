@@ -1,10 +1,9 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { getProfile, saveProfile, type AthleteProfile } from "@/lib/api";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
@@ -39,14 +38,15 @@ const GOALS: FieldDef[] = [
 ];
 
 export default function ProfilePage() {
+  const { userId } = useAuth();
   const [profile, setProfile] = useState<Partial<AthleteProfile>>({});
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
-    if (!DEMO_USER_ID) return;
-    getProfile(DEMO_USER_ID)
+    if (!userId) return;
+    getProfile(userId)
       .then(setProfile)
       .catch(() => setProfile({}))
       .finally(() => setLoading(false));
@@ -57,10 +57,11 @@ export default function ProfilePage() {
   }
 
   async function onSave() {
+    if (!userId) return;
     setPending(true);
     setStatus(null);
     try {
-      await saveProfile(DEMO_USER_ID, profile);
+      await saveProfile(userId, profile);
       setStatus({ type: "success", text: "Profile saved." });
     } catch (err) {
       setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
@@ -94,17 +95,6 @@ export default function ProfilePage() {
           })}
         </div>
       </div>
-    );
-  }
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
     );
   }
 

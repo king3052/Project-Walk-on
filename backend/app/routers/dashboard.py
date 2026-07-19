@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.core.database import get_db
+from app.core.auth import get_current_user_id
 from app.models import models
 from app.schemas import schemas
 
@@ -12,7 +13,10 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
 @router.get("/{user_id}", response_model=schemas.DashboardOut)
-def get_dashboard(user_id: str, db: Session = Depends(get_db)):
+def get_dashboard(
+    user_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    user_id = current_user_id  # ignore path value — always operate as the verified caller
     user = db.query(models.User).get(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

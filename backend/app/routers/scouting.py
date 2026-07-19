@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.core.database import get_db
+from app.core.auth import get_current_user_id
 from app.models import models
 from app.schemas import schemas
 
@@ -86,7 +87,10 @@ def _gather_profile_data(db: Session, user_id: str) -> str:
 
 
 @router.post("/{user_id}/generate", response_model=schemas.ScoutingReportOut)
-def generate_report(user_id: str, db: Session = Depends(get_db)):
+def generate_report(
+    user_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    user_id = current_user_id  # ignore path value — always operate as the verified caller
     if not GROQ_API_KEY:
         raise HTTPException(
             status_code=503,
@@ -140,7 +144,10 @@ def generate_report(user_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/user/{user_id}", response_model=list[schemas.ScoutingReportOut])
-def list_reports(user_id: str, db: Session = Depends(get_db)):
+def list_reports(
+    user_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    user_id = current_user_id
     return (
         db.query(models.ScoutingReport)
         .filter(models.ScoutingReport.user_id == user_id)

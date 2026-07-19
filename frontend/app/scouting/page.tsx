@@ -1,10 +1,9 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { getScoutingReports, generateScoutingReport, type ScoutingReport } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 function gradeColor(grade: string | null): string {
   if (!grade) return "text-fg-dim";
@@ -15,13 +14,14 @@ function gradeColor(grade: string | null): string {
 }
 
 export default function ScoutingPage() {
+  const { userId } = useAuth();
   const [reports, setReports] = useState<ScoutingReport[]>([]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function loadReports() {
-    if (!DEMO_USER_ID) return;
-    getScoutingReports(DEMO_USER_ID)
+    if (!userId) return;
+    getScoutingReports(userId)
       .then(setReports)
       .catch(() => setReports([]));
   }
@@ -29,27 +29,17 @@ export default function ScoutingPage() {
   useEffect(loadReports, []);
 
   async function onGenerate() {
+    if (!userId) return;
     setPending(true);
     setError(null);
     try {
-      await generateScoutingReport(DEMO_USER_ID);
+      await generateScoutingReport(userId);
       loadReports();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setPending(false);
     }
-  }
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
   }
 
   return (

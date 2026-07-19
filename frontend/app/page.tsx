@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useAuth } from "@/components/AuthProvider";
 import { getDashboard, type DashboardData } from "@/lib/api";
 import { StatCard, Section } from "@/components/StatCard";
 import { Mission } from "@/components/Mission";
@@ -15,20 +19,16 @@ const MOCK: DashboardData = {
   avg_sleep_this_week: 7.8,
 };
 
-// TODO: replace with the logged-in user's id once auth is wired up.
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
+export default function DashboardPage() {
+  const { userId } = useAuth();
+  const [data, setData] = useState<DashboardData>(MOCK);
 
-async function loadDashboard(): Promise<DashboardData> {
-  if (!DEMO_USER_ID) return MOCK;
-  try {
-    return await getDashboard(DEMO_USER_ID);
-  } catch {
-    return MOCK; // backend not up yet — keep the dashboard usable
-  }
-}
-
-export default async function DashboardPage() {
-  const data = await loadDashboard();
+  useEffect(() => {
+    if (!userId) return;
+    getDashboard(userId)
+      .then(setData)
+      .catch(() => setData(MOCK)); // backend not reachable — keep the dashboard usable
+  }, [userId]);
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 space-y-8">
@@ -56,11 +56,7 @@ export default async function DashboardPage() {
       </header>
 
       <Section title="Body">
-        <StatCard
-          label="Weight"
-          value={data.weight_lb ? `${data.weight_lb}` : "—"}
-          sub="lbs"
-        />
+        <StatCard label="Weight" value={data.weight_lb ? `${data.weight_lb}` : "—"} sub="lbs" />
         <StatCard
           label="Goal weight"
           value={data.goal_weight_lb ? `${data.goal_weight_lb}` : "—"}
@@ -77,11 +73,7 @@ export default async function DashboardPage() {
 
       <Section title="Basketball">
         <StatCard label="Shots this week" value={`${data.shots_this_week}`} />
-        <StatCard
-          label="Shooting %"
-          value={`${data.shooting_pct_this_week}%`}
-          accent="accent"
-        />
+        <StatCard label="Shooting %" value={`${data.shooting_pct_this_week}%`} accent="accent" />
       </Section>
 
       <Section title="Recovery">

@@ -1,10 +1,9 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { getGoals, createGoal, updateGoalStatus, type Goal } from "@/lib/api";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
@@ -19,6 +18,7 @@ const STATUS_LABEL: Record<Goal["status"], string> = {
 };
 
 export default function GoalsPage() {
+  const { userId } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -28,8 +28,8 @@ export default function GoalsPage() {
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   function loadGoals() {
-    if (!DEMO_USER_ID) return;
-    getGoals(DEMO_USER_ID)
+    if (!userId) return;
+    getGoals(userId)
       .then(setGoals)
       .catch(() => setGoals([]));
   }
@@ -38,10 +38,11 @@ export default function GoalsPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!userId) return;
     setPending(true);
     setStatus(null);
     try {
-      await createGoal(DEMO_USER_ID, {
+      await createGoal(userId, {
         title,
         category,
         target: target || undefined,
@@ -64,17 +65,6 @@ export default function GoalsPage() {
     const next = order[(order.indexOf(goal.status) + 1) % order.length];
     await updateGoalStatus(goal.id, next);
     loadGoals();
-  }
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
   }
 
   const grouped = CATEGORIES.map((cat) => ({

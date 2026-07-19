@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
+import { LogOut } from "lucide-react";
 import {
   LayoutDashboard,
   ClipboardPlus,
@@ -36,6 +38,7 @@ const LINKS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { signOut } = useAuth();
 
   return (
     <aside className="print:hidden w-56 shrink-0 border-r border-surface-border h-screen sticky top-0 flex flex-col">
@@ -63,6 +66,13 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <button
+        onClick={() => signOut()}
+        className="flex items-center gap-3 px-5 py-4 text-sm text-fg-dim hover:text-warn transition-colors border-t border-surface-border"
+      >
+        <LogOut size={16} strokeWidth={1.75} />
+        Sign out
+      </button>
     </aside>
   );
 }

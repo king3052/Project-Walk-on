@@ -1,10 +1,9 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { getAICoachSummaries, generateAICoachSummary, type AICoachSummary } from "@/lib/api";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 function mostRecentSunday(): string {
   const d = new Date();
@@ -13,13 +12,14 @@ function mostRecentSunday(): string {
 }
 
 export default function CoachPage() {
+  const { userId } = useAuth();
   const [summaries, setSummaries] = useState<AICoachSummary[]>([]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function loadSummaries() {
-    if (!DEMO_USER_ID) return;
-    getAICoachSummaries(DEMO_USER_ID)
+    if (!userId) return;
+    getAICoachSummaries(userId)
       .then(setSummaries)
       .catch(() => setSummaries([]));
   }
@@ -27,27 +27,17 @@ export default function CoachPage() {
   useEffect(loadSummaries, []);
 
   async function onGenerate() {
+    if (!userId) return;
     setPending(true);
     setError(null);
     try {
-      await generateAICoachSummary(DEMO_USER_ID, mostRecentSunday());
+      await generateAICoachSummary(userId, mostRecentSunday());
       loadSummaries();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
       setPending(false);
     }
-  }
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
   }
 
   return (

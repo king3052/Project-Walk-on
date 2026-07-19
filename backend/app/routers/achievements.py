@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.core.database import get_db
+from app.core.auth import get_current_user_id
 from app.models import models
 from app.schemas import schemas
 
@@ -10,7 +11,10 @@ router = APIRouter(prefix="/achievements", tags=["achievements"])
 
 
 @router.get("/{user_id}", response_model=list[schemas.Achievement])
-def get_achievements(user_id: str, db: Session = Depends(get_db)):
+def get_achievements(
+    user_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    user_id = current_user_id  # ignore path value — always operate as the verified caller
     user = db.query(models.User).get(user_id)
     profile = db.query(models.AthleteProfile).filter(models.AthleteProfile.user_id == user_id).first()
 

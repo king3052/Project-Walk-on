@@ -1,31 +1,20 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { getAchievements, type Achievement } from "@/lib/api";
 
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
-
 export default function AchievementsPage() {
+  const { userId } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
 
   useEffect(() => {
-    if (!DEMO_USER_ID) return;
-    getAchievements(DEMO_USER_ID)
+    if (!userId) return;
+    getAchievements(userId)
       .then(setAchievements)
       .catch(() => setAchievements([]));
   }, []);
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
-  }
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 space-y-8">

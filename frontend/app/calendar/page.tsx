@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import {
   getScheduledWorkouts,
@@ -9,8 +10,6 @@ import {
   type ScheduledWorkout,
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 const WORKOUT_TYPES = ["Strength", "Basketball", "Conditioning", "Recovery", "Film", "Rest"];
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -40,6 +39,7 @@ function buildGrid(monthDate: Date): (Date | null)[] {
 }
 
 export default function CalendarPage() {
+  const { userId } = useAuth();
   const today = new Date();
   const [monthDate, setMonthDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [workouts, setWorkouts] = useState<ScheduledWorkout[]>([]);
@@ -51,10 +51,10 @@ export default function CalendarPage() {
   const [error, setError] = useState<string | null>(null);
 
   function loadMonth() {
-    if (!DEMO_USER_ID) return;
+    if (!userId) return;
     const start = toISODate(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
     const end = toISODate(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
-    getScheduledWorkouts(DEMO_USER_ID, start, end)
+    getScheduledWorkouts(userId, start, end)
       .then(setWorkouts)
       .catch(() => setWorkouts([]));
   }
@@ -63,10 +63,11 @@ export default function CalendarPage() {
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();
+    if (!userId) return;
     setPending(true);
     setError(null);
     try {
-      await createScheduledWorkout(DEMO_USER_ID, selectedDate, workoutType, title, notes || undefined);
+      await createScheduledWorkout(userId, selectedDate, workoutType, title, notes || undefined);
       setTitle("");
       setNotes("");
       loadMonth();
@@ -85,17 +86,6 @@ export default function CalendarPage() {
   async function onDelete(id: string) {
     await deleteScheduledWorkout(id);
     loadMonth();
-  }
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
   }
 
   const cells = buildGrid(monthDate);

@@ -23,6 +23,12 @@ class UserOut(UserCreate):
         from_attributes = True
 
 
+class UserSync(BaseModel):
+    """Sent once right after login/signup to make sure a matching row exists."""
+    email: EmailStr
+    name: str
+
+
 # ---------- Athlete Profile ----------
 class AthleteProfileUpsert(BaseModel):
     vertical_in: Optional[float] = None

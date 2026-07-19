@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import {
   LineChart,
@@ -13,8 +14,6 @@ import {
 import { getAnalytics, type AnalyticsData } from "@/lib/api";
 import { ActivityCalendar } from "@/components/ActivityCalendar";
 import { PageHeader } from "@/components/PageHeader";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 const LINE_COLORS = ["#4ADE80", "#A1A1AA", "#F87171", "#60A5FA"];
 
@@ -76,26 +75,16 @@ function aggregateShooting(shooting: AnalyticsData["shooting"]) {
 }
 
 export default function AnalyticsPage() {
+  const { userId } = useAuth();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!DEMO_USER_ID) return;
-    getAnalytics(DEMO_USER_ID, 90)
+    if (!userId) return;
+    getAnalytics(userId, 90)
       .then(setData)
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load analytics."));
   }, []);
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
-  }
 
   const strengthPivot = data ? pivotStrength(data.strength) : { rows: [], exercises: [] };
   const shootingSeries = data ? aggregateShooting(data.shooting) : [];

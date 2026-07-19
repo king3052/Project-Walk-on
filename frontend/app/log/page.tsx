@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { StrengthForm, ShootingForm, NutritionForm, RecoveryForm, BodyweightForm, ConditioningForm } from "@/components/LogForms";
@@ -15,20 +16,12 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
-
 export default function LogPage() {
+  const { userId } = useAuth();
   const [tab, setTab] = useState<TabId>("strength");
 
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> to your user id before logging data.
-        </p>
-      </main>
-    );
+  if (!userId) {
+    return null;
   }
 
   return (
@@ -52,12 +45,12 @@ export default function LogPage() {
       </nav>
 
       <div>
-        {tab === "strength" && <StrengthForm userId={DEMO_USER_ID} />}
-        {tab === "shooting" && <ShootingForm userId={DEMO_USER_ID} />}
-        {tab === "conditioning" && <ConditioningForm userId={DEMO_USER_ID} />}
-        {tab === "nutrition" && <NutritionForm userId={DEMO_USER_ID} />}
-        {tab === "recovery" && <RecoveryForm userId={DEMO_USER_ID} />}
-        {tab === "body" && <BodyweightForm userId={DEMO_USER_ID} />}
+        {tab === "strength" && <StrengthForm userId={userId} />}
+        {tab === "shooting" && <ShootingForm userId={userId} />}
+        {tab === "conditioning" && <ConditioningForm userId={userId} />}
+        {tab === "nutrition" && <NutritionForm userId={userId} />}
+        {tab === "recovery" && <RecoveryForm userId={userId} />}
+        {tab === "body" && <BodyweightForm userId={userId} />}
       </div>
     </main>
   );

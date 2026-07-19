@@ -1,10 +1,10 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { getFilmSessions, createFilmSession, addFilmTag, type FilmSession } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 const today = () => new Date().toISOString().slice(0, 10);
 
 const inputClass =
@@ -74,6 +74,7 @@ function TagForm({ sessionId, onAdded }: { sessionId: string; onAdded: () => voi
 }
 
 export default function FilmPage() {
+  const { userId } = useAuth();
   const [sessions, setSessions] = useState<FilmSession[]>([]);
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
@@ -82,8 +83,8 @@ export default function FilmPage() {
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   function loadSessions() {
-    if (!DEMO_USER_ID) return;
-    getFilmSessions(DEMO_USER_ID)
+    if (!userId) return;
+    getFilmSessions(userId)
       .then(setSessions)
       .catch(() => setSessions([]));
   }
@@ -92,10 +93,11 @@ export default function FilmPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!userId) return;
     setPending(true);
     setStatus(null);
     try {
-      await createFilmSession(DEMO_USER_ID, date, title, videoUrl);
+      await createFilmSession(userId, date, title, videoUrl);
       setTitle("");
       setVideoUrl("");
       setStatus({ type: "success", text: "Film session added." });
@@ -105,17 +107,6 @@ export default function FilmPage() {
     } finally {
       setPending(false);
     }
-  }
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
   }
 
   return (

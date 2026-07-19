@@ -1,10 +1,9 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { logWeeklyReview, getWeeklyReviews, type WeeklyReview } from "@/lib/api";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 function mostRecentSunday(): string {
   const d = new Date();
@@ -17,6 +16,7 @@ const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
 
 export default function ReviewPage() {
+  const { userId } = useAuth();
   const [weekStart, setWeekStart] = useState(mostRecentSunday());
   const [wins, setWins] = useState("");
   const [weakness, setWeakness] = useState("");
@@ -26,8 +26,8 @@ export default function ReviewPage() {
   const [history, setHistory] = useState<WeeklyReview[]>([]);
 
   function loadHistory() {
-    if (!DEMO_USER_ID) return;
-    getWeeklyReviews(DEMO_USER_ID)
+    if (!userId) return;
+    getWeeklyReviews(userId)
       .then(setHistory)
       .catch(() => setHistory([]));
   }
@@ -36,10 +36,11 @@ export default function ReviewPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!userId) return;
     setPending(true);
     setStatus(null);
     try {
-      await logWeeklyReview(DEMO_USER_ID, weekStart, {
+      await logWeeklyReview(userId, weekStart, {
         wins,
         weakness,
         next_focus: nextFocus,
@@ -54,17 +55,6 @@ export default function ReviewPage() {
     } finally {
       setPending(false);
     }
-  }
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
   }
 
   return (

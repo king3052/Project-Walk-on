@@ -1,9 +1,8 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { getUser, getProfile, getDashboard, getAchievements, type UserRecord, type AthleteProfile, type DashboardData, type Achievement } from "@/lib/api";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 function Row({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === "") return null;
@@ -16,29 +15,19 @@ function Row({ label, value }: { label: string; value: string | number | null | 
 }
 
 export default function ResumePage() {
+  const { userId } = useAuth();
   const [user, setUser] = useState<UserRecord | null>(null);
   const [profile, setProfile] = useState<AthleteProfile | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
 
   useEffect(() => {
-    if (!DEMO_USER_ID) return;
-    getUser(DEMO_USER_ID).then(setUser).catch(() => {});
-    getProfile(DEMO_USER_ID).then(setProfile).catch(() => {});
-    getDashboard(DEMO_USER_ID).then(setDashboard).catch(() => {});
-    getAchievements(DEMO_USER_ID).then(setAchievements).catch(() => {});
+    if (!userId) return;
+    getUser(userId).then(setUser).catch(() => {});
+    getProfile(userId).then(setProfile).catch(() => {});
+    getDashboard(userId).then(setDashboard).catch(() => {});
+    getAchievements(userId).then(setAchievements).catch(() => {});
   }, []);
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
-  }
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-8 print:max-w-none">

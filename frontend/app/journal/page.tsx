@@ -1,10 +1,9 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { logJournalEntry, getJournalEntries, type JournalEntry } from "@/lib/api";
-
-const DEMO_USER_ID = process.env.NEXT_PUBLIC_DEMO_USER_ID || "";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -12,6 +11,7 @@ const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
 
 export default function JournalPage() {
+  const { userId } = useAuth();
   const [date, setDate] = useState(today());
   const [wentWell, setWentWell] = useState("");
   const [mistakes, setMistakes] = useState("");
@@ -22,8 +22,8 @@ export default function JournalPage() {
   const [history, setHistory] = useState<JournalEntry[]>([]);
 
   function loadHistory() {
-    if (!DEMO_USER_ID) return;
-    getJournalEntries(DEMO_USER_ID)
+    if (!userId) return;
+    getJournalEntries(userId)
       .then(setHistory)
       .catch(() => setHistory([]));
   }
@@ -32,10 +32,11 @@ export default function JournalPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!userId) return;
     setPending(true);
     setStatus(null);
     try {
-      await logJournalEntry(DEMO_USER_ID, date, {
+      await logJournalEntry(userId, date, {
         went_well: wentWell,
         mistakes,
         confidence,
@@ -51,17 +52,6 @@ export default function JournalPage() {
     } finally {
       setPending(false);
     }
-  }
-
-  if (!DEMO_USER_ID) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <p className="text-fg-muted">
-          Set <code className="text-accent">NEXT_PUBLIC_DEMO_USER_ID</code> in{" "}
-          <code className="text-accent">frontend/.env.local</code> first.
-        </p>
-      </main>
-    );
   }
 
   return (

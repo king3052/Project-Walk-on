@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.auth import get_current_user_id
 from app.models import models
 from app.schemas import schemas
 
@@ -11,7 +12,13 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
 @router.get("/{user_id}", response_model=schemas.AnalyticsOut)
-def get_analytics(user_id: str, days: int = 90, db: Session = Depends(get_db)):
+def get_analytics(
+    user_id: str,
+    days: int = 90,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    user_id = current_user_id  # ignore path value — always operate as the verified caller
     since = date.today() - timedelta(days=days)
 
     weight_rows = (

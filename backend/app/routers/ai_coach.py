@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.auth import get_current_user_id
 from app.models import models
 from app.schemas import schemas
 
@@ -98,7 +99,13 @@ def _gather_week_summary(db: Session, user_id: str, week_start: date) -> str:
 
 
 @router.post("/{user_id}/generate", response_model=schemas.AICoachSummaryOut)
-def generate_summary(user_id: str, week_start: date, db: Session = Depends(get_db)):
+def generate_summary(
+    user_id: str,
+    week_start: date,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    user_id = current_user_id  # ignore path value — always operate as the verified caller
     if not GROQ_API_KEY:
         raise HTTPException(
             status_code=503,
@@ -142,7 +149,10 @@ def generate_summary(user_id: str, week_start: date, db: Session = Depends(get_d
 
 
 @router.get("/user/{user_id}", response_model=list[schemas.AICoachSummaryOut])
-def list_summaries(user_id: str, db: Session = Depends(get_db)):
+def list_summaries(
+    user_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    user_id = current_user_id
     return (
         db.query(models.AICoachSummary)
         .filter(models.AICoachSummary.user_id == user_id)
