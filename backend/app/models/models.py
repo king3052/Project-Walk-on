@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime, date
 
 from sqlalchemy import (
-    Column, String, Integer, Float, Date, DateTime, ForeignKey, Enum, Text
+    Column, String, Integer, Float, Date, DateTime, ForeignKey, Enum, Text, Boolean
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -160,6 +160,18 @@ class ScoutingReport(Base):
     overall_grade = Column(String, nullable=True)  # e.g. "B+"
     next_priority = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ScheduledWorkout(Base):
+    __tablename__ = "scheduled_workouts"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, nullable=False)
+    workout_type = Column(String, nullable=False)  # Strength | Basketball | Conditioning | Recovery | Film | Rest
+    title = Column(String, nullable=False)
+    notes = Column(Text, nullable=True)
+    completed = Column(Boolean, default=False)
 
 
 class TrainingSession(Base):

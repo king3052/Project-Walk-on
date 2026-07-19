@@ -340,3 +340,50 @@ export async function generateScoutingReport(userId: string): Promise<ScoutingRe
   }
   return res.json();
 }
+
+export type ScheduledWorkout = {
+  id: string;
+  user_id: string;
+  date: string;
+  workout_type: string;
+  title: string;
+  notes: string | null;
+  completed: boolean;
+};
+
+export async function getScheduledWorkouts(
+  userId: string,
+  start: string,
+  end: string
+): Promise<ScheduledWorkout[]> {
+  const res = await fetch(
+    `${API_BASE}/scheduled-workouts/user/${userId}?start=${start}&end=${end}`,
+    { cache: "no-store" }
+  );
+  if (!res.ok) throw new Error(`Scheduled workouts fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export function createScheduledWorkout(
+  userId: string,
+  date: string,
+  workoutType: string,
+  title: string,
+  notes?: string
+) {
+  return post("/scheduled-workouts/", { user_id: userId, date, workout_type: workoutType, title, notes: notes || null });
+}
+
+export function toggleScheduledWorkoutComplete(id: string) {
+  return fetch(`${API_BASE}/scheduled-workouts/${id}/complete`, { method: "PATCH" }).then(async (res) => {
+    if (!res.ok) throw new Error(`Toggle failed: ${res.status}`);
+    return res.json();
+  });
+}
+
+export function deleteScheduledWorkout(id: string) {
+  return fetch(`${API_BASE}/scheduled-workouts/${id}`, { method: "DELETE" }).then(async (res) => {
+    if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+    return res.json();
+  });
+}

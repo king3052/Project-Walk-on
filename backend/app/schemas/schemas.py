@@ -226,6 +226,35 @@ class ScoutingReportOut(BaseModel):
         from_attributes = True
 
 
+# ---------- Scheduled Workouts (planning calendar) ----------
+class ScheduledWorkoutCreate(BaseModel):
+    user_id: str
+    date: date
+    workout_type: str
+    title: str
+    notes: Optional[str] = None
+
+
+class ScheduledWorkoutUpdate(BaseModel):
+    date: Optional[date] = None
+    workout_type: Optional[str] = None
+    title: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class ScheduledWorkoutOut(BaseModel):
+    id: str
+    user_id: str
+    date: date
+    workout_type: str
+    title: str
+    notes: Optional[str] = None
+    completed: bool
+
+    class Config:
+        from_attributes = True
+
+
 # ---------- Achievements (computed, read-only) ----------
 class Achievement(BaseModel):
     key: str
