@@ -46,6 +46,45 @@ def get_me(current_user_id: str = Depends(get_current_user_id), db: Session = De
     return user
 
 
+@router.post("/onboard", response_model=schemas.UserOut)
+def onboard(
+    payload: schemas.OnboardingPayload,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Called once from the onboarding survey — sets real starting numbers instead of leaving mock data implied."""
+    user = db.query(models.User).get(current_user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found — call /users/sync first")
+
+    if payload.height_in is not None:
+        user.height_in = payload.height_in
+    if payload.weight_lb is not None:
+        user.weight_lb = payload.weight_lb
+    if payload.position is not None:
+        user.position = payload.position
+    if payload.dominant_hand is not None:
+        user.dominant_hand = payload.dominant_hand
+    user.onboarding_complete = True
+
+    profile = db.query(models.AthleteProfile).filter(models.AthleteProfile.user_id == current_user_id).first()
+    if not profile:
+        profile = models.AthleteProfile(user_id=current_user_id)
+        db.add(profile)
+    if payload.goal_weight_lb is not None:
+        profile.goal_weight_lb = payload.goal_weight_lb
+    if payload.goal_bench_lb is not None:
+        profile.goal_bench_lb = payload.goal_bench_lb
+    if payload.goal_squat_lb is not None:
+        profile.goal_squat_lb = payload.goal_squat_lb
+    if payload.goal_deadlift_lb is not None:
+        profile.goal_deadlift_lb = payload.goal_deadlift_lb
+
+    db.commit()
+    db.refresh(user)
+    return user
+
+
 @router.get("/{user_id}", response_model=schemas.UserOut)
 def get_user(
     user_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)

@@ -17,6 +17,7 @@ class UserCreate(BaseModel):
 
 class UserOut(UserCreate):
     id: str
+    onboarding_complete: bool
     created_at: datetime
 
     class Config:
@@ -27,6 +28,18 @@ class UserSync(BaseModel):
     """Sent once right after login/signup to make sure a matching row exists."""
     email: EmailStr
     name: str
+
+
+class OnboardingPayload(BaseModel):
+    """Sent once from the /onboarding page to set up a brand new account."""
+    height_in: Optional[float] = None
+    weight_lb: Optional[float] = None
+    position: Optional[str] = None
+    dominant_hand: Optional[str] = None
+    goal_weight_lb: Optional[float] = None
+    goal_bench_lb: Optional[float] = None
+    goal_squat_lb: Optional[float] = None
+    goal_deadlift_lb: Optional[float] = None
 
 
 # ---------- Athlete Profile ----------

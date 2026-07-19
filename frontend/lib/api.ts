@@ -145,11 +145,28 @@ export type AthleteProfile = {
 
 export type UserRecord = {
   id: string; email: string; name: string; height_in: number | null; weight_lb: number | null;
-  position: string | null; dominant_hand: string | null; created_at: string;
+  position: string | null; dominant_hand: string | null; onboarding_complete: boolean; created_at: string;
 };
 
 export function getUser(userId: string): Promise<UserRecord> {
   return apiFetch(`/users/${userId}`);
+}
+
+export function getMe(): Promise<UserRecord> {
+  return apiFetch(`/users/me`);
+}
+
+export function submitOnboarding(data: {
+  height_in?: number;
+  weight_lb?: number;
+  position?: string;
+  dominant_hand?: string;
+  goal_weight_lb?: number;
+  goal_bench_lb?: number;
+  goal_squat_lb?: number;
+  goal_deadlift_lb?: number;
+}): Promise<UserRecord> {
+  return apiFetch(`/users/onboard`, { method: "POST", body: JSON.stringify(data) });
 }
 
 export function getProfile(userId: string): Promise<AthleteProfile> {

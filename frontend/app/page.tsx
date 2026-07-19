@@ -6,28 +6,34 @@ import { getDashboard, type DashboardData } from "@/lib/api";
 import { StatCard, Section } from "@/components/StatCard";
 import { Mission } from "@/components/Mission";
 
-const MOCK: DashboardData = {
-  athlete_score: 84,
-  score_breakdown: { strength: 78, basketball: 68, recovery: 95, nutrition: 90, consistency: 85 },
-  weight_lb: 159.8,
-  goal_weight_lb: 185,
-  bench_lb: 120,
-  squat_lb: 170,
-  deadlift_lb: 205,
-  shots_this_week: 1200,
-  shooting_pct_this_week: 68,
-  avg_sleep_this_week: 7.8,
+const EMPTY: DashboardData = {
+  athlete_score: 0,
+  score_breakdown: {},
+  weight_lb: null,
+  goal_weight_lb: null,
+  bench_lb: null,
+  squat_lb: null,
+  deadlift_lb: null,
+  shots_this_week: 0,
+  shooting_pct_this_week: 0,
+  avg_sleep_this_week: null,
 };
 
 export default function DashboardPage() {
   const { userId } = useAuth();
-  const [data, setData] = useState<DashboardData>(MOCK);
+  const [data, setData] = useState<DashboardData>(EMPTY);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
     getDashboard(userId)
-      .then(setData)
-      .catch(() => setData(MOCK)); // backend not reachable — keep the dashboard usable
+      .then((d) => {
+        setData(d);
+        setError(null);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Couldn't load your dashboard.");
+      });
   }, [userId]);
 
   return (
@@ -54,6 +60,12 @@ export default function DashboardPage() {
           )}
         </div>
       </header>
+
+      {error && (
+        <p className="text-warn text-sm rounded-md border border-warn/30 bg-warn/5 px-4 py-3">
+          {error}
+        </p>
+      )}
 
       <Section title="Body">
         <StatCard label="Weight" value={data.weight_lb ? `${data.weight_lb}` : "—"} sub="lbs" />

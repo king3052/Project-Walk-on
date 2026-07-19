@@ -46,6 +46,7 @@ class User(Base):
     weight_lb = Column(Float, nullable=True)
     position = Column(String, nullable=True)
     dominant_hand = Column(String, nullable=True)
+    onboarding_complete = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     profile = relationship("AthleteProfile", back_populates="user", uselist=False)

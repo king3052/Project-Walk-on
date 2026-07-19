@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { LogOut } from "lucide-react";
@@ -42,9 +43,12 @@ export function Sidebar() {
 
   return (
     <aside className="print:hidden w-56 shrink-0 border-r border-surface-border h-screen sticky top-0 flex flex-col">
-      <div className="px-5 py-6 border-b border-surface-border">
-        <p className="text-xs tracking-wide text-accent">Project</p>
-        <p className="font-display text-2xl tracking-tight text-fg leading-none mt-0.5">Walk-On</p>
+      <div className="px-5 py-6 border-b border-surface-border flex items-center gap-2.5">
+        <Image src="/logo-mascot.png" alt="" width={36} height={31} />
+        <div>
+          <p className="text-xs tracking-wide text-accent leading-none">Project</p>
+          <p className="font-display text-xl tracking-tight text-fg leading-tight">Walk-On</p>
+        </div>
       </div>
       <nav className="flex-1 overflow-y-auto py-3">
         {LINKS.map((link) => {
