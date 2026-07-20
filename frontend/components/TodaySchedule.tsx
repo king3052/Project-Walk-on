@@ -23,8 +23,12 @@ export function TodaySchedule({ userId }: { userId: string }) {
   useEffect(load, [userId]);
 
   async function toggle(id: string) {
-    await toggleScheduledWorkoutComplete(id);
-    load();
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, completed: !i.completed } : i)));
+    try {
+      await toggleScheduledWorkoutComplete(id);
+    } catch {
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, completed: !i.completed } : i))); // revert
+    }
   }
 
   const done = items.filter((i) => i.completed).length;

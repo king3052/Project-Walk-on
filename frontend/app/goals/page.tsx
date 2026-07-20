@@ -63,8 +63,12 @@ export default function GoalsPage() {
   async function cycleStatus(goal: Goal) {
     const order: Goal["status"][] = ["NOT_STARTED", "IN_PROGRESS", "ACHIEVED"];
     const next = order[(order.indexOf(goal.status) + 1) % order.length];
-    await updateGoalStatus(goal.id, next);
-    loadGoals();
+    setGoals((prev) => prev.map((g) => (g.id === goal.id ? { ...g, status: next } : g)));
+    try {
+      await updateGoalStatus(goal.id, next);
+    } catch {
+      setGoals((prev) => prev.map((g) => (g.id === goal.id ? { ...g, status: goal.status } : g))); // revert
+    }
   }
 
   const grouped = CATEGORIES.map((cat) => ({

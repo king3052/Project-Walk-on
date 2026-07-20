@@ -96,13 +96,22 @@ export default function CalendarPage() {
   }
 
   async function onToggle(id: string) {
-    await toggleScheduledWorkoutComplete(id);
-    loadMonth();
+    setWorkouts((prev) => prev.map((w) => (w.id === id ? { ...w, completed: !w.completed } : w)));
+    try {
+      await toggleScheduledWorkoutComplete(id);
+    } catch {
+      setWorkouts((prev) => prev.map((w) => (w.id === id ? { ...w, completed: !w.completed } : w))); // revert
+    }
   }
 
   async function onDelete(id: string) {
-    await deleteScheduledWorkout(id);
-    loadMonth();
+    const prevWorkouts = workouts;
+    setWorkouts((prev) => prev.filter((w) => w.id !== id));
+    try {
+      await deleteScheduledWorkout(id);
+    } catch {
+      setWorkouts(prevWorkouts); // revert
+    }
   }
 
   async function onSeedWeek() {
