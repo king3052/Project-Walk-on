@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.checklist import mark_category_done
 from app.models import models
 from app.schemas import schemas
 
@@ -21,6 +22,9 @@ def create_session(
     db.add(session)
     db.commit()
     db.refresh(session)
+
+    mark_category_done(db, models, current_user_id, session.date, ["Film"])
+
     return session
 
 

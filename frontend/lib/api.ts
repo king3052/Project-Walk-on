@@ -302,6 +302,10 @@ export function deleteScheduledWorkout(id: string) {
   return apiFetch(`/scheduled-workouts/${id}`, { method: "DELETE" });
 }
 
+export function seedWeekFromTemplate(weekStart: string): Promise<{ created: number }> {
+  return apiFetch(`/scheduled-workouts/seed-week?week_start=${weekStart}`, { method: "POST" });
+}
+
 // ---------- Settings ----------
 export type ScoreWeights = {
   weight_strength: number;

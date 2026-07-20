@@ -7,11 +7,26 @@ import {
   createScheduledWorkout,
   toggleScheduledWorkoutComplete,
   deleteScheduledWorkout,
+  seedWeekFromTemplate,
   type ScheduledWorkout,
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 
-const WORKOUT_TYPES = ["Strength", "Basketball", "Conditioning", "Recovery", "Film", "Rest"];
+const WORKOUT_TYPES = [
+  "Basketball",
+  "Strength",
+  "Conditioning",
+  "Nutrition",
+  "Recovery",
+  "Film",
+  "Analytics",
+  "Goals",
+  "Mental",
+  "Life",
+  "Planning",
+  "Journal",
+  "Rest",
+];
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const inputClass =
@@ -49,6 +64,8 @@ export default function CalendarPage() {
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+  const [seedStatus, setSeedStatus] = useState<string | null>(null);
 
   function loadMonth() {
     if (!userId) return;
@@ -88,6 +105,28 @@ export default function CalendarPage() {
     loadMonth();
   }
 
+  async function onSeedWeek() {
+    setSeeding(true);
+    setSeedStatus(null);
+    try {
+      const selected = new Date(selectedDate + "T00:00:00");
+      const weekday = selected.getDay(); // 0 = Sunday
+      const monday = new Date(selected);
+      monday.setDate(selected.getDate() - ((weekday + 6) % 7));
+      const result = await seedWeekFromTemplate(toISODate(monday));
+      setSeedStatus(
+        result.created > 0
+          ? `Added ${result.created} items from your template.`
+          : "That week already has your template loaded."
+      );
+      loadMonth();
+    } catch (err) {
+      setSeedStatus(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setSeeding(false);
+    }
+  }
+
   const cells = buildGrid(monthDate);
   const monthLabel = monthDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const todayISO = toISODate(today);
@@ -114,6 +153,17 @@ export default function CalendarPage() {
         >
           Next →
         </button>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <button
+          onClick={onSeedWeek}
+          disabled={seeding}
+          className="text-sm bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-4 py-2 rounded-md transition-colors"
+        >
+          {seeding ? "Loading…" : "Load this week's template"}
+        </button>
+        {seedStatus && <p className="text-xs text-fg-dim">{seedStatus}</p>}
       </div>
 
       <div className="grid grid-cols-7 gap-1.5">

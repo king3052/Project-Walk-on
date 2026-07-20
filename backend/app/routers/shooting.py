@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.checklist import mark_category_done
 from app.models import models
 from app.schemas import schemas
 
@@ -21,6 +22,9 @@ def create_shooting_log(
     db.add(log)
     db.commit()
     db.refresh(log)
+
+    mark_category_done(db, models, current_user_id, log.date, ['Basketball', 'Analytics'])
+
     return log
 
 

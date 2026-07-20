@@ -4,10 +4,21 @@ from datetime import date as date_type
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.checklist import seed_week
 from app.models import models
 from app.schemas import schemas
 
 router = APIRouter(prefix="/scheduled-workouts", tags=["scheduled-workouts"])
+
+
+@router.post("/seed-week")
+def seed_week_from_template(
+    week_start: date_type,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    created = seed_week(db, models, current_user_id, week_start)
+    return {"created": created}
 
 
 @router.post("/", response_model=schemas.ScheduledWorkoutOut)

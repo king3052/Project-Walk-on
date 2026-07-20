@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { getDashboard, type DashboardData } from "@/lib/api";
 import { StatCard, Section } from "@/components/StatCard";
-import { Mission } from "@/components/Mission";
+import { TodaySchedule } from "@/components/TodaySchedule";
 
 const EMPTY: DashboardData = {
   athlete_score: 0,
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       </Section>
 
       <div className="grid md:grid-cols-2 gap-6">
-        <Mission />
+        {userId && <TodaySchedule userId={userId} />}
       </div>
     </main>
   );
