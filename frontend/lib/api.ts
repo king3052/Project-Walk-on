@@ -56,13 +56,17 @@ export function logStrengthSession(
   userId: string,
   date: string,
   strengthLogs: StrengthSetInput[],
-  notes?: string
+  notes?: string,
+  durationMin?: number,
+  rpe?: number
 ) {
   return post("/training-sessions/", {
     user_id: userId,
     date,
     type: "STRENGTH",
     notes: notes || null,
+    duration_min: durationMin || null,
+    rpe: rpe || null,
     strength_logs: strengthLogs,
   });
 }
@@ -182,7 +186,7 @@ export function logConditioning(
   userId: string,
   date: string,
   activity: string,
-  data: { distance_m?: number; duration_sec?: number; notes?: string }
+  data: { distance_m?: number; duration_sec?: number; rpe?: number; notes?: string }
 ) {
   return post("/conditioning-logs/", { user_id: userId, date, activity, ...data });
 }
@@ -304,6 +308,62 @@ export function deleteScheduledWorkout(id: string) {
 
 export function seedWeekFromTemplate(weekStart: string): Promise<{ created: number }> {
   return apiFetch(`/scheduled-workouts/seed-week?week_start=${weekStart}`, { method: "POST" });
+}
+
+// ---------- Sports Science Lab ----------
+export type SportsScienceData = {
+  daily_load: { date: string; load: number }[];
+  acute_load: number;
+  chronic_load: number;
+  acwr: number | null;
+  readiness_score: number;
+  readiness_label: string;
+  readiness_note: string;
+};
+
+export function getSportsScience(userId: string): Promise<SportsScienceData> {
+  return apiFetch(`/sports-science/${userId}`);
+}
+
+// ---------- Injuries ----------
+export type Injury = {
+  id: string;
+  user_id: string;
+  date_reported: string;
+  body_part: string;
+  severity: number;
+  description: string | null;
+  status: "ACTIVE" | "RECOVERING" | "RESOLVED";
+  rehab_notes: string | null;
+  return_to_play_date: string | null;
+  created_at: string;
+};
+
+export function getInjuries(userId: string): Promise<Injury[]> {
+  return apiFetch(`/injuries/user/${userId}`);
+}
+
+export function createInjury(
+  userId: string,
+  dateReported: string,
+  bodyPart: string,
+  severity: number,
+  description?: string
+) {
+  return post("/injuries/", {
+    user_id: userId,
+    date_reported: dateReported,
+    body_part: bodyPart,
+    severity,
+    description: description || null,
+  });
+}
+
+export function updateInjury(
+  id: string,
+  data: { status?: string; severity?: number; rehab_notes?: string; return_to_play_date?: string }
+) {
+  return apiFetch(`/injuries/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 }
 
 // ---------- Settings ----------

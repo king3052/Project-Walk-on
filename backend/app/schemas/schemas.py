@@ -95,6 +95,7 @@ class TrainingSessionCreate(BaseModel):
     date: date
     type: SessionType
     duration_min: Optional[int] = None
+    rpe: Optional[int] = None
     notes: Optional[str] = None
     strength_logs: Optional[list[StrengthLogCreate]] = None
 
@@ -105,6 +106,7 @@ class TrainingSessionOut(BaseModel):
     date: date
     type: SessionType
     duration_min: Optional[int] = None
+    rpe: Optional[int] = None
     notes: Optional[str] = None
     strength_logs: list[StrengthLogOut] = []
 
@@ -295,6 +297,54 @@ class AccountUpdate(BaseModel):
     name: Optional[str] = None
 
 
+# ---------- Sports Science Lab ----------
+class DailyLoadPoint(BaseModel):
+    date: date
+    load: float
+
+
+class SportsScienceOut(BaseModel):
+    daily_load: list[DailyLoadPoint]
+    acute_load: float  # avg daily load, last 7 days
+    chronic_load: float  # avg daily load, last 28 days
+    acwr: Optional[float] = None  # acute:chronic workload ratio
+    readiness_score: int  # 0-100
+    readiness_label: str
+    readiness_note: str
+
+
+# ---------- Injury Management ----------
+class InjuryCreate(BaseModel):
+    user_id: str
+    date_reported: date
+    body_part: str
+    severity: int
+    description: Optional[str] = None
+
+
+class InjuryUpdate(BaseModel):
+    status: Optional[str] = None
+    severity: Optional[int] = None
+    rehab_notes: Optional[str] = None
+    return_to_play_date: Optional[date] = None
+
+
+class InjuryOut(BaseModel):
+    id: str
+    user_id: str
+    date_reported: date
+    body_part: str
+    severity: int
+    description: Optional[str] = None
+    status: str
+    rehab_notes: Optional[str] = None
+    return_to_play_date: Optional[date] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 # ---------- Achievements (computed, read-only) ----------
 class Achievement(BaseModel):
     key: str
@@ -312,6 +362,7 @@ class ConditioningLogCreate(BaseModel):
     activity: str
     distance_m: Optional[float] = None
     duration_sec: Optional[int] = None
+    rpe: Optional[int] = None
     notes: Optional[str] = None
 
 

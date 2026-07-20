@@ -47,6 +47,8 @@ export function StrengthForm({ userId }: { userId: string }) {
   const [sets, setSets] = useState(3);
   const [reps, setReps] = useState(5);
   const [weight, setWeight] = useState(185);
+  const [duration, setDuration] = useState(45);
+  const [rpe, setRpe] = useState(7);
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -57,7 +59,7 @@ export function StrengthForm({ userId }: { userId: string }) {
     setStatus(null);
     try {
       const strengthLogs: StrengthSetInput[] = [{ exercise, sets, reps, weight_lb: weight }];
-      await logStrengthSession(userId, date, strengthLogs, notes);
+      await logStrengthSession(userId, date, strengthLogs, notes, duration, rpe);
       setStatus({ type: "success", text: `Logged ${exercise}: ${sets}x${reps} @ ${weight}lb.` });
     } catch (err) {
       setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
@@ -107,6 +109,28 @@ export function StrengthForm({ userId }: { userId: string }) {
             type="number"
             value={weight}
             onChange={(e) => setWeight(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Session duration (min)</FieldLabel>
+          <input
+            type="number"
+            value={duration}
+            onChange={(e) => setDuration(Number(e.target.value))}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <FieldLabel>RPE (1-10, effort)</FieldLabel>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={rpe}
+            onChange={(e) => setRpe(Number(e.target.value))}
             className={inputClass}
           />
         </div>
@@ -409,6 +433,7 @@ export function ConditioningForm({ userId }: { userId: string }) {
   const [activity, setActivity] = useState("Sprints");
   const [distance, setDistance] = useState(400);
   const [duration, setDuration] = useState(180);
+  const [rpe, setRpe] = useState(7);
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -421,6 +446,7 @@ export function ConditioningForm({ userId }: { userId: string }) {
       await logConditioning(userId, date, activity, {
         distance_m: distance || undefined,
         duration_sec: duration || undefined,
+        rpe: rpe || undefined,
         notes: notes || undefined,
       });
       setStatus({ type: "success", text: `Logged ${activity} for ${date}.` });
@@ -466,6 +492,17 @@ export function ConditioningForm({ userId }: { userId: string }) {
             className={inputClass}
           />
         </div>
+      </div>
+      <div>
+        <FieldLabel>RPE (1-10, effort)</FieldLabel>
+        <input
+          type="number"
+          min={1}
+          max={10}
+          value={rpe}
+          onChange={(e) => setRpe(Number(e.target.value))}
+          className={inputClass}
+        />
       </div>
       <div>
         <FieldLabel>Notes (optional)</FieldLabel>

@@ -23,6 +23,8 @@ from app.routers import (
     scouting,
     scheduled_workouts,
     settings,
+    sports_science,
+    injuries,
 )
 
 app = FastAPI(title="Project Walk-On OS API", version="0.1.0")
@@ -60,6 +62,8 @@ app.include_router(achievements.router)
 app.include_router(scouting.router)
 app.include_router(scheduled_workouts.router)
 app.include_router(settings.router)
+app.include_router(sports_science.router)
+app.include_router(injuries.router)
 
 
 @app.on_event("startup")

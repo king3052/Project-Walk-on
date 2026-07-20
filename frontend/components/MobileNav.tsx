@@ -22,6 +22,8 @@ import {
   FileText,
   LogOut,
   Settings,
+  FlaskConical,
+  HeartPulse,
 } from "lucide-react";
 
 const PRIMARY = [
@@ -41,6 +43,8 @@ const MORE_LINKS = [
   { href: "/scouting", label: "Scouting report", icon: ClipboardCheck },
   { href: "/achievements", label: "Achievements", icon: Trophy },
   { href: "/resume", label: "Resume", icon: FileText },
+  { href: "/science", label: "Sports Science", icon: FlaskConical },
+  { href: "/injuries", label: "Injuries", icon: HeartPulse },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

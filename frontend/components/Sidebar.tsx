@@ -20,6 +20,8 @@ import {
   FileText,
   ClipboardCheck,
   Settings,
+  FlaskConical,
+  HeartPulse,
 } from "lucide-react";
 
 const LINKS = [
@@ -27,6 +29,8 @@ const LINKS = [
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/log", label: "Log today", icon: ClipboardPlus },
   { href: "/analytics", label: "Analytics", icon: LineChart },
+  { href: "/science", label: "Sports Science", icon: FlaskConical },
+  { href: "/injuries", label: "Injuries", icon: HeartPulse },
   { href: "/review", label: "Weekly review", icon: CalendarCheck },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/goals", label: "Goals", icon: Target },

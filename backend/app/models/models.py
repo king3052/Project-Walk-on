@@ -99,6 +99,7 @@ class ConditioningLog(Base):
     activity = Column(String, nullable=False)  # "Sprints", "Suicides", "Tempo Run", "Bike", "Row", "Jump Rope"
     distance_m = Column(Float, nullable=True)
     duration_sec = Column(Integer, nullable=True)
+    rpe = Column(Integer, nullable=True)  # rate of perceived exertion, 1-10
     notes = Column(Text, nullable=True)
 
 
@@ -190,6 +191,27 @@ class UserSettings(Base):
     weight_consistency = Column(Float, default=15)
 
 
+class InjuryStatus(str, enum.Enum):
+    ACTIVE = "ACTIVE"
+    RECOVERING = "RECOVERING"
+    RESOLVED = "RESOLVED"
+
+
+class Injury(Base):
+    __tablename__ = "injuries"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date_reported = Column(Date, default=date.today, nullable=False)
+    body_part = Column(String, nullable=False)
+    severity = Column(Integer, nullable=False)  # 1-10
+    description = Column(Text, nullable=True)
+    status = Column(Enum(InjuryStatus), default=InjuryStatus.ACTIVE)
+    rehab_notes = Column(Text, nullable=True)
+    return_to_play_date = Column(Date, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class TrainingSession(Base):
     __tablename__ = "training_sessions"
 
@@ -198,6 +220,7 @@ class TrainingSession(Base):
     date = Column(Date, default=date.today, nullable=False)
     type = Column(Enum(SessionType), nullable=False)
     duration_min = Column(Integer, nullable=True)
+    rpe = Column(Integer, nullable=True)  # rate of perceived exertion, 1-10 — used for training load (duration x RPE)
     notes = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="training_sessions")
