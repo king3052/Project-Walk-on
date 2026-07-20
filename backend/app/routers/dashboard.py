@@ -85,6 +85,13 @@ def get_dashboard(
     # only counted if there's real data for it; weights are renormalized over
     # whichever pillars are actually present, so missing data doesn't drag
     # the score down artificially for a new athlete.
+    user_settings = db.query(models.UserSettings).filter(models.UserSettings.user_id == user_id).first()
+    w_strength = user_settings.weight_strength if user_settings else 25
+    w_basketball = user_settings.weight_basketball if user_settings else 25
+    w_recovery = user_settings.weight_recovery if user_settings else 20
+    w_nutrition = user_settings.weight_nutrition if user_settings else 15
+    w_consistency = user_settings.weight_consistency if user_settings else 15
+
     pillars: dict[str, tuple[float, float]] = {}  # name -> (value_0_100, weight)
 
     strength_progress = []
@@ -95,19 +102,19 @@ def get_dashboard(
     if profile and profile.goal_deadlift_lb and deadlift:
         strength_progress.append(min(deadlift / profile.goal_deadlift_lb, 1.0))
     if strength_progress:
-        pillars["strength"] = (sum(strength_progress) / len(strength_progress) * 100, 25)
+        pillars["strength"] = (sum(strength_progress) / len(strength_progress) * 100, w_strength)
 
     if total_attempts:
-        pillars["basketball"] = (shooting_pct, 25)
+        pillars["basketball"] = (shooting_pct, w_basketball)
 
     if avg_sleep:
-        pillars["recovery"] = (min(avg_sleep / 8.0, 1.0) * 100, 20)
+        pillars["recovery"] = (min(avg_sleep / 8.0, 1.0) * 100, w_recovery)
 
     if week_nutrition_days:
-        pillars["nutrition"] = (min(week_nutrition_days / 7.0, 1.0) * 100, 15)
+        pillars["nutrition"] = (min(week_nutrition_days / 7.0, 1.0) * 100, w_nutrition)
 
     if active_dates_this_week:
-        pillars["consistency"] = (min(len(active_dates_this_week) / 7.0, 1.0) * 100, 15)
+        pillars["consistency"] = (min(len(active_dates_this_week) / 7.0, 1.0) * 100, w_consistency)
 
     if pillars:
         total_weight = sum(w for _, w in pillars.values())

@@ -301,3 +301,28 @@ export function toggleScheduledWorkoutComplete(id: string) {
 export function deleteScheduledWorkout(id: string) {
   return apiFetch(`/scheduled-workouts/${id}`, { method: "DELETE" });
 }
+
+// ---------- Settings ----------
+export type ScoreWeights = {
+  weight_strength: number;
+  weight_basketball: number;
+  weight_recovery: number;
+  weight_nutrition: number;
+  weight_consistency: number;
+};
+
+export function getSettings(): Promise<ScoreWeights & { id: string; user_id: string }> {
+  return apiFetch(`/settings/me`);
+}
+
+export function saveSettings(data: ScoreWeights) {
+  return apiFetch(`/settings/me`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export function updateAccountName(name: string) {
+  return apiFetch(`/settings/account`, { method: "PATCH", body: JSON.stringify({ name }) });
+}
+
+export function clearAllData() {
+  return apiFetch(`/settings/data`, { method: "DELETE" });
+}

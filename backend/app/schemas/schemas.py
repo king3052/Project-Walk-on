@@ -274,6 +274,27 @@ class ScheduledWorkoutOut(BaseModel):
         from_attributes = True
 
 
+# ---------- Settings ----------
+class ScoreWeights(BaseModel):
+    weight_strength: float = 25
+    weight_basketball: float = 25
+    weight_recovery: float = 20
+    weight_nutrition: float = 15
+    weight_consistency: float = 15
+
+
+class UserSettingsOut(ScoreWeights):
+    id: str
+    user_id: str
+
+    class Config:
+        from_attributes = True
+
+
+class AccountUpdate(BaseModel):
+    name: Optional[str] = None
+
+
 # ---------- Achievements (computed, read-only) ----------
 class Achievement(BaseModel):
     key: str

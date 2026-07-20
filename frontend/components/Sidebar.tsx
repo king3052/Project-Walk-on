@@ -19,6 +19,7 @@ import {
   Trophy,
   FileText,
   ClipboardCheck,
+  Settings,
 } from "lucide-react";
 
 const LINKS = [
@@ -35,6 +36,7 @@ const LINKS = [
   { href: "/scouting", label: "Scouting report", icon: ClipboardCheck },
   { href: "/achievements", label: "Achievements", icon: Trophy },
   { href: "/resume", label: "Resume", icon: FileText },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar() {

@@ -175,6 +175,21 @@ class ScheduledWorkout(Base):
     completed = Column(Boolean, default=False)
 
 
+class UserSettings(Base):
+    __tablename__ = "user_settings"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
+
+    # Athlete Score pillar weights — don't need to sum to 100, the dashboard
+    # renormalizes over whichever pillars actually have data.
+    weight_strength = Column(Float, default=25)
+    weight_basketball = Column(Float, default=25)
+    weight_recovery = Column(Float, default=20)
+    weight_nutrition = Column(Float, default=15)
+    weight_consistency = Column(Float, default=15)
+
+
 class TrainingSession(Base):
     __tablename__ = "training_sessions"
 
