@@ -37,8 +37,13 @@ def get_today_plan(current_user_id: str = Depends(get_current_user_id), db: Sess
         .limit(5)
         .all()
     )
+    profile = db.query(models.AthleteProfile).filter(models.AthleteProfile.user_id == current_user_id).first()
 
     lines = []
+    if profile and profile.experience_level:
+        lines.append(f"Experience level: {profile.experience_level}")
+    if profile and profile.training_days_per_week:
+        lines.append(f"Typical training availability: {profile.training_days_per_week} days/week")
     if avg_sleep is not None:
         lines.append(f"Avg sleep (last 3 days): {round(avg_sleep, 1)}h")
     if avg_soreness is not None:

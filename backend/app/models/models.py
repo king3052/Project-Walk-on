@@ -72,6 +72,8 @@ class AthleteProfile(Base):
     shoe_size = Column(String, nullable=True)
     dominant_foot = Column(String, nullable=True)
     age = Column(Integer, nullable=True)
+    experience_level = Column(String, nullable=True)  # Beginner | Intermediate | Advanced
+    training_days_per_week = Column(Integer, nullable=True)
 
     # Athletic testing
     sprint_20m_sec = Column(Float, nullable=True)

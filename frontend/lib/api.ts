@@ -160,16 +160,42 @@ export function getMe(): Promise<UserRecord> {
   return apiFetch(`/users/me`);
 }
 
-export function submitOnboarding(data: {
+export type OnboardingData = {
   height_in?: number;
   weight_lb?: number;
   position?: string;
   dominant_hand?: string;
+  dominant_foot?: string;
+  age?: number;
+  shoe_size?: string;
+  experience_level?: string;
+  wingspan_in?: number;
+  standing_reach_in?: number;
+  body_fat_pct?: number;
+  vertical_in?: number;
+  broad_jump_in?: number;
+  sprint_20m_sec?: number;
+  lane_agility_sec?: number;
+  shuttle_sec?: number;
+  max_pullups?: number;
+  max_pushups?: number;
+  grip_strength_lb?: number;
   goal_weight_lb?: number;
   goal_bench_lb?: number;
   goal_squat_lb?: number;
   goal_deadlift_lb?: number;
-}): Promise<UserRecord> {
+  training_days_per_week?: number;
+  weight_strength?: number;
+  weight_basketball?: number;
+  weight_recovery?: number;
+  weight_nutrition?: number;
+  weight_consistency?: number;
+  injury_body_part?: string;
+  injury_severity?: number;
+  injury_description?: string;
+};
+
+export function submitOnboarding(data: OnboardingData): Promise<UserRecord> {
   return apiFetch(`/users/onboard`, { method: "POST", body: JSON.stringify(data) });
 }
 

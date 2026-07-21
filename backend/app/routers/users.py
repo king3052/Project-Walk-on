@@ -71,14 +71,40 @@ def onboard(
     if not profile:
         profile = models.AthleteProfile(user_id=current_user_id)
         db.add(profile)
-    if payload.goal_weight_lb is not None:
-        profile.goal_weight_lb = payload.goal_weight_lb
-    if payload.goal_bench_lb is not None:
-        profile.goal_bench_lb = payload.goal_bench_lb
-    if payload.goal_squat_lb is not None:
-        profile.goal_squat_lb = payload.goal_squat_lb
-    if payload.goal_deadlift_lb is not None:
-        profile.goal_deadlift_lb = payload.goal_deadlift_lb
+
+    profile_fields = [
+        "dominant_foot", "age", "shoe_size", "experience_level",
+        "wingspan_in", "standing_reach_in", "body_fat_pct",
+        "vertical_in", "broad_jump_in", "sprint_20m_sec", "lane_agility_sec", "shuttle_sec",
+        "max_pullups", "max_pushups", "grip_strength_lb",
+        "goal_weight_lb", "goal_bench_lb", "goal_squat_lb", "goal_deadlift_lb",
+        "training_days_per_week",
+    ]
+    for field in profile_fields:
+        value = getattr(payload, field)
+        if value is not None:
+            setattr(profile, field, value)
+
+    weight_fields = [
+        "weight_strength", "weight_basketball", "weight_recovery", "weight_nutrition", "weight_consistency"
+    ]
+    if any(getattr(payload, f) is not None for f in weight_fields):
+        settings = db.query(models.UserSettings).filter(models.UserSettings.user_id == current_user_id).first()
+        if not settings:
+            settings = models.UserSettings(user_id=current_user_id)
+            db.add(settings)
+        for field in weight_fields:
+            value = getattr(payload, field)
+            if value is not None:
+                setattr(settings, field, value)
+
+    if payload.injury_body_part:
+        db.add(models.Injury(
+            user_id=current_user_id,
+            body_part=payload.injury_body_part,
+            severity=payload.injury_severity or 5,
+            description=payload.injury_description,
+        ))
 
     db.commit()
     db.refresh(user)

@@ -32,14 +32,52 @@ class UserSync(BaseModel):
 
 class OnboardingPayload(BaseModel):
     """Sent once from the /onboarding page to set up a brand new account."""
+    # Basics
     height_in: Optional[float] = None
     weight_lb: Optional[float] = None
     position: Optional[str] = None
     dominant_hand: Optional[str] = None
+    dominant_foot: Optional[str] = None
+    age: Optional[int] = None
+    shoe_size: Optional[str] = None
+    experience_level: Optional[str] = None
+
+    # Body measurements
+    wingspan_in: Optional[float] = None
+    standing_reach_in: Optional[float] = None
+    body_fat_pct: Optional[float] = None
+
+    # Athletic testing
+    vertical_in: Optional[float] = None
+    broad_jump_in: Optional[float] = None
+    sprint_20m_sec: Optional[float] = None
+    lane_agility_sec: Optional[float] = None
+    shuttle_sec: Optional[float] = None
+    max_pullups: Optional[int] = None
+    max_pushups: Optional[int] = None
+    grip_strength_lb: Optional[float] = None
+
+    # Goals
     goal_weight_lb: Optional[float] = None
     goal_bench_lb: Optional[float] = None
     goal_squat_lb: Optional[float] = None
     goal_deadlift_lb: Optional[float] = None
+
+    # Availability
+    training_days_per_week: Optional[int] = None
+
+    # Athlete Score priority weights (see ScoreWeights) — set from a simple
+    # "what matters most" choice on the onboarding UI, fine-tunable later in Settings
+    weight_strength: Optional[float] = None
+    weight_basketball: Optional[float] = None
+    weight_recovery: Optional[float] = None
+    weight_nutrition: Optional[float] = None
+    weight_consistency: Optional[float] = None
+
+    # Optional current injury, logged straight into Injury Management if provided
+    injury_body_part: Optional[str] = None
+    injury_severity: Optional[int] = None
+    injury_description: Optional[str] = None
 
 
 # ---------- Athlete Profile ----------
@@ -52,6 +90,8 @@ class AthleteProfileUpsert(BaseModel):
     shoe_size: Optional[str] = None
     dominant_foot: Optional[str] = None
     age: Optional[int] = None
+    experience_level: Optional[str] = None
+    training_days_per_week: Optional[int] = None
     sprint_20m_sec: Optional[float] = None
     lane_agility_sec: Optional[float] = None
     shuttle_sec: Optional[float] = None
