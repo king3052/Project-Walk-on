@@ -369,6 +369,26 @@ export function unsubscribePush(sub: { endpoint: string; p256dh: string; auth: s
   return post("/notifications/unsubscribe", sub);
 }
 
+// ---------- Learning Center ----------
+export type LearningResource = {
+  category: string;
+  title: string;
+  description: string;
+  source: string;
+  url: string;
+};
+
+export function getLearningResources(): Promise<LearningResource[]> {
+  return apiFetch(`/learning/resources`);
+}
+
+export type LearningPick = { category: string; reason: string };
+export type LearningRecommendation = { picks: LearningPick[]; note?: string };
+
+export function getRecommendedLearning(): Promise<LearningRecommendation> {
+  return apiFetch(`/learning/recommended`);
+}
+
 // ---------- Sports Science Lab ----------
 export type SportsScienceData = {
   daily_load: { date: string; load: number }[];

@@ -25,6 +25,7 @@ import {
   FlaskConical,
   HeartPulse,
   MessageCircleQuestion,
+  GraduationCap,
 } from "lucide-react";
 
 const PRIMARY = [
@@ -47,6 +48,7 @@ const MORE_LINKS = [
   { href: "/science", label: "Sports Science", icon: FlaskConical },
   { href: "/injuries", label: "Injuries", icon: HeartPulse },
   { href: "/ask", label: "Ask your data", icon: MessageCircleQuestion },
+  { href: "/learning", label: "Learning Center", icon: GraduationCap },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
