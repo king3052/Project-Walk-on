@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import { PageHeader } from "@/components/PageHeader";
+import { NotificationSettings } from "@/components/NotificationSettings";
 import {
   getMe,
   updateAccountName,
@@ -152,6 +153,14 @@ export default function SettingsPage() {
           </button>
           {weightsStatus && <p className="text-accent text-sm">{weightsStatus}</p>}
         </form>
+      </section>
+
+      <section className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-3">
+        <h2 className="text-xs uppercase tracking-wide text-fg-dim">Reminders</h2>
+        <p className="text-xs text-fg-dim">
+          Get a push notification if you haven&apos;t logged anything by evening.
+        </p>
+        <NotificationSettings />
       </section>
 
       <section className="rounded-lg border border-warn/40 bg-surface-panel p-5 space-y-4">

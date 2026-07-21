@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
 from app.core.checklist import mark_category_done
+from app.core.rate_limit import check_ai_rate_limit
 from app.core.ai import call_groq
 from app.models import models
 from app.schemas import schemas
@@ -63,7 +64,7 @@ def add_tag(
 
 @router.get("/analyze")
 def analyze_film_patterns(
-    current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    current_user_id: str = Depends(check_ai_rate_limit), db: Session = Depends(get_db)
 ):
     tags = (
         db.query(models.FilmTag, models.FilmSession.date)

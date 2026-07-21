@@ -28,6 +28,7 @@ from app.routers import (
     quick_log,
     planner,
     ask,
+    notifications,
 )
 
 app = FastAPI(title="Project Walk-On OS API", version="0.1.0")
@@ -70,6 +71,7 @@ app.include_router(injuries.router)
 app.include_router(quick_log.router)
 app.include_router(planner.router)
 app.include_router(ask.router)
+app.include_router(notifications.router)
 
 
 @app.on_event("startup")

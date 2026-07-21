@@ -360,6 +360,15 @@ export function askQuestion(question: string): Promise<{ answer: string }> {
   return post("/ask/", { question });
 }
 
+// ---------- Push Notifications ----------
+export function subscribePush(sub: { endpoint: string; p256dh: string; auth: string }) {
+  return post("/notifications/subscribe", sub);
+}
+
+export function unsubscribePush(sub: { endpoint: string; p256dh: string; auth: string }) {
+  return post("/notifications/unsubscribe", sub);
+}
+
 // ---------- Sports Science Lab ----------
 export type SportsScienceData = {
   daily_load: { date: string; load: number }[];

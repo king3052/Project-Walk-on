@@ -13,3 +13,32 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   event.respondWith(fetch(event.request));
 });
+
+self.addEventListener("push", (event) => {
+  let data = { title: "Project Walk-On", body: "You have a new update." };
+  try {
+    data = event.data.json();
+  } catch {
+    // fall back to defaults above
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then((clients) => {
+      if (clients.length > 0) {
+        clients[0].focus();
+      } else {
+        self.clients.openWindow("/");
+      }
+    })
+  );
+});

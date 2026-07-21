@@ -143,6 +143,26 @@ class FilmTag(Base):
     session = relationship("FilmSession", back_populates="tags")
 
 
+class PushSubscription(Base):
+    __tablename__ = "push_subscriptions"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    endpoint = Column(Text, nullable=False, unique=True)
+    p256dh = Column(String, nullable=False)
+    auth = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class AIUsage(Base):
+    __tablename__ = "ai_usage"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    count = Column(Integer, default=0)
+
+
 class AICoachSummary(Base):
     __tablename__ = "ai_coach_summaries"
 

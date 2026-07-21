@@ -385,6 +385,13 @@ class InjuryOut(BaseModel):
         from_attributes = True
 
 
+# ---------- Push Notifications ----------
+class PushSubscriptionCreate(BaseModel):
+    endpoint: str
+    p256dh: str
+    auth: str
+
+
 # ---------- Achievements (computed, read-only) ----------
 class Achievement(BaseModel):
     key: str

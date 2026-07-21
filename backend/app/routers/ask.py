@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.rate_limit import check_ai_rate_limit
 from app.core.ai import call_groq
 from app.models import models
 
@@ -19,7 +20,7 @@ class AskRequest(BaseModel):
 @router.post("/")
 def ask_question(
     payload: AskRequest,
-    current_user_id: str = Depends(get_current_user_id),
+    current_user_id: str = Depends(check_ai_rate_limit),
     db: Session = Depends(get_db),
 ):
     uid = current_user_id

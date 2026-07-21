@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.core.auth import get_current_user_id
+from app.core.rate_limit import check_ai_rate_limit
 from app.core.ai import call_groq
 
 router = APIRouter(prefix="/quick-log", tags=["quick-log"])
@@ -20,7 +21,7 @@ class QuickLogResult(BaseModel):
 
 
 @router.post("/parse", response_model=QuickLogResult)
-def parse_quick_log(payload: QuickLogRequest, current_user_id: str = Depends(get_current_user_id)):
+def parse_quick_log(payload: QuickLogRequest, current_user_id: str = Depends(check_ai_rate_limit)):
     prompt = f"""Parse this athlete's quick log entry into structured JSON.
 Respond with ONLY valid JSON in exactly this shape:
 {{"log_type": "strength|shooting|nutrition|recovery|conditioning|bodyweight|unknown",

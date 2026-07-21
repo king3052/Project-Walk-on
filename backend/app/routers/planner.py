@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.rate_limit import check_ai_rate_limit
 from app.core.ai import call_groq
 from app.models import models
 
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/planner", tags=["planner"])
 
 
 @router.get("/today")
-def get_today_plan(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+def get_today_plan(current_user_id: str = Depends(check_ai_rate_limit), db: Session = Depends(get_db)):
     today = date.today()
     recent_start = today - timedelta(days=3)
 

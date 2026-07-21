@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.rate_limit import check_ai_rate_limit
 from app.models import models
 from app.schemas import schemas
 
@@ -102,7 +103,7 @@ def _gather_week_summary(db: Session, user_id: str, week_start: date) -> str:
 def generate_summary(
     user_id: str,
     week_start: date,
-    current_user_id: str = Depends(get_current_user_id),
+    current_user_id: str = Depends(check_ai_rate_limit),
     db: Session = Depends(get_db),
 ):
     user_id = current_user_id  # ignore path value — always operate as the verified caller
