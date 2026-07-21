@@ -5,6 +5,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { getDashboard, type DashboardData } from "@/lib/api";
 import { StatCard, Section } from "@/components/StatCard";
 import { TodaySchedule } from "@/components/TodaySchedule";
+import { PlannerCard } from "@/components/PlannerCard";
 
 const EMPTY: DashboardData = {
   athlete_score: 0,
@@ -119,6 +120,7 @@ export default function DashboardPage() {
       </Section>
 
       <div className="grid md:grid-cols-2 gap-6">
+        <PlannerCard />
         {userId && <TodaySchedule userId={userId} />}
       </div>
         </>

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
 from app.core.checklist import mark_category_done
+from app.core.ai import call_groq
 from app.models import models
 from app.schemas import schemas
 
@@ -58,3 +59,32 @@ def add_tag(
     db.commit()
     db.refresh(tag)
     return tag
+
+
+@router.get("/analyze")
+def analyze_film_patterns(
+    current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    tags = (
+        db.query(models.FilmTag, models.FilmSession.date)
+        .join(models.FilmSession, models.FilmTag.film_session_id == models.FilmSession.id)
+        .filter(models.FilmSession.user_id == current_user_id)
+        .order_by(models.FilmSession.date.desc())
+        .limit(150)
+        .all()
+    )
+    if not tags:
+        return {"analysis": "No film tags logged yet — tag some moments on this page first."}
+
+    lines = [f"{d.isoformat()} [{t.tag_type}] {t.note or ''}".strip() for t, d in tags]
+    data_block = "\n".join(lines)
+
+    prompt = (
+        "You are a basketball performance analyst. Below is a log of tagged moments from film review "
+        "(tag type + optional note, most recent first). Identify recurring patterns or trends — e.g. a "
+        "specific mistake showing up repeatedly, or a consistent strength. Give 2-4 short, specific "
+        "observations as plain sentences. Don't invent details the tags don't support.\n\n"
+        f"{data_block}"
+    )
+    analysis = call_groq(prompt, max_tokens=300)
+    return {"analysis": analysis}

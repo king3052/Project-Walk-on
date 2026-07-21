@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
-import { getFilmSessions, createFilmSession, addFilmTag, type FilmSession } from "@/lib/api";
+import { getFilmSessions, createFilmSession, addFilmTag, analyzeFilmPatterns, type FilmSession } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -81,6 +81,20 @@ export default function FilmPage() {
   const [date, setDate] = useState(today());
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+
+  async function onAnalyze() {
+    setAnalyzing(true);
+    try {
+      const result = await analyzeFilmPatterns();
+      setAnalysis(result.analysis);
+    } catch (err) {
+      setAnalysis(err instanceof Error ? err.message : "Couldn't analyze right now.");
+    } finally {
+      setAnalyzing(false);
+    }
+  }
 
   function loadSessions() {
     if (!userId) return;
@@ -157,6 +171,24 @@ export default function FilmPage() {
           <p className={status.type === "success" ? "text-accent text-sm" : "text-warn text-sm"}>{status.text}</p>
         )}
       </form>
+
+      <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xs uppercase tracking-wide text-fg-dim">Pattern analysis</h2>
+          <button
+            onClick={onAnalyze}
+            disabled={analyzing}
+            className="text-xs text-accent hover:text-accent-dim disabled:opacity-50 transition-colors"
+          >
+            {analyzing ? "Analyzing…" : analysis ? "Re-analyze" : "Analyze patterns"}
+          </button>
+        </div>
+        {analysis ? (
+          <p className="text-sm text-fg leading-relaxed">{analysis}</p>
+        ) : (
+          <p className="text-sm text-fg-dim">Looks across all your tagged film for recurring patterns.</p>
+        )}
+      </div>
 
       <div className="space-y-4">
         {sessions.length === 0 && <p className="text-sm text-fg-dim">No film logged yet.</p>}

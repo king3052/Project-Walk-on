@@ -4,8 +4,10 @@ import { useAuth } from "@/components/AuthProvider";
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { StrengthForm, ShootingForm, NutritionForm, RecoveryForm, BodyweightForm, ConditioningForm } from "@/components/LogForms";
+import { QuickLogForm } from "@/components/QuickLogForm";
 
 const TABS = [
+  { id: "quick", label: "Quick log (AI)" },
   { id: "strength", label: "Strength" },
   { id: "shooting", label: "Shooting" },
   { id: "conditioning", label: "Conditioning" },
@@ -18,7 +20,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 export default function LogPage() {
   const { userId } = useAuth();
-  const [tab, setTab] = useState<TabId>("strength");
+  const [tab, setTab] = useState<TabId>("quick");
 
   if (!userId) {
     return null;
@@ -45,6 +47,7 @@ export default function LogPage() {
       </nav>
 
       <div>
+        {tab === "quick" && <QuickLogForm userId={userId} />}
         {tab === "strength" && <StrengthForm userId={userId} />}
         {tab === "shooting" && <ShootingForm userId={userId} />}
         {tab === "conditioning" && <ConditioningForm userId={userId} />}

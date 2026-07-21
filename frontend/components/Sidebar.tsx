@@ -22,6 +22,7 @@ import {
   Settings,
   FlaskConical,
   HeartPulse,
+  MessageCircleQuestion,
 } from "lucide-react";
 
 const LINKS = [
@@ -31,6 +32,7 @@ const LINKS = [
   { href: "/analytics", label: "Analytics", icon: LineChart },
   { href: "/science", label: "Sports Science", icon: FlaskConical },
   { href: "/injuries", label: "Injuries", icon: HeartPulse },
+  { href: "/ask", label: "Ask your data", icon: MessageCircleQuestion },
   { href: "/review", label: "Weekly review", icon: CalendarCheck },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/goals", label: "Goals", icon: Target },

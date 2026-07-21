@@ -310,6 +310,30 @@ export function seedWeekFromTemplate(weekStart: string): Promise<{ created: numb
   return apiFetch(`/scheduled-workouts/seed-week?week_start=${weekStart}`, { method: "POST" });
 }
 
+// ---------- Quick Log (AI parsing) ----------
+export type QuickLogResult = { log_type: string; summary: string; fields: Record<string, unknown> };
+
+export function parseQuickLog(text: string): Promise<QuickLogResult> {
+  return post("/quick-log/parse", { text });
+}
+
+// ---------- AI Training Planner ----------
+export type TodayPlan = { suggestion: string; context: string };
+
+export function getTodayPlan(): Promise<TodayPlan> {
+  return apiFetch(`/planner/today`);
+}
+
+// ---------- Film pattern analysis ----------
+export function analyzeFilmPatterns(): Promise<{ analysis: string }> {
+  return apiFetch(`/film-sessions/analyze`);
+}
+
+// ---------- Ask your data ----------
+export function askQuestion(question: string): Promise<{ answer: string }> {
+  return post("/ask/", { question });
+}
+
 // ---------- Sports Science Lab ----------
 export type SportsScienceData = {
   daily_load: { date: string; load: number }[];
