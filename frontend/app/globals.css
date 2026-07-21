@@ -10,6 +10,14 @@
 
 body {
   background-color: #0A0A0A;
+  overscroll-behavior-y: none; /* stop iOS pull-to-refresh / rubber-band bounce */
+  -webkit-tap-highlight-color: transparent; /* no gray flash on tap */
+}
+
+/* iOS Safari auto-zooms into any input with computed font-size under 16px —
+   force 16px on every form field so tapping into a field never triggers zoom. */
+input, select, textarea {
+  font-size: 16px;
 }
 
 .tabular-nums {

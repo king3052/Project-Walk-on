@@ -20,7 +20,10 @@ export function OfflineBanner() {
   if (online) return null;
 
   return (
-    <div className="print:hidden fixed top-0 left-0 right-0 z-[200] bg-warn/15 border-b border-warn/40 text-warn text-sm text-center py-2">
+    <div
+      className="print:hidden fixed top-0 left-0 right-0 z-[200] bg-warn/15 border-b border-warn/40 text-warn text-sm text-center py-2"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
       You&apos;re offline — changes won&apos;t save until your connection comes back.
     </div>
   );

@@ -50,7 +50,7 @@ export function Sidebar() {
   const { signOut } = useAuth();
 
   return (
-    <aside className="print:hidden hidden md:flex w-56 shrink-0 border-r border-surface-border h-screen sticky top-0 flex-col">
+    <aside className="print:hidden hidden md:flex w-56 shrink-0 border-r border-surface-border h-[100dvh] sticky top-0 flex-col">
       <div className="px-5 py-6 border-b border-surface-border flex items-center gap-2.5">
         <Image src="/logo-mascot.png" alt="" width={36} height={31} />
         <div>

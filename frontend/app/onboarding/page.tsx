@@ -164,7 +164,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6 py-12">
+    <main className="min-h-[100dvh] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <Image src="/logo-mascot.png" alt="" width={64} height={54} className="mx-auto mb-3" />
