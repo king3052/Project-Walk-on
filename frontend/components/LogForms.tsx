@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ToastProvider";
 import {
   logStrengthSession,
   logShootingSession,
@@ -32,16 +33,8 @@ function SubmitButton({ pending }: { pending: boolean }) {
   );
 }
 
-function StatusMessage({ status }: { status: { type: "success" | "error"; text: string } | null }) {
-  if (!status) return null;
-  return (
-    <p className={status.type === "success" ? "text-accent text-sm" : "text-warn text-sm"}>
-      {status.text}
-    </p>
-  );
-}
-
 export function StrengthForm({ userId }: { userId: string }) {
+  const { showToast } = useToast();
   const [date, setDate] = useState(today());
   const [exercise, setExercise] = useState("Back Squat");
   const [sets, setSets] = useState(3);
@@ -51,18 +44,16 @@ export function StrengthForm({ userId }: { userId: string }) {
   const [rpe, setRpe] = useState(7);
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
-    setStatus(null);
     try {
       const strengthLogs: StrengthSetInput[] = [{ exercise, sets, reps, weight_lb: weight }];
       await logStrengthSession(userId, date, strengthLogs, notes, duration, rpe);
-      setStatus({ type: "success", text: `Logged ${exercise}: ${sets}x${reps} @ ${weight}lb.` });
+      showToast(`Logged ${exercise}: ${sets}x${reps} @ ${weight}lb.`, "success");
     } catch (err) {
-      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
     } finally {
       setPending(false);
     }
@@ -140,30 +131,28 @@ export function StrengthForm({ userId }: { userId: string }) {
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} rows={2} />
       </div>
       <SubmitButton pending={pending} />
-      <StatusMessage status={status} />
     </form>
   );
 }
 
 export function ShootingForm({ userId }: { userId: string }) {
+  const { showToast } = useToast();
   const [date, setDate] = useState(today());
   const [shotType, setShotType] = useState("Corner 3");
   const [attempts, setAttempts] = useState(100);
   const [makes, setMakes] = useState(70);
   const [location, setLocation] = useState("");
   const [pending, setPending] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
-    setStatus(null);
     try {
       await logShootingSession(userId, date, shotType, attempts, makes, location);
       const pct = attempts ? Math.round((makes / attempts) * 100) : 0;
-      setStatus({ type: "success", text: `Logged ${shotType}: ${makes}/${attempts} (${pct}%).` });
+      showToast(`Logged ${shotType}: ${makes}/${attempts} (${pct}%).`, "success");
     } catch (err) {
-      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
     } finally {
       setPending(false);
     }
@@ -216,12 +205,12 @@ export function ShootingForm({ userId }: { userId: string }) {
         />
       </div>
       <SubmitButton pending={pending} />
-      <StatusMessage status={status} />
     </form>
   );
 }
 
 export function NutritionForm({ userId }: { userId: string }) {
+  const { showToast } = useToast();
   const [date, setDate] = useState(today());
   const [calories, setCalories] = useState(3500);
   const [protein, setProtein] = useState(180);
@@ -229,12 +218,10 @@ export function NutritionForm({ userId }: { userId: string }) {
   const [fat, setFat] = useState(90);
   const [water, setWater] = useState(4);
   const [pending, setPending] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
-    setStatus(null);
     try {
       await logNutrition(userId, date, {
         calories,
@@ -243,9 +230,9 @@ export function NutritionForm({ userId }: { userId: string }) {
         fat_g: fat,
         water_l: water,
       });
-      setStatus({ type: "success", text: `Logged nutrition for ${date}.` });
+      showToast(`Logged nutrition for ${date}.`, "success");
     } catch (err) {
-      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
     } finally {
       setPending(false);
     }
@@ -301,29 +288,27 @@ export function NutritionForm({ userId }: { userId: string }) {
         />
       </div>
       <SubmitButton pending={pending} />
-      <StatusMessage status={status} />
     </form>
   );
 }
 
 export function RecoveryForm({ userId }: { userId: string }) {
+  const { showToast } = useToast();
   const [date, setDate] = useState(today());
   const [sleep, setSleep] = useState(8);
   const [energy, setEnergy] = useState(7);
   const [stress, setStress] = useState(4);
   const [soreness, setSoreness] = useState(3);
   const [pending, setPending] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
-    setStatus(null);
     try {
       await logRecovery(userId, date, { sleep_hours: sleep, energy, stress, soreness });
-      setStatus({ type: "success", text: `Logged recovery for ${date}.` });
+      showToast(`Logged recovery for ${date}.`, "success");
     } catch (err) {
-      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
     } finally {
       setPending(false);
     }
@@ -381,26 +366,24 @@ export function RecoveryForm({ userId }: { userId: string }) {
         </div>
       </div>
       <SubmitButton pending={pending} />
-      <StatusMessage status={status} />
     </form>
   );
 }
 
 export function BodyweightForm({ userId }: { userId: string }) {
+  const { showToast } = useToast();
   const [date, setDate] = useState(today());
   const [weight, setWeight] = useState(160);
   const [pending, setPending] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
-    setStatus(null);
     try {
       await logBodyweight(userId, date, weight);
-      setStatus({ type: "success", text: `Logged ${weight}lb for ${date}.` });
+      showToast(`Logged ${weight}lb for ${date}.`, "success");
     } catch (err) {
-      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
     } finally {
       setPending(false);
     }
@@ -423,12 +406,12 @@ export function BodyweightForm({ userId }: { userId: string }) {
         />
       </div>
       <SubmitButton pending={pending} />
-      <StatusMessage status={status} />
     </form>
   );
 }
 
 export function ConditioningForm({ userId }: { userId: string }) {
+  const { showToast } = useToast();
   const [date, setDate] = useState(today());
   const [activity, setActivity] = useState("Sprints");
   const [distance, setDistance] = useState(400);
@@ -436,12 +419,10 @@ export function ConditioningForm({ userId }: { userId: string }) {
   const [rpe, setRpe] = useState(7);
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
-  const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
-    setStatus(null);
     try {
       await logConditioning(userId, date, activity, {
         distance_m: distance || undefined,
@@ -449,9 +430,9 @@ export function ConditioningForm({ userId }: { userId: string }) {
         rpe: rpe || undefined,
         notes: notes || undefined,
       });
-      setStatus({ type: "success", text: `Logged ${activity} for ${date}.` });
+      showToast(`Logged ${activity} for ${date}.`, "success");
     } catch (err) {
-      setStatus({ type: "error", text: err instanceof Error ? err.message : "Something went wrong." });
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
     } finally {
       setPending(false);
     }
@@ -509,7 +490,6 @@ export function ConditioningForm({ userId }: { userId: string }) {
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className={inputClass} rows={2} />
       </div>
       <SubmitButton pending={pending} />
-      <StatusMessage status={status} />
     </form>
   );
 }

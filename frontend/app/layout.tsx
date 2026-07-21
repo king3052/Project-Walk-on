@@ -4,6 +4,8 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { AppShell } from "@/components/AppShell";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { ToastProvider } from "@/components/ToastProvider";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 const display = Barlow_Condensed({
   subsets: ["latin"],
@@ -36,9 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body className="font-body text-fg antialiased">
         <ServiceWorkerRegister />
-        <AuthProvider>
-          <AppShell>{children}</AppShell>
-        </AuthProvider>
+        <OfflineBanner />
+        <ToastProvider>
+          <AuthProvider>
+            <AppShell>{children}</AppShell>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

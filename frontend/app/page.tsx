@@ -19,9 +19,19 @@ const EMPTY: DashboardData = {
   avg_sleep_this_week: null,
 };
 
+function StatCardSkeleton() {
+  return (
+    <div className="rounded-lg border border-surface-border bg-surface-panel px-5 py-4">
+      <div className="skeleton h-3 w-16 mb-3" />
+      <div className="skeleton h-8 w-20" />
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { userId } = useAuth();
   const [data, setData] = useState<DashboardData>(EMPTY);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,7 +43,8 @@ export default function DashboardPage() {
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Couldn't load your dashboard.");
-      });
+      })
+      .finally(() => setLoading(false));
   }, [userId]);
 
   return (
@@ -45,11 +56,15 @@ export default function DashboardPage() {
         </div>
         <div className="text-right">
           <p className="text-xs tracking-wide text-fg-dim">Athlete score</p>
-          <p className="font-display text-5xl text-accent tabular-nums leading-none">
-            {data.athlete_score}
-            <span className="text-xl text-fg-dim">/100</span>
-          </p>
-          {Object.keys(data.score_breakdown).length > 0 && (
+          {loading ? (
+            <div className="skeleton h-12 w-20 ml-auto" />
+          ) : (
+            <p className="font-display text-5xl text-accent tabular-nums leading-none">
+              {data.athlete_score}
+              <span className="text-xl text-fg-dim">/100</span>
+            </p>
+          )}
+          {!loading && Object.keys(data.score_breakdown).length > 0 && (
             <p className="text-xs text-fg-dim mt-1 space-x-2">
               {Object.entries(data.score_breakdown).map(([name, value]) => (
                 <span key={name}>
@@ -67,6 +82,14 @@ export default function DashboardPage() {
         </p>
       )}
 
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <StatCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : (
+        <>
       <Section title="Body">
         <StatCard label="Weight" value={data.weight_lb ? `${data.weight_lb}` : "—"} sub="lbs" />
         <StatCard
@@ -98,6 +121,8 @@ export default function DashboardPage() {
       <div className="grid md:grid-cols-2 gap-6">
         {userId && <TodaySchedule userId={userId} />}
       </div>
+        </>
+      )}
     </main>
   );
 }
