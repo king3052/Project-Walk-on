@@ -636,3 +636,174 @@ export function updateAccount(data: { name?: string; sport?: string }) {
 export function clearAllData() {
   return apiFetch(`/settings/data`, { method: "DELETE" });
 }
+
+// =====================================================================
+// TENNIS MODULE
+// =====================================================================
+
+export type TennisProfile = {
+  id: string;
+  user_id: string;
+  backhand_style: string | null;
+  preferred_surface: string | null;
+  racquet_model: string | null;
+  string_type: string | null;
+  string_tension_lb: number | null;
+  grip_size: string | null;
+  shoe_model: string | null;
+};
+
+export function getTennisProfile(): Promise<TennisProfile> {
+  return apiFetch(`/tennis/profile/`);
+}
+
+export function saveTennisProfile(data: Partial<TennisProfile>) {
+  return apiFetch(`/tennis/profile/`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export type TennisMatch = {
+  id: string;
+  user_id: string;
+  date: string;
+  opponent: string | null;
+  tournament: string | null;
+  surface: string | null;
+  score: string | null;
+  result: string | null;
+  duration_min: number | null;
+  weather: string | null;
+  first_serve_pct: number | null;
+  second_serve_pct: number | null;
+  aces: number | null;
+  double_faults: number | null;
+  winners: number | null;
+  unforced_errors: number | null;
+  break_points_won: number | null;
+  break_points_total: number | null;
+  net_points_won: number | null;
+  net_points_total: number | null;
+  return_pct: number | null;
+  longest_rally: number | null;
+  avg_rally: number | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export function getTennisMatches(days = 365): Promise<TennisMatch[]> {
+  return apiFetch(`/tennis/matches/?days=${days}`);
+}
+
+export function createTennisMatch(data: Partial<TennisMatch>): Promise<TennisMatch> {
+  return post("/tennis/matches/", data);
+}
+
+export function updateTennisMatch(id: string, data: Partial<TennisMatch>) {
+  return apiFetch(`/tennis/matches/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteTennisMatch(id: string) {
+  return apiFetch(`/tennis/matches/${id}`, { method: "DELETE" });
+}
+
+export type TennisMatchScouting = {
+  id: string;
+  match_id: string;
+  user_id: string;
+  strengths: string | null;
+  weaknesses: string | null;
+  patterns: string | null;
+  created_at: string;
+};
+
+export function generateMatchScouting(matchId: string): Promise<TennisMatchScouting> {
+  return apiFetch(`/tennis/matches/${matchId}/scout`, { method: "POST" });
+}
+
+export function getMatchScouting(matchId: string): Promise<TennisMatchScouting[]> {
+  return apiFetch(`/tennis/matches/${matchId}/scout`);
+}
+
+export type TennisStrokeLog = {
+  id: string;
+  user_id: string;
+  date: string;
+  stroke_category: string;
+  stroke_type: string;
+  attempts: number;
+  makes: number;
+  notes: string | null;
+};
+
+export function getStrokeLogs(days = 30): Promise<TennisStrokeLog[]> {
+  return apiFetch(`/tennis/strokes/?days=${days}`);
+}
+
+export function createStrokeLog(data: {
+  date: string;
+  stroke_category: string;
+  stroke_type: string;
+  attempts: number;
+  makes: number;
+  notes?: string;
+}): Promise<TennisStrokeLog> {
+  return post("/tennis/strokes/", data);
+}
+
+export function updateStrokeLog(id: string, data: Partial<TennisStrokeLog>) {
+  return apiFetch(`/tennis/strokes/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteStrokeLog(id: string) {
+  return apiFetch(`/tennis/strokes/${id}`, { method: "DELETE" });
+}
+
+export type TennisTournament = {
+  id: string;
+  user_id: string;
+  name: string;
+  start_date: string | null;
+  end_date: string | null;
+  surface: string | null;
+  location: string | null;
+  registration_status: string | null;
+  seed: string | null;
+  ranking_points: number | null;
+  result: string | null;
+  notes: string | null;
+};
+
+export function getTournaments(): Promise<TennisTournament[]> {
+  return apiFetch(`/tennis/tournaments/`);
+}
+
+export function createTournament(data: Partial<TennisTournament>): Promise<TennisTournament> {
+  return post("/tennis/tournaments/", data);
+}
+
+export function updateTournament(id: string, data: Partial<TennisTournament>) {
+  return apiFetch(`/tennis/tournaments/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteTournament(id: string) {
+  return apiFetch(`/tennis/tournaments/${id}`, { method: "DELETE" });
+}
+
+export type TennisRanking = {
+  id: string;
+  user_id: string;
+  date: string;
+  ranking_type: string;
+  value: string;
+};
+
+export function getRankings(): Promise<TennisRanking[]> {
+  return apiFetch(`/tennis/rankings/`);
+}
+
+export function createRanking(date: string, ranking_type: string, value: string): Promise<TennisRanking> {
+  return post("/tennis/rankings/", { date, ranking_type, value });
+}
+
+export function deleteRanking(id: string) {
+  return apiFetch(`/tennis/rankings/${id}`, { method: "DELETE" });
+}

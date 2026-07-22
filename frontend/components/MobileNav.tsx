@@ -9,6 +9,7 @@ import {
   ClipboardPlus,
   History,
   ListChecks,
+  CircleDot,
   CalendarDays,
   LineChart,
   MoreHorizontal,
@@ -38,6 +39,7 @@ const PRIMARY = [
 ];
 
 const MORE_LINKS = [
+  { href: "/tennis", label: "Tennis", icon: CircleDot },
   { href: "/history", label: "History", icon: History },
   { href: "/template", label: "Weekly template", icon: ListChecks },
   { href: "/review", label: "Weekly review", icon: CalendarCheck },

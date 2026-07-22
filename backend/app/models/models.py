@@ -355,3 +355,113 @@ class WeeklyReview(Base):
     weakness = Column(Text, nullable=True)
     next_focus = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# =====================================================================
+# TENNIS MODULE — dedicated tables, fully separate from the basketball
+# ones above (TennisMatch is not ShootingLog, TennisStrokeLog is not
+# StrengthLog, etc.) so the two sports never share or collide on data.
+# =====================================================================
+
+class TennisProfile(Base):
+    __tablename__ = "tennis_profiles"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
+
+    backhand_style = Column(String, nullable=True)  # "One-handed" | "Two-handed"
+    preferred_surface = Column(String, nullable=True)  # Hard | Clay | Grass | Indoor
+    racquet_model = Column(String, nullable=True)
+    string_type = Column(String, nullable=True)
+    string_tension_lb = Column(Float, nullable=True)
+    grip_size = Column(String, nullable=True)
+    shoe_model = Column(String, nullable=True)
+
+
+class TennisMatch(Base):
+    __tablename__ = "tennis_matches"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    opponent = Column(String, nullable=True)
+    tournament = Column(String, nullable=True)
+    surface = Column(String, nullable=True)
+    score = Column(String, nullable=True)  # e.g. "6-4, 3-6, 7-5"
+    result = Column(String, nullable=True)  # "Win" | "Loss"
+    duration_min = Column(Integer, nullable=True)
+    weather = Column(String, nullable=True)
+
+    first_serve_pct = Column(Float, nullable=True)
+    second_serve_pct = Column(Float, nullable=True)
+    aces = Column(Integer, nullable=True)
+    double_faults = Column(Integer, nullable=True)
+    winners = Column(Integer, nullable=True)
+    unforced_errors = Column(Integer, nullable=True)
+    break_points_won = Column(Integer, nullable=True)
+    break_points_total = Column(Integer, nullable=True)
+    net_points_won = Column(Integer, nullable=True)
+    net_points_total = Column(Integer, nullable=True)
+    return_pct = Column(Float, nullable=True)
+    longest_rally = Column(Integer, nullable=True)
+    avg_rally = Column(Float, nullable=True)
+
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class TennisMatchScouting(Base):
+    """AI-generated post-match analysis, tied to one specific match."""
+    __tablename__ = "tennis_match_scouting"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    match_id = Column(UUID(as_uuid=False), ForeignKey("tennis_matches.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    strengths = Column(Text, nullable=True)
+    weaknesses = Column(Text, nullable=True)
+    patterns = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class TennisStrokeLog(Base):
+    """Covers the Stroke Tracker: forehand/backhand/serve/return/volley/specialty,
+    each as a category with a free-text stroke type (e.g. 'Topspin cross-court',
+    'Kick serve') so every variant in the plan is loggable without 30 hardcoded
+    columns."""
+    __tablename__ = "tennis_stroke_logs"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    stroke_category = Column(String, nullable=False)  # Forehand | Backhand | Serve | Return | Volley | Specialty
+    stroke_type = Column(String, nullable=False)  # e.g. "Topspin cross-court", "Kick serve"
+    attempts = Column(Integer, nullable=False)
+    makes = Column(Integer, nullable=False)  # winners / in-play / successful, depending on stroke
+    notes = Column(Text, nullable=True)
+
+
+class TennisTournament(Base):
+    __tablename__ = "tennis_tournaments"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+    surface = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    registration_status = Column(String, nullable=True)  # Planned | Registered | Completed
+    seed = Column(String, nullable=True)
+    ranking_points = Column(Integer, nullable=True)
+    result = Column(String, nullable=True)  # e.g. "Won", "Semifinal", "R16"
+    notes = Column(Text, nullable=True)
+
+
+class TennisRanking(Base):
+    __tablename__ = "tennis_rankings"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    ranking_type = Column(String, nullable=False)  # UTR | USTA | ITF | ATP | WTA | School | State | National
+    value = Column(String, nullable=False)  # kept as string since UTR is decimal, rankings are integers, etc.

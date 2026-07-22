@@ -31,6 +31,11 @@ from app.routers import (
     notifications,
     learning,
     template,
+    tennis_profile,
+    tennis_matches,
+    tennis_strokes,
+    tennis_tournaments,
+    tennis_rankings,
 )
 
 app = FastAPI(title="Project Walk-On OS API", version="0.1.0")
@@ -76,6 +81,11 @@ app.include_router(ask.router)
 app.include_router(notifications.router)
 app.include_router(learning.router)
 app.include_router(template.router)
+app.include_router(tennis_profile.router)
+app.include_router(tennis_matches.router)
+app.include_router(tennis_strokes.router)
+app.include_router(tennis_tournaments.router)
+app.include_router(tennis_rankings.router)
 
 
 @app.on_event("startup")

@@ -587,3 +587,171 @@ class DashboardOut(BaseModel):
     shots_this_week: int
     shooting_pct_this_week: float
     avg_sleep_this_week: Optional[float]
+
+
+# =====================================================================
+# TENNIS MODULE
+# =====================================================================
+
+class TennisProfileUpsert(BaseModel):
+    backhand_style: Optional[str] = None
+    preferred_surface: Optional[str] = None
+    racquet_model: Optional[str] = None
+    string_type: Optional[str] = None
+    string_tension_lb: Optional[float] = None
+    grip_size: Optional[str] = None
+    shoe_model: Optional[str] = None
+
+
+class TennisProfileOut(TennisProfileUpsert):
+    id: str
+    user_id: str
+
+    class Config:
+        from_attributes = True
+
+
+class TennisMatchCreate(BaseModel):
+    user_id: str
+    date: date
+    opponent: Optional[str] = None
+    tournament: Optional[str] = None
+    surface: Optional[str] = None
+    score: Optional[str] = None
+    result: Optional[str] = None
+    duration_min: Optional[int] = None
+    weather: Optional[str] = None
+    first_serve_pct: Optional[float] = None
+    second_serve_pct: Optional[float] = None
+    aces: Optional[int] = None
+    double_faults: Optional[int] = None
+    winners: Optional[int] = None
+    unforced_errors: Optional[int] = None
+    break_points_won: Optional[int] = None
+    break_points_total: Optional[int] = None
+    net_points_won: Optional[int] = None
+    net_points_total: Optional[int] = None
+    return_pct: Optional[float] = None
+    longest_rally: Optional[int] = None
+    avg_rally: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class TennisMatchUpdate(BaseModel):
+    date: Optional[date] = None
+    opponent: Optional[str] = None
+    tournament: Optional[str] = None
+    surface: Optional[str] = None
+    score: Optional[str] = None
+    result: Optional[str] = None
+    duration_min: Optional[int] = None
+    weather: Optional[str] = None
+    first_serve_pct: Optional[float] = None
+    second_serve_pct: Optional[float] = None
+    aces: Optional[int] = None
+    double_faults: Optional[int] = None
+    winners: Optional[int] = None
+    unforced_errors: Optional[int] = None
+    break_points_won: Optional[int] = None
+    break_points_total: Optional[int] = None
+    net_points_won: Optional[int] = None
+    net_points_total: Optional[int] = None
+    return_pct: Optional[float] = None
+    longest_rally: Optional[int] = None
+    avg_rally: Optional[float] = None
+    notes: Optional[str] = None
+
+
+class TennisMatchOut(TennisMatchCreate):
+    id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TennisMatchScoutingOut(BaseModel):
+    id: str
+    match_id: str
+    user_id: str
+    strengths: Optional[str] = None
+    weaknesses: Optional[str] = None
+    patterns: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TennisStrokeLogCreate(BaseModel):
+    user_id: str
+    date: date
+    stroke_category: str
+    stroke_type: str
+    attempts: int
+    makes: int
+    notes: Optional[str] = None
+
+
+class TennisStrokeLogUpdate(BaseModel):
+    date: Optional[date] = None
+    stroke_category: Optional[str] = None
+    stroke_type: Optional[str] = None
+    attempts: Optional[int] = None
+    makes: Optional[int] = None
+    notes: Optional[str] = None
+
+
+class TennisStrokeLogOut(TennisStrokeLogCreate):
+    id: str
+
+    class Config:
+        from_attributes = True
+
+
+class TennisTournamentCreate(BaseModel):
+    user_id: str
+    name: str
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    surface: Optional[str] = None
+    location: Optional[str] = None
+    registration_status: Optional[str] = None
+    seed: Optional[str] = None
+    ranking_points: Optional[int] = None
+    result: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class TennisTournamentUpdate(BaseModel):
+    name: Optional[str] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    surface: Optional[str] = None
+    location: Optional[str] = None
+    registration_status: Optional[str] = None
+    seed: Optional[str] = None
+    ranking_points: Optional[int] = None
+    result: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class TennisTournamentOut(TennisTournamentCreate):
+    id: str
+
+    class Config:
+        from_attributes = True
+
+
+class TennisRankingCreate(BaseModel):
+    user_id: str
+    date: date
+    ranking_type: str
+    value: str
+
+
+class TennisRankingOut(TennisRankingCreate):
+    id: str
+
+    class Config:
+        from_attributes = True

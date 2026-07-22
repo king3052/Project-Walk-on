@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { LogOut } from "lucide-react";
 import {
   LayoutDashboard,
+  CircleDot,
   ClipboardPlus,
   History,
   LineChart,
@@ -30,6 +31,7 @@ import {
 
 const LINKS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/tennis", label: "Tennis", icon: CircleDot },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/template", label: "Weekly template", icon: ListChecks },
   { href: "/log", label: "Log today", icon: ClipboardPlus },
@@ -66,7 +68,7 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 overflow-y-auto py-3">
         {LINKS.map((link) => {
-          const active = pathname === link.href;
+          const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
           const Icon = link.icon;
           return (
             <Link
