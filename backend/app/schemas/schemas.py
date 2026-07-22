@@ -13,6 +13,7 @@ class UserCreate(BaseModel):
     weight_lb: Optional[float] = None
     position: Optional[str] = None
     dominant_hand: Optional[str] = None
+    sport: Optional[str] = None
 
 
 class UserOut(UserCreate):
@@ -33,6 +34,7 @@ class UserSync(BaseModel):
 class OnboardingPayload(BaseModel):
     """Sent once from the /onboarding page to set up a brand new account."""
     # Basics
+    sport: Optional[str] = None
     height_in: Optional[float] = None
     weight_lb: Optional[float] = None
     position: Optional[str] = None
@@ -335,6 +337,7 @@ class UserSettingsOut(ScoreWeights):
 
 class AccountUpdate(BaseModel):
     name: Optional[str] = None
+    sport: Optional[str] = None
 
 
 # ---------- Sports Science Lab ----------

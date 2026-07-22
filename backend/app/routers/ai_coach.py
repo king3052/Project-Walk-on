@@ -113,11 +113,13 @@ def generate_summary(
             detail="GROQ_API_KEY is not set in backend/.env — add it to enable the AI Coach.",
         )
 
+    user = db.query(models.User).get(user_id)
+    sport = user.sport if user and user.sport else "Basketball"
     data_block = _gather_week_summary(db, user_id, week_start)
 
     prompt = (
         "You are an athlete performance coach writing a short, direct weekly report for a "
-        "high school/college basketball player based on their logged training data below. "
+        f"high school/college {sport.lower()} player based on their logged training data below. "
         "Write 3 short sections: Wins, Weakness, Next focus. Keep it under 120 words total, "
         "concrete, and specific to the numbers given — don't invent data that isn't there.\n\n"
         f"Data for the week of {week_start.isoformat()}:\n{data_block}"

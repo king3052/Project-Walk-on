@@ -17,8 +17,10 @@ def seed_week_from_template(
     current_user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    created = seed_week(db, models, current_user_id, week_start)
-    return {"created": created}
+    user = db.query(models.User).get(current_user_id)
+    sport = user.sport if user and user.sport else "Basketball"
+    created = seed_week(db, models, current_user_id, week_start, sport)
+    return {"created": created, "sport": sport}
 
 
 @router.post("/", response_model=schemas.ScheduledWorkoutOut)

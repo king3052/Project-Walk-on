@@ -46,6 +46,7 @@ class User(Base):
     weight_lb = Column(Float, nullable=True)
     position = Column(String, nullable=True)
     dominant_hand = Column(String, nullable=True)
+    sport = Column(String, default="Basketball")  # "Basketball" | "Tennis"
     onboarding_complete = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 

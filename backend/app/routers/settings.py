@@ -49,6 +49,8 @@ def update_account(
         raise HTTPException(status_code=404, detail="User not found")
     if payload.name is not None:
         user.name = payload.name
+    if payload.sport is not None:
+        user.sport = payload.sport
     db.commit()
     db.refresh(user)
     return user

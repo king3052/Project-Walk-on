@@ -7,21 +7,31 @@ from app.core.database import get_db
 from app.core.auth import get_current_user_id
 from app.core.rate_limit import check_ai_rate_limit
 from app.core.ai import call_groq
-from app.core.learning_content import LEARNING_RESOURCES
+from app.core.learning_content import RESOURCES_BY_SPORT, BASKETBALL_LEARNING_RESOURCES
 from app.models import models
 
 router = APIRouter(prefix="/learning", tags=["learning"])
 
 
+def _resources_for(user: models.User | None):
+    sport = user.sport if user and user.sport else "Basketball"
+    return RESOURCES_BY_SPORT.get(sport, BASKETBALL_LEARNING_RESOURCES)
+
+
 @router.get("/resources")
-def get_resources(current_user_id: str = Depends(get_current_user_id)):
-    return LEARNING_RESOURCES
+def get_resources(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(models.User).get(current_user_id)
+    return _resources_for(user)
 
 
 @router.get("/recommended")
 def get_recommended(
     current_user_id: str = Depends(check_ai_rate_limit), db: Session = Depends(get_db)
 ):
+    user = db.query(models.User).get(current_user_id)
+    resources = _resources_for(user)
+    sport = user.sport if user and user.sport else "Basketball"
+
     weak_points = []
 
     latest_report = (
@@ -50,13 +60,13 @@ def get_recommended(
     if active_injuries:
         weak_points.extend(f"Current injury: {i.body_part}" for i in active_injuries)
 
-    categories = sorted(set(r["category"] for r in LEARNING_RESOURCES))
+    categories = sorted(set(r["category"] for r in resources))
 
     if not weak_points:
         return {"picks": [], "note": "Log a scouting report or some goals first for personalized picks."}
 
     prompt = (
-        "An athlete has these logged weak points / active goals / injuries:\n"
+        f"A {sport.lower()} athlete has these logged weak points / active goals / injuries:\n"
         f"{chr(10).join('- ' + w for w in weak_points)}\n\n"
         f"Available learning topic categories: {', '.join(categories)}\n\n"
         "Pick the 2-3 categories from that exact list most relevant right now, and for each give a "

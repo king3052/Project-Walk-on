@@ -65,6 +65,8 @@ def onboard(
         user.position = payload.position
     if payload.dominant_hand is not None:
         user.dominant_hand = payload.dominant_hand
+    if payload.sport is not None:
+        user.sport = payload.sport
     user.onboarding_complete = True
 
     profile = db.query(models.AthleteProfile).filter(models.AthleteProfile.user_id == current_user_id).first()

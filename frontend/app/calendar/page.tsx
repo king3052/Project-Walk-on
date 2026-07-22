@@ -14,7 +14,11 @@ import { PageHeader } from "@/components/PageHeader";
 
 const WORKOUT_TYPES = [
   "Basketball",
+  "Serve",
+  "Groundstrokes",
+  "Footwork",
   "Strength",
+  "Strength & Conditioning",
   "Conditioning",
   "Nutrition",
   "Recovery",

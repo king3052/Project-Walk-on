@@ -99,9 +99,11 @@ def generate_report(
         )
 
     data_block = _gather_profile_data(db, user_id)
+    user = db.query(models.User).get(user_id)
+    sport = user.sport if user and user.sport else "Basketball"
 
     prompt = (
-        "You are a college basketball scout writing a short, honest evaluation of a player based "
+        f"You are a college {sport.lower()} scout writing a short, honest evaluation of a player based "
         "on the real training data below. Do not invent stats that aren't given. Respond with ONLY "
         "valid JSON, no markdown fences, no extra text, in exactly this shape:\n"
         '{"strengths": ["...", "..."], "needs_improvement": ["...", "..."], '

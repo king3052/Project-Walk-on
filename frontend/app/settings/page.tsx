@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import {
   getMe,
-  updateAccountName,
+  updateAccount,
   getSettings,
   saveSettings,
   clearAllData,
@@ -31,6 +31,7 @@ export default function SettingsPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [sport, setSport] = useState("Basketball");
   const [namePending, setNamePending] = useState(false);
   const [nameStatus, setNameStatus] = useState<string | null>(null);
 
@@ -53,6 +54,7 @@ export default function SettingsPage() {
     getMe().then((u) => {
       setName(u.name);
       setEmail(u.email);
+      setSport(u.sport || "Basketball");
     });
     getSettings().then(setWeights);
   }, [userId]);
@@ -62,7 +64,7 @@ export default function SettingsPage() {
     setNamePending(true);
     setNameStatus(null);
     try {
-      await updateAccountName(name);
+      await updateAccount({ name, sport });
       setNameStatus("Saved.");
     } catch (err) {
       setNameStatus(err instanceof Error ? err.message : "Something went wrong.");
@@ -109,6 +111,16 @@ export default function SettingsPage() {
             <input type="text" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
           </div>
           <div>
+            <label className="text-xs tracking-wide text-fg-dim block mb-1">Sport</label>
+            <select value={sport} onChange={(e) => setSport(e.target.value)} className={inputClass}>
+              <option>Basketball</option>
+              <option>Tennis</option>
+            </select>
+            <p className="text-xs text-fg-dim mt-1">
+              Switches your weekly template and Learning Center content to match.
+            </p>
+          </div>
+          <div>
             <label className="text-xs tracking-wide text-fg-dim block mb-1">Email</label>
             <input type="email" value={email} disabled className={`${inputClass} opacity-60`} />
             <p className="text-xs text-fg-dim mt-1">Email is managed by your login provider — not editable here.</p>
@@ -134,7 +146,9 @@ export default function SettingsPage() {
           <div className="grid grid-cols-2 gap-3">
             {WEIGHT_FIELDS.map((f) => (
               <div key={f.key}>
-                <label className="text-xs tracking-wide text-fg-dim block mb-1">{f.label}</label>
+                <label className="text-xs tracking-wide text-fg-dim block mb-1">
+                  {f.key === "weight_basketball" ? sport : f.label}
+                </label>
                 <input
                   type="number"
                   value={weights[f.key]}

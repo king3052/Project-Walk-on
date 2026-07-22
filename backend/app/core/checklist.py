@@ -12,7 +12,7 @@ things you already logged elsewhere in the app.
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
 
-WEEKLY_TEMPLATE: dict[str, list[tuple[str, str]]] = {
+BASKETBALL_WEEKLY_TEMPLATE: dict[str, list[tuple[str, str]]] = {
     "Monday": [
         ("Basketball", "Dynamic warm-up"),
         ("Basketball", "Ball handling (15 min)"),
@@ -124,12 +124,93 @@ WEEKLY_TEMPLATE: dict[str, list[tuple[str, str]]] = {
     ],
 }
 
+TENNIS_WEEKLY_TEMPLATE: dict[str, list[tuple[str, str]]] = {
+    "Monday": [
+        ("Serve", "Dynamic warm-up + shadow serves"),
+        ("Serve", "Toss consistency (20 reps)"),
+        ("Serve", "Flat serve — 50 reps"),
+        ("Serve", "Kick/slice serve — 50 reps"),
+        ("Groundstrokes", "Forehand cross-court — 15 min"),
+        ("Groundstrokes", "Backhand cross-court — 15 min"),
+        ("Footwork", "Ladder + cone footwork circuit"),
+        ("Strength & Conditioning", "Lower body strength session"),
+        ("Strength & Conditioning", "Core work"),
+        ("Nutrition", "3,000+ kcal"),
+        ("Nutrition", "150g protein"),
+        ("Nutrition", "Hydration — 3L water"),
+        ("Recovery", "Stretch (15 min)"),
+        ("Recovery", "Sleep 8+ hours"),
+        ("Film", "Watch 20 min of an elite player's footwork"),
+        ("Analytics", "Log practice session"),
+        ("Analytics", "Log body weight"),
+        ("Goals", "Review long-term goals"),
+        ("Mental", "Visualization (10 min)"),
+        ("Mental", "Journal"),
+        ("Life", "Finish assignments"),
+        ("Life", "Calendar review"),
+    ],
+    "Tuesday": [
+        ("Groundstrokes", "Forehand down-the-line — 15 min"),
+        ("Groundstrokes", "Backhand down-the-line — 15 min"),
+        ("Footwork", "Split-step + recovery drills"),
+        ("Strength & Conditioning", "Upper body strength session"),
+        ("Recovery", "Stretch"),
+        ("Film", "Review own match footage"),
+        ("Analytics", "Log everything"),
+    ],
+    "Wednesday": [
+        ("Serve", "Serve placement — targets"),
+        ("Groundstrokes", "Live rally — cross-court consistency"),
+        ("Footwork", "Sprint + change-of-direction conditioning"),
+        ("Strength & Conditioning", "Explosive/plyometric work"),
+        ("Recovery", "Mobility session"),
+    ],
+    "Thursday": [
+        ("Groundstrokes", "Approach shots + volleys"),
+        ("Groundstrokes", "Overheads"),
+        ("Strength & Conditioning", "Full body strength session"),
+        ("Footwork", "Agility ladder circuit"),
+    ],
+    "Friday": [
+        ("Serve", "Second serve consistency under pressure"),
+        ("Groundstrokes", "Return of serve practice"),
+        ("Footwork", "Court coverage drills"),
+        ("Strength & Conditioning", "Speed/agility session"),
+    ],
+    "Saturday": [
+        ("Groundstrokes", "Match play / practice sets"),
+        ("Footwork", "Match-intensity movement"),
+        ("Recovery", "Long mobility session"),
+        ("Film", "Analyze your own match footage"),
+    ],
+    "Sunday": [
+        ("Recovery", "Walk"),
+        ("Recovery", "Stretch"),
+        ("Recovery", "Mobility"),
+        ("Analytics", "Weekly report"),
+        ("Analytics", "Weight trend"),
+        ("Analytics", "First-serve percentage trend"),
+        ("Planning", "Plan next week"),
+        ("Planning", "Schedule court time"),
+        ("Journal", "Weekly reflection"),
+        ("Journal", "Wins"),
+        ("Journal", "Areas to improve"),
+    ],
+}
+
+TEMPLATES_BY_SPORT = {
+    "Basketball": BASKETBALL_WEEKLY_TEMPLATE,
+    "Tennis": TENNIS_WEEKLY_TEMPLATE,
+}
+
 WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
-def seed_week(db: Session, models, user_id: str, week_start: date) -> int:
-    """Creates ScheduledWorkout rows for week_start..week_start+6 from WEEKLY_TEMPLATE.
-    Skips any (date, title) pair that already exists, so it's safe to call repeatedly."""
+def seed_week(db: Session, models, user_id: str, week_start: date, sport: str = "Basketball") -> int:
+    """Creates ScheduledWorkout rows for week_start..week_start+6 from the template
+    matching the athlete's sport. Skips any (date, title) pair that already exists,
+    so it's safe to call repeatedly."""
+    template = TEMPLATES_BY_SPORT.get(sport, BASKETBALL_WEEKLY_TEMPLATE)
     week_dates = [week_start + timedelta(days=i) for i in range(7)]
 
     existing = set(
@@ -145,7 +226,7 @@ def seed_week(db: Session, models, user_id: str, week_start: date) -> int:
     created = 0
     for i, day in enumerate(week_dates):
         weekday_name = WEEKDAY_NAMES[i]
-        for category, task in WEEKLY_TEMPLATE.get(weekday_name, []):
+        for category, task in template.get(weekday_name, []):
             if (day, task) in existing:
                 continue
             db.add(

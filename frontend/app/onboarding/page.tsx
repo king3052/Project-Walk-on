@@ -55,6 +55,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Step 1 — basics
+  const [sport, setSport] = useState("Basketball");
   const [heightIn, setHeightIn] = useState<number>();
   const [weightLb, setWeightLb] = useState<number>();
   const [position, setPosition] = useState("");
@@ -119,6 +120,7 @@ export default function OnboardingPage() {
     others.forEach((k) => (weights[k] = 15));
 
     const payload: OnboardingData = {
+      sport,
       height_in: heightIn,
       weight_lb: weightLb,
       position: position || undefined,
@@ -185,6 +187,12 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="space-y-4">
             <h2 className="text-xs uppercase tracking-wide text-fg-dim">Basics</h2>
+            <Field label="Sport">
+              <select value={sport} onChange={(e) => setSport(e.target.value)} className={inputClass}>
+                <option>Basketball</option>
+                <option>Tennis</option>
+              </select>
+            </Field>
             <NumberField label="Height (in)" value={heightIn} onChange={setHeightIn} />
             <NumberField label="Weight (lb)" value={weightLb} onChange={setWeightLb} />
             <Field label="Position">
@@ -192,7 +200,7 @@ export default function OnboardingPage() {
                 type="text"
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                placeholder="Point Guard, Shooting Guard…"
+                placeholder={sport === "Tennis" ? "Singles, Doubles…" : "Point Guard, Shooting Guard…"}
                 className={inputClass}
               />
             </Field>

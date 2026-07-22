@@ -149,7 +149,7 @@ export type AthleteProfile = {
 
 export type UserRecord = {
   id: string; email: string; name: string; height_in: number | null; weight_lb: number | null;
-  position: string | null; dominant_hand: string | null; onboarding_complete: boolean; created_at: string;
+  position: string | null; dominant_hand: string | null; sport: string | null; onboarding_complete: boolean; created_at: string;
 };
 
 export function getUser(userId: string): Promise<UserRecord> {
@@ -161,6 +161,7 @@ export function getMe(): Promise<UserRecord> {
 }
 
 export type OnboardingData = {
+  sport?: string;
   height_in?: number;
   weight_lb?: number;
   position?: string;
@@ -462,8 +463,8 @@ export function saveSettings(data: ScoreWeights) {
   return apiFetch(`/settings/me`, { method: "PUT", body: JSON.stringify(data) });
 }
 
-export function updateAccountName(name: string) {
-  return apiFetch(`/settings/account`, { method: "PATCH", body: JSON.stringify({ name }) });
+export function updateAccount(data: { name?: string; sport?: string }) {
+  return apiFetch(`/settings/account`, { method: "PATCH", body: JSON.stringify(data) });
 }
 
 export function clearAllData() {
