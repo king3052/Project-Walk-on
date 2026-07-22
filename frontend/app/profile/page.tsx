@@ -88,6 +88,7 @@ export default function ProfilePage() {
                   type={isNumber ? "number" : "text"}
                   value={value === null || value === undefined ? "" : value}
                   onChange={(e) => update(f.key, e.target.value, isNumber)}
+                  onFocus={(e) => e.target.select()}
                   className={inputClass}
                 />
               </div>

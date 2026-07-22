@@ -151,6 +151,7 @@ export default function SettingsPage() {
                 </label>
                 <input
                   type="number"
+            onFocus={(e) => e.target.select()}
                   value={weights[f.key]}
                   onChange={(e) => setWeights((prev) => ({ ...prev, [f.key]: Number(e.target.value) }))}
                   className={inputClass}

@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
-from app.core.checklist import mark_category_done
+from app.core.checklist import mark_category_done, mark_matching_done
 from app.models import models
 from app.schemas import schemas
 
@@ -23,7 +23,8 @@ def create_shooting_log(
     db.commit()
     db.refresh(log)
 
-    mark_category_done(db, models, current_user_id, log.date, ['Basketball', 'Analytics'])
+    mark_matching_done(db, models, current_user_id, log.date, "Basketball", [payload.shot_type])
+    mark_category_done(db, models, current_user_id, log.date, ["Analytics"])
 
     return log
 
@@ -38,3 +39,36 @@ def list_shooting_logs(
         .order_by(models.ShootingLog.date.desc())
         .all()
     )
+
+
+@router.patch("/{log_id}", response_model=schemas.ShootingLogOut)
+def update_shooting_logs(
+    log_id: str,
+    payload: schemas.ShootingLogUpdate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    log = db.query(models.ShootingLog).get(log_id)
+    if not log:
+        raise HTTPException(status_code=404, detail="Log not found")
+    if log.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not your log")
+    for k, v in payload.model_dump(exclude_unset=True).items():
+        setattr(log, k, v)
+    db.commit()
+    db.refresh(log)
+    return log
+
+
+@router.delete("/{log_id}")
+def delete_shooting_logs(
+    log_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    log = db.query(models.ShootingLog).get(log_id)
+    if not log:
+        raise HTTPException(status_code=404, detail="Log not found")
+    if log.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not your log")
+    db.delete(log)
+    db.commit()
+    return {"deleted": True}

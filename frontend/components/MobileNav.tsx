@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import {
   LayoutDashboard,
   ClipboardPlus,
+  History,
   CalendarDays,
   LineChart,
   MoreHorizontal,
@@ -36,6 +37,7 @@ const PRIMARY = [
 ];
 
 const MORE_LINKS = [
+  { href: "/history", label: "History", icon: History },
   { href: "/review", label: "Weekly review", icon: CalendarCheck },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/goals", label: "Goals", icon: Target },

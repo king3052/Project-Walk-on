@@ -43,6 +43,7 @@ function TagForm({ sessionId, onAdded }: { sessionId: string; onAdded: () => voi
         <label className="text-xs text-fg-dim block mb-1">Sec</label>
         <input
           type="number"
+            onFocus={(e) => e.target.select()}
           value={timestamp}
           onChange={(e) => setTimestamp(Number(e.target.value))}
           className={inputClass}

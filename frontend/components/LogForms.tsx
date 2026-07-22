@@ -80,6 +80,7 @@ export function StrengthForm({ userId }: { userId: string }) {
           <FieldLabel>Sets</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={sets}
             onChange={(e) => setSets(Number(e.target.value))}
             className={inputClass}
@@ -89,6 +90,7 @@ export function StrengthForm({ userId }: { userId: string }) {
           <FieldLabel>Reps</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={reps}
             onChange={(e) => setReps(Number(e.target.value))}
             className={inputClass}
@@ -98,6 +100,7 @@ export function StrengthForm({ userId }: { userId: string }) {
           <FieldLabel>Weight (lb)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={weight}
             onChange={(e) => setWeight(Number(e.target.value))}
             className={inputClass}
@@ -109,6 +112,7 @@ export function StrengthForm({ userId }: { userId: string }) {
           <FieldLabel>Session duration (min)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
             className={inputClass}
@@ -118,6 +122,7 @@ export function StrengthForm({ userId }: { userId: string }) {
           <FieldLabel>RPE (1-10, effort)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             min={1}
             max={10}
             value={rpe}
@@ -179,6 +184,7 @@ export function ShootingForm({ userId }: { userId: string }) {
           <FieldLabel>Attempts</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={attempts}
             onChange={(e) => setAttempts(Number(e.target.value))}
             className={inputClass}
@@ -188,6 +194,7 @@ export function ShootingForm({ userId }: { userId: string }) {
           <FieldLabel>Makes</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={makes}
             onChange={(e) => setMakes(Number(e.target.value))}
             className={inputClass}
@@ -249,6 +256,7 @@ export function NutritionForm({ userId }: { userId: string }) {
           <FieldLabel>Calories</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={calories}
             onChange={(e) => setCalories(Number(e.target.value))}
             className={inputClass}
@@ -258,6 +266,7 @@ export function NutritionForm({ userId }: { userId: string }) {
           <FieldLabel>Protein (g)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={protein}
             onChange={(e) => setProtein(Number(e.target.value))}
             className={inputClass}
@@ -267,6 +276,7 @@ export function NutritionForm({ userId }: { userId: string }) {
           <FieldLabel>Carbs (g)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={carbs}
             onChange={(e) => setCarbs(Number(e.target.value))}
             className={inputClass}
@@ -274,13 +284,15 @@ export function NutritionForm({ userId }: { userId: string }) {
         </div>
         <div>
           <FieldLabel>Fat (g)</FieldLabel>
-          <input type="number" value={fat} onChange={(e) => setFat(Number(e.target.value))} className={inputClass} />
+          <input type="number"
+            onFocus={(e) => e.target.select()} value={fat} onChange={(e) => setFat(Number(e.target.value))} className={inputClass} />
         </div>
       </div>
       <div>
         <FieldLabel>Water (L)</FieldLabel>
         <input
           type="number"
+            onFocus={(e) => e.target.select()}
           step="0.1"
           value={water}
           onChange={(e) => setWater(Number(e.target.value))}
@@ -324,6 +336,7 @@ export function RecoveryForm({ userId }: { userId: string }) {
         <FieldLabel>Sleep (hours)</FieldLabel>
         <input
           type="number"
+            onFocus={(e) => e.target.select()}
           step="0.1"
           value={sleep}
           onChange={(e) => setSleep(Number(e.target.value))}
@@ -335,6 +348,7 @@ export function RecoveryForm({ userId }: { userId: string }) {
           <FieldLabel>Energy (1-10)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             min={1}
             max={10}
             value={energy}
@@ -346,6 +360,7 @@ export function RecoveryForm({ userId }: { userId: string }) {
           <FieldLabel>Stress (1-10)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             min={1}
             max={10}
             value={stress}
@@ -357,6 +372,7 @@ export function RecoveryForm({ userId }: { userId: string }) {
           <FieldLabel>Soreness (1-10)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             min={1}
             max={10}
             value={soreness}
@@ -399,6 +415,7 @@ export function BodyweightForm({ userId }: { userId: string }) {
         <FieldLabel>Weight (lb)</FieldLabel>
         <input
           type="number"
+            onFocus={(e) => e.target.select()}
           step="0.1"
           value={weight}
           onChange={(e) => setWeight(Number(e.target.value))}
@@ -459,6 +476,7 @@ export function ConditioningForm({ userId }: { userId: string }) {
           <FieldLabel>Distance (m)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={distance}
             onChange={(e) => setDistance(Number(e.target.value))}
             className={inputClass}
@@ -468,6 +486,7 @@ export function ConditioningForm({ userId }: { userId: string }) {
           <FieldLabel>Duration (sec)</FieldLabel>
           <input
             type="number"
+            onFocus={(e) => e.target.select()}
             value={duration}
             onChange={(e) => setDuration(Number(e.target.value))}
             className={inputClass}
@@ -478,6 +497,7 @@ export function ConditioningForm({ userId }: { userId: string }) {
         <FieldLabel>RPE (1-10, effort)</FieldLabel>
         <input
           type="number"
+            onFocus={(e) => e.target.select()}
           min={1}
           max={10}
           value={rpe}

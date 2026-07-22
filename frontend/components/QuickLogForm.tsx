@@ -175,6 +175,7 @@ export function QuickLogForm({ userId }: { userId: string }) {
                       type="text"
                       value={value === null || value === undefined ? "" : String(value)}
                       onChange={(e) => updateField(key, e.target.value)}
+                      onFocus={(e) => e.target.select()}
                       className={inputClass}
                     />
                   </div>

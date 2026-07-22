@@ -32,6 +32,7 @@ function NumberField({
     <Field label={label}>
       <input
         type="number"
+            onFocus={(e) => e.target.select()}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value === "" ? undefined : Number(e.target.value))}
         className={inputClass}

@@ -142,6 +142,20 @@ class TrainingSessionCreate(BaseModel):
     strength_logs: Optional[list[StrengthLogCreate]] = None
 
 
+class TrainingSessionUpdate(BaseModel):
+    date: Optional[date] = None
+    duration_min: Optional[int] = None
+    rpe: Optional[int] = None
+    notes: Optional[str] = None
+
+
+class StrengthLogUpdate(BaseModel):
+    exercise: Optional[str] = None
+    sets: Optional[int] = None
+    reps: Optional[int] = None
+    weight_lb: Optional[float] = None
+
+
 class TrainingSessionOut(BaseModel):
     id: str
     user_id: str
@@ -166,6 +180,14 @@ class ShootingLogCreate(BaseModel):
     location: Optional[str] = None
 
 
+class ShootingLogUpdate(BaseModel):
+    date: Optional[date] = None
+    shot_type: Optional[str] = None
+    attempts: Optional[int] = None
+    makes: Optional[int] = None
+    location: Optional[str] = None
+
+
 class ShootingLogOut(ShootingLogCreate):
     id: str
     percentage: float
@@ -185,6 +207,15 @@ class NutritionLogCreate(BaseModel):
     water_l: Optional[float] = None
 
 
+class NutritionLogUpdate(BaseModel):
+    date: Optional[date] = None
+    calories: Optional[int] = None
+    protein_g: Optional[float] = None
+    carbs_g: Optional[float] = None
+    fat_g: Optional[float] = None
+    water_l: Optional[float] = None
+
+
 class NutritionLogOut(NutritionLogCreate):
     id: str
 
@@ -196,6 +227,14 @@ class NutritionLogOut(NutritionLogCreate):
 class RecoveryLogCreate(BaseModel):
     user_id: str
     date: date
+    sleep_hours: Optional[float] = None
+    energy: Optional[int] = None
+    stress: Optional[int] = None
+    soreness: Optional[int] = None
+
+
+class RecoveryLogUpdate(BaseModel):
+    date: Optional[date] = None
     sleep_hours: Optional[float] = None
     energy: Optional[int] = None
     stress: Optional[int] = None
@@ -416,6 +455,15 @@ class ConditioningLogCreate(BaseModel):
     notes: Optional[str] = None
 
 
+class ConditioningLogUpdate(BaseModel):
+    date: Optional[date] = None
+    activity: Optional[str] = None
+    distance_m: Optional[float] = None
+    duration_sec: Optional[int] = None
+    rpe: Optional[int] = None
+    notes: Optional[str] = None
+
+
 class ConditioningLogOut(ConditioningLogCreate):
     id: str
 
@@ -446,6 +494,11 @@ class BodyweightLogCreate(BaseModel):
     user_id: str
     date: date
     weight_lb: float
+
+
+class BodyweightLogUpdate(BaseModel):
+    date: Optional[date] = None
+    weight_lb: Optional[float] = None
 
 
 class BodyweightLogOut(BodyweightLogCreate):

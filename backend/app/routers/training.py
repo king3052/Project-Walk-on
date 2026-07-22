@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
-from app.core.checklist import mark_category_done
+from app.core.checklist import mark_category_done, mark_matching_done
 from app.models import models
 from app.schemas import schemas
 
@@ -69,8 +69,15 @@ def create_session(
     }
     type_value = payload.type.value if hasattr(payload.type, "value") else payload.type
     category = category_map.get(type_value)
-    categories = [category, "Analytics"] if category else ["Analytics"]
-    mark_category_done(db, models, current_user_id, payload.date, categories)
+
+    if category == "Strength" and payload.strength_logs:
+        # Only check off the specific exercises actually logged, not every Strength item that day.
+        exercise_names = [log.exercise for log in payload.strength_logs]
+        mark_matching_done(db, models, current_user_id, payload.date, "Strength", exercise_names)
+    elif category:
+        mark_category_done(db, models, current_user_id, payload.date, [category])
+
+    mark_category_done(db, models, current_user_id, payload.date, ["Analytics"])
 
     return session
 
@@ -86,3 +93,80 @@ def list_sessions(
         .order_by(models.TrainingSession.date.desc())
         .all()
     )
+
+
+@router.patch("/strength-logs/{log_id}", response_model=schemas.StrengthLogOut)
+def update_strength_log(
+    log_id: str,
+    payload: schemas.StrengthLogUpdate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    log = (
+        db.query(models.StrengthLog)
+        .join(models.TrainingSession)
+        .filter(models.StrengthLog.id == log_id, models.TrainingSession.user_id == current_user_id)
+        .first()
+    )
+    if not log:
+        raise HTTPException(status_code=404, detail="Strength log not found")
+    for k, v in payload.model_dump(exclude_unset=True).items():
+        setattr(log, k, v)
+    # recompute estimated 1RM if weight or reps changed
+    log.estimated_1rm = epley_1rm(log.weight_lb, log.reps)
+    db.commit()
+    db.refresh(log)
+    return log
+
+
+@router.delete("/strength-logs/{log_id}")
+def delete_strength_log(
+    log_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    log = (
+        db.query(models.StrengthLog)
+        .join(models.TrainingSession)
+        .filter(models.StrengthLog.id == log_id, models.TrainingSession.user_id == current_user_id)
+        .first()
+    )
+    if not log:
+        raise HTTPException(status_code=404, detail="Strength log not found")
+    db.delete(log)
+    db.commit()
+    return {"deleted": True}
+
+
+@router.patch("/{session_id}", response_model=schemas.TrainingSessionOut)
+def update_session(
+    session_id: str,
+    payload: schemas.TrainingSessionUpdate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    session = db.query(models.TrainingSession).get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not your session")
+    for k, v in payload.model_dump(exclude_unset=True).items():
+        setattr(session, k, v)
+    db.commit()
+    db.refresh(session)
+    return session
+
+
+@router.delete("/{session_id}")
+def delete_session(
+    session_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    session = db.query(models.TrainingSession).get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    if session.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not your session")
+    db.query(models.StrengthLog).filter(models.StrengthLog.session_id == session_id).delete(
+        synchronize_session=False
+    )
+    db.delete(session)
+    db.commit()
+    return {"deleted": True}

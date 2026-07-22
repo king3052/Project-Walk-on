@@ -8,6 +8,7 @@ import { LogOut } from "lucide-react";
 import {
   LayoutDashboard,
   ClipboardPlus,
+  History,
   LineChart,
   CalendarCheck,
   CalendarDays,
@@ -30,6 +31,7 @@ const LINKS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/log", label: "Log today", icon: ClipboardPlus },
+  { href: "/history", label: "History", icon: History },
   { href: "/analytics", label: "Analytics", icon: LineChart },
   { href: "/science", label: "Sports Science", icon: FlaskConical },
   { href: "/injuries", label: "Injuries", icon: HeartPulse },

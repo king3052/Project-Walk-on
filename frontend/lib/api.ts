@@ -71,6 +71,44 @@ export function logStrengthSession(
   });
 }
 
+export type StrengthLogEntry = {
+  id: string;
+  session_id: string;
+  exercise: string;
+  sets: number;
+  reps: number;
+  weight_lb: number;
+  estimated_1rm: number | null;
+  is_pr: number;
+};
+
+export type TrainingSessionEntry = {
+  id: string;
+  user_id: string;
+  date: string;
+  type: string;
+  duration_min: number | null;
+  rpe: number | null;
+  notes: string | null;
+  strength_logs: StrengthLogEntry[];
+};
+
+export function getTrainingSessions(userId: string): Promise<TrainingSessionEntry[]> {
+  return apiFetch(`/training-sessions/user/${userId}`);
+}
+
+export function updateStrengthLog(id: string, data: Partial<StrengthLogEntry>) {
+  return apiFetch(`/training-sessions/strength-logs/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteStrengthLog(id: string) {
+  return apiFetch(`/training-sessions/strength-logs/${id}`, { method: "DELETE" });
+}
+
+export function deleteTrainingSession(id: string) {
+  return apiFetch(`/training-sessions/${id}`, { method: "DELETE" });
+}
+
 // ---------- Shooting ----------
 export function logShootingSession(
   userId: string,
@@ -83,6 +121,29 @@ export function logShootingSession(
   return post("/shooting-logs/", { user_id: userId, date, shot_type: shotType, attempts, makes, location: location || null });
 }
 
+export type ShootingLogEntry = {
+  id: string;
+  user_id: string;
+  date: string;
+  shot_type: string;
+  attempts: number;
+  makes: number;
+  location: string | null;
+  percentage: number;
+};
+
+export function getShootingLogs(userId: string): Promise<ShootingLogEntry[]> {
+  return apiFetch(`/shooting-logs/user/${userId}`);
+}
+
+export function updateShootingLog(id: string, data: Partial<ShootingLogEntry>) {
+  return apiFetch(`/shooting-logs/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteShootingLog(id: string) {
+  return apiFetch(`/shooting-logs/${id}`, { method: "DELETE" });
+}
+
 // ---------- Nutrition ----------
 export function logNutrition(
   userId: string,
@@ -90,6 +151,29 @@ export function logNutrition(
   data: { calories?: number; protein_g?: number; carbs_g?: number; fat_g?: number; water_l?: number }
 ) {
   return post("/nutrition-logs/", { user_id: userId, date, ...data });
+}
+
+export type NutritionLogEntry = {
+  id: string;
+  user_id: string;
+  date: string;
+  calories: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  water_l: number | null;
+};
+
+export function getNutritionLogs(userId: string): Promise<NutritionLogEntry[]> {
+  return apiFetch(`/nutrition-logs/user/${userId}`);
+}
+
+export function updateNutritionLog(id: string, data: Partial<NutritionLogEntry>) {
+  return apiFetch(`/nutrition-logs/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteNutritionLog(id: string) {
+  return apiFetch(`/nutrition-logs/${id}`, { method: "DELETE" });
 }
 
 // ---------- Recovery ----------
@@ -101,9 +185,45 @@ export function logRecovery(
   return post("/recovery-logs/", { user_id: userId, date, ...data });
 }
 
+export type RecoveryLogEntry = {
+  id: string;
+  user_id: string;
+  date: string;
+  sleep_hours: number | null;
+  energy: number | null;
+  stress: number | null;
+  soreness: number | null;
+};
+
+export function getRecoveryLogs(userId: string): Promise<RecoveryLogEntry[]> {
+  return apiFetch(`/recovery-logs/user/${userId}`);
+}
+
+export function updateRecoveryLog(id: string, data: Partial<RecoveryLogEntry>) {
+  return apiFetch(`/recovery-logs/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteRecoveryLog(id: string) {
+  return apiFetch(`/recovery-logs/${id}`, { method: "DELETE" });
+}
+
 // ---------- Bodyweight ----------
 export function logBodyweight(userId: string, date: string, weightLb: number) {
   return post("/bodyweight-logs/", { user_id: userId, date, weight_lb: weightLb });
+}
+
+export type BodyweightLogEntry = { id: string; user_id: string; date: string; weight_lb: number };
+
+export function getBodyweightLogs(userId: string): Promise<BodyweightLogEntry[]> {
+  return apiFetch(`/bodyweight-logs/user/${userId}`);
+}
+
+export function updateBodyweightLog(id: string, data: Partial<BodyweightLogEntry>) {
+  return apiFetch(`/bodyweight-logs/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteBodyweightLog(id: string) {
+  return apiFetch(`/bodyweight-logs/${id}`, { method: "DELETE" });
 }
 
 // ---------- Weekly Review ----------
@@ -216,6 +336,29 @@ export function logConditioning(
   data: { distance_m?: number; duration_sec?: number; rpe?: number; notes?: string }
 ) {
   return post("/conditioning-logs/", { user_id: userId, date, activity, ...data });
+}
+
+export type ConditioningLogEntry = {
+  id: string;
+  user_id: string;
+  date: string;
+  activity: string;
+  distance_m: number | null;
+  duration_sec: number | null;
+  rpe: number | null;
+  notes: string | null;
+};
+
+export function getConditioningLogs(userId: string): Promise<ConditioningLogEntry[]> {
+  return apiFetch(`/conditioning-logs/user/${userId}`);
+}
+
+export function updateConditioningLog(id: string, data: Partial<ConditioningLogEntry>) {
+  return apiFetch(`/conditioning-logs/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteConditioningLog(id: string) {
+  return apiFetch(`/conditioning-logs/${id}`, { method: "DELETE" });
 }
 
 // ---------- Journal ----------

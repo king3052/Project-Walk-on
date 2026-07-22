@@ -252,3 +252,30 @@ def mark_category_done(db: Session, models, user_id: str, log_date: date, catego
         .update({"completed": True}, synchronize_session=False)
     )
     db.commit()
+
+
+def mark_matching_done(
+    db: Session, models, user_id: str, log_date: date, category: str, keywords: list[str]
+) -> None:
+    """Like mark_category_done, but only checks off scheduled items whose title matches one
+    of the given keywords (e.g. the specific exercise name) — not every item in the category.
+    If nothing matches, nothing is checked off; the rest of the category stays untouched."""
+    from sqlalchemy import or_
+
+    clean_keywords = [k.strip() for k in keywords if k and k.strip()]
+    if not clean_keywords:
+        return
+
+    conditions = [models.ScheduledWorkout.title.ilike(f"%{kw}%") for kw in clean_keywords]
+    (
+        db.query(models.ScheduledWorkout)
+        .filter(
+            models.ScheduledWorkout.user_id == user_id,
+            models.ScheduledWorkout.date == log_date,
+            models.ScheduledWorkout.workout_type == category,
+            models.ScheduledWorkout.completed.is_(False),
+            or_(*conditions),
+        )
+        .update({"completed": True}, synchronize_session=False)
+    )
+    db.commit()
