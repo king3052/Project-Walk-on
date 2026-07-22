@@ -41,18 +41,20 @@ export default function HistoryPage() {
   const { userId } = useAuth();
   const { showToast } = useToast();
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [daysWindow, setDaysWindow] = useState(30);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Record<string, number | string | boolean>>({});
 
   function load() {
     if (!userId) return;
     Promise.all([
-      getTrainingSessions(userId),
-      getShootingLogs(userId),
-      getNutritionLogs(userId),
-      getRecoveryLogs(userId),
-      getConditioningLogs(userId),
-      getBodyweightLogs(userId),
+      getTrainingSessions(userId, daysWindow),
+      getShootingLogs(userId, daysWindow),
+      getNutritionLogs(userId, daysWindow),
+      getRecoveryLogs(userId, daysWindow),
+      getConditioningLogs(userId, daysWindow),
+      getBodyweightLogs(userId, daysWindow),
     ]).then(([sessions, shooting, nutrition, recovery, conditioning, bodyweight]) => {
       const list: Entry[] = [];
 
@@ -148,10 +150,10 @@ export default function HistoryPage() {
 
       list.sort((a, b) => b.date.localeCompare(a.date));
       setEntries(list);
-    });
+    }).finally(() => setLoadingMore(false));
   }
 
-  useEffect(load, [userId]);
+  useEffect(load, [userId, daysWindow]);
 
   function startEdit(entry: Entry) {
     setEditingKey(entry.key);
@@ -269,6 +271,8 @@ export default function HistoryPage() {
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-8">
       <PageHeader title="Log history" description="Every entry you've logged — edit or delete anything here." />
 
+      <p className="text-xs text-fg-dim">Showing the last {daysWindow} days.</p>
+
       <div className="space-y-6">
         {entries.length === 0 && <p className="text-sm text-fg-dim">Nothing logged yet.</p>}
         {Object.entries(grouped).map(([date, items]) => (
@@ -316,6 +320,19 @@ export default function HistoryPage() {
           </div>
         ))}
       </div>
+
+      {entries.length > 0 && (
+        <button
+          onClick={() => {
+            setLoadingMore(true);
+            setDaysWindow((prev) => prev + 30);
+          }}
+          disabled={loadingMore}
+          className="text-sm text-fg-dim hover:text-accent disabled:opacity-50 transition-colors"
+        >
+          {loadingMore ? "Loading…" : "Load older (+30 days)"}
+        </button>
+      )}
     </main>
   );
 }

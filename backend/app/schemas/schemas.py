@@ -434,6 +434,30 @@ class PushSubscriptionCreate(BaseModel):
     auth: str
 
 
+# ---------- Weekly Template (editable, per-user) ----------
+class TemplateItemCreate(BaseModel):
+    weekday: str  # "Sunday".."Saturday"
+    category: str
+    task: str
+
+
+class TemplateItemUpdate(BaseModel):
+    weekday: Optional[str] = None
+    category: Optional[str] = None
+    task: Optional[str] = None
+
+
+class TemplateItemOut(BaseModel):
+    id: str
+    user_id: str
+    weekday: str
+    category: str
+    task: str
+
+    class Config:
+        from_attributes = True
+
+
 # ---------- Achievements (computed, read-only) ----------
 class Achievement(BaseModel):
     key: str

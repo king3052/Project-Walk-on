@@ -203,14 +203,40 @@ TEMPLATES_BY_SPORT = {
     "Tennis": TENNIS_WEEKLY_TEMPLATE,
 }
 
-WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+# Sunday-first, matching how the calendar and "seed this week" button treat the week.
+WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+
+def get_or_bootstrap_template(db: Session, models, user_id: str, sport: str = "Basketball") -> list:
+    """Returns the athlete's own editable template rows, creating them from the
+    sport's default the first time (so editing one athlete's copy never affects
+    anyone else's, and never affects the built-in defaults)."""
+    items = db.query(models.TemplateItem).filter(models.TemplateItem.user_id == user_id).all()
+    if items:
+        return items
+
+    default = TEMPLATES_BY_SPORT.get(sport, BASKETBALL_WEEKLY_TEMPLATE)
+    new_items = []
+    for weekday_name, tasks in default.items():
+        for category, task in tasks:
+            item = models.TemplateItem(user_id=user_id, weekday=weekday_name, category=category, task=task)
+            db.add(item)
+            new_items.append(item)
+    db.commit()
+    for item in new_items:
+        db.refresh(item)
+    return new_items
 
 
 def seed_week(db: Session, models, user_id: str, week_start: date, sport: str = "Basketball") -> int:
-    """Creates ScheduledWorkout rows for week_start..week_start+6 from the template
-    matching the athlete's sport. Skips any (date, title) pair that already exists,
-    so it's safe to call repeatedly."""
-    template = TEMPLATES_BY_SPORT.get(sport, BASKETBALL_WEEKLY_TEMPLATE)
+    """Creates ScheduledWorkout rows for week_start..week_start+6 (week_start should be
+    a Sunday) from the athlete's own editable template. Skips any (date, title) pair
+    that already exists, so it's safe to call repeatedly."""
+    items = get_or_bootstrap_template(db, models, user_id, sport)
+    by_weekday: dict[str, list] = {}
+    for item in items:
+        by_weekday.setdefault(item.weekday, []).append(item)
+
     week_dates = [week_start + timedelta(days=i) for i in range(7)]
 
     existing = set(
@@ -226,12 +252,12 @@ def seed_week(db: Session, models, user_id: str, week_start: date, sport: str = 
     created = 0
     for i, day in enumerate(week_dates):
         weekday_name = WEEKDAY_NAMES[i]
-        for category, task in template.get(weekday_name, []):
-            if (day, task) in existing:
+        for item in by_weekday.get(weekday_name, []):
+            if (day, item.task) in existing:
                 continue
             db.add(
                 models.ScheduledWorkout(
-                    user_id=user_id, date=day, workout_type=category, title=task
+                    user_id=user_id, date=day, workout_type=item.category, title=item.task
                 )
             )
             created += 1

@@ -12,6 +12,7 @@ import {
   LineChart,
   CalendarCheck,
   CalendarDays,
+  ListChecks,
   BookOpen,
   Target,
   UserCircle,
@@ -30,6 +31,7 @@ import {
 const LINKS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "/template", label: "Weekly template", icon: ListChecks },
   { href: "/log", label: "Log today", icon: ClipboardPlus },
   { href: "/history", label: "History", icon: History },
   { href: "/analytics", label: "Analytics", icon: LineChart },

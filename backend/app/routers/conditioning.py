@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -30,11 +31,14 @@ def create_conditioning_log(
 
 @router.get("/user/{user_id}", response_model=list[schemas.ConditioningLogOut])
 def list_conditioning_logs(
-    user_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    user_id: str,
+    days: int = 30,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     return (
         db.query(models.ConditioningLog)
-        .filter(models.ConditioningLog.user_id == current_user_id)
+        .filter(models.ConditioningLog.user_id == current_user_id, models.ConditioningLog.date >= date.today() - timedelta(days=days))
         .order_by(models.ConditioningLog.date.desc())
         .all()
     )

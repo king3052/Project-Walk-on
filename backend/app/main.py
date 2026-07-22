@@ -30,6 +30,7 @@ from app.routers import (
     ask,
     notifications,
     learning,
+    template,
 )
 
 app = FastAPI(title="Project Walk-On OS API", version="0.1.0")
@@ -74,6 +75,7 @@ app.include_router(planner.router)
 app.include_router(ask.router)
 app.include_router(notifications.router)
 app.include_router(learning.router)
+app.include_router(template.router)
 
 
 @app.on_event("startup")

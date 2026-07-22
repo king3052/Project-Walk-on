@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   ClipboardPlus,
   History,
+  ListChecks,
   CalendarDays,
   LineChart,
   MoreHorizontal,
@@ -38,6 +39,7 @@ const PRIMARY = [
 
 const MORE_LINKS = [
   { href: "/history", label: "History", icon: History },
+  { href: "/template", label: "Weekly template", icon: ListChecks },
   { href: "/review", label: "Weekly review", icon: CalendarCheck },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/goals", label: "Goals", icon: Target },

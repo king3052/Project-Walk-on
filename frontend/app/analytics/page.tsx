@@ -78,13 +78,14 @@ export default function AnalyticsPage() {
   const { userId } = useAuth();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [range, setRange] = useState(90);
 
   useEffect(() => {
     if (!userId) return;
-    getAnalytics(userId, 90)
+    getAnalytics(userId, range)
       .then(setData)
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load analytics."));
-  }, []);
+  }, [userId, range]);
 
   const strengthPivot = data ? pivotStrength(data.strength) : { rows: [], exercises: [] };
   const shootingSeries = data ? aggregateShooting(data.shooting) : [];
@@ -92,6 +93,20 @@ export default function AnalyticsPage() {
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 space-y-8">
       <PageHeader title="Analytics" />
+
+      <div className="flex gap-2">
+        {[30, 90, 180, 365].map((d) => (
+          <button
+            key={d}
+            onClick={() => setRange(d)}
+            className={`text-xs px-3 py-1.5 rounded-md transition-colors ${
+              range === d ? "bg-accent text-accent-deep" : "text-fg-dim hover:bg-surface-panelHover"
+            }`}
+          >
+            {d}d
+          </button>
+        ))}
+      </div>
 
       {error && <p className="text-warn text-sm">{error}</p>}
 

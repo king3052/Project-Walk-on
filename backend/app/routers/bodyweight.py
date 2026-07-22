@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -30,11 +31,14 @@ def create_bodyweight_log(
 
 @router.get("/user/{user_id}", response_model=list[schemas.BodyweightLogOut])
 def list_bodyweight_logs(
-    user_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    user_id: str,
+    days: int = 30,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     return (
         db.query(models.BodyweightLog)
-        .filter(models.BodyweightLog.user_id == current_user_id)
+        .filter(models.BodyweightLog.user_id == current_user_id, models.BodyweightLog.date >= date.today() - timedelta(days=days))
         .order_by(models.BodyweightLog.date.desc())
         .all()
     )

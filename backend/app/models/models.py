@@ -199,6 +199,16 @@ class ScheduledWorkout(Base):
     completed = Column(Boolean, default=False)
 
 
+class TemplateItem(Base):
+    __tablename__ = "template_items"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    weekday = Column(String, nullable=False)  # "Sunday".."Saturday"
+    category = Column(String, nullable=False)
+    task = Column(String, nullable=False)
+
+
 class UserSettings(Base):
     __tablename__ = "user_settings"
 

@@ -124,9 +124,9 @@ export default function CalendarPage() {
     try {
       const selected = new Date(selectedDate + "T00:00:00");
       const weekday = selected.getDay(); // 0 = Sunday
-      const monday = new Date(selected);
-      monday.setDate(selected.getDate() - ((weekday + 6) % 7));
-      const result = await seedWeekFromTemplate(toISODate(monday));
+      const sunday = new Date(selected);
+      sunday.setDate(selected.getDate() - weekday);
+      const result = await seedWeekFromTemplate(toISODate(sunday));
       setSeedStatus(
         result.created > 0
           ? `Added ${result.created} items from your template.`
@@ -169,13 +169,18 @@ export default function CalendarPage() {
       </div>
 
       <div className="flex items-center justify-between">
-        <button
-          onClick={onSeedWeek}
-          disabled={seeding}
-          className="text-sm bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-4 py-2 rounded-md transition-colors"
-        >
-          {seeding ? "Loading…" : "Load this week's template"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onSeedWeek}
+            disabled={seeding}
+            className="text-sm bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-4 py-2 rounded-md transition-colors"
+          >
+            {seeding ? "Loading…" : "Load this week's template"}
+          </button>
+          <a href="/template" className="text-xs text-fg-dim hover:text-accent transition-colors">
+            Edit template
+          </a>
+        </div>
         {seedStatus && <p className="text-xs text-fg-dim">{seedStatus}</p>}
       </div>
 

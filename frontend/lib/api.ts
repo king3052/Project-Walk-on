@@ -93,8 +93,8 @@ export type TrainingSessionEntry = {
   strength_logs: StrengthLogEntry[];
 };
 
-export function getTrainingSessions(userId: string): Promise<TrainingSessionEntry[]> {
-  return apiFetch(`/training-sessions/user/${userId}`);
+export function getTrainingSessions(userId: string, days = 30): Promise<TrainingSessionEntry[]> {
+  return apiFetch(`/training-sessions/user/${userId}?days=${days}`);
 }
 
 export function updateStrengthLog(id: string, data: Partial<StrengthLogEntry>) {
@@ -132,8 +132,8 @@ export type ShootingLogEntry = {
   percentage: number;
 };
 
-export function getShootingLogs(userId: string): Promise<ShootingLogEntry[]> {
-  return apiFetch(`/shooting-logs/user/${userId}`);
+export function getShootingLogs(userId: string, days = 30): Promise<ShootingLogEntry[]> {
+  return apiFetch(`/shooting-logs/user/${userId}?days=${days}`);
 }
 
 export function updateShootingLog(id: string, data: Partial<ShootingLogEntry>) {
@@ -164,8 +164,8 @@ export type NutritionLogEntry = {
   water_l: number | null;
 };
 
-export function getNutritionLogs(userId: string): Promise<NutritionLogEntry[]> {
-  return apiFetch(`/nutrition-logs/user/${userId}`);
+export function getNutritionLogs(userId: string, days = 30): Promise<NutritionLogEntry[]> {
+  return apiFetch(`/nutrition-logs/user/${userId}?days=${days}`);
 }
 
 export function updateNutritionLog(id: string, data: Partial<NutritionLogEntry>) {
@@ -195,8 +195,8 @@ export type RecoveryLogEntry = {
   soreness: number | null;
 };
 
-export function getRecoveryLogs(userId: string): Promise<RecoveryLogEntry[]> {
-  return apiFetch(`/recovery-logs/user/${userId}`);
+export function getRecoveryLogs(userId: string, days = 30): Promise<RecoveryLogEntry[]> {
+  return apiFetch(`/recovery-logs/user/${userId}?days=${days}`);
 }
 
 export function updateRecoveryLog(id: string, data: Partial<RecoveryLogEntry>) {
@@ -214,8 +214,8 @@ export function logBodyweight(userId: string, date: string, weightLb: number) {
 
 export type BodyweightLogEntry = { id: string; user_id: string; date: string; weight_lb: number };
 
-export function getBodyweightLogs(userId: string): Promise<BodyweightLogEntry[]> {
-  return apiFetch(`/bodyweight-logs/user/${userId}`);
+export function getBodyweightLogs(userId: string, days = 30): Promise<BodyweightLogEntry[]> {
+  return apiFetch(`/bodyweight-logs/user/${userId}?days=${days}`);
 }
 
 export function updateBodyweightLog(id: string, data: Partial<BodyweightLogEntry>) {
@@ -349,8 +349,8 @@ export type ConditioningLogEntry = {
   notes: string | null;
 };
 
-export function getConditioningLogs(userId: string): Promise<ConditioningLogEntry[]> {
-  return apiFetch(`/conditioning-logs/user/${userId}`);
+export function getConditioningLogs(userId: string, days = 30): Promise<ConditioningLogEntry[]> {
+  return apiFetch(`/conditioning-logs/user/${userId}?days=${days}`);
 }
 
 export function updateConditioningLog(id: string, data: Partial<ConditioningLogEntry>) {
@@ -476,8 +476,31 @@ export function deleteScheduledWorkout(id: string) {
   return apiFetch(`/scheduled-workouts/${id}`, { method: "DELETE" });
 }
 
-export function seedWeekFromTemplate(weekStart: string): Promise<{ created: number }> {
+export function seedWeekFromTemplate(weekStart: string): Promise<{ created: number; sport: string }> {
   return apiFetch(`/scheduled-workouts/seed-week?week_start=${weekStart}`, { method: "POST" });
+}
+
+// ---------- Weekly Template (editable) ----------
+export type TemplateItem = { id: string; user_id: string; weekday: string; category: string; task: string };
+
+export function getTemplateItems(): Promise<TemplateItem[]> {
+  return apiFetch(`/template/items`);
+}
+
+export function createTemplateItem(weekday: string, category: string, task: string): Promise<TemplateItem> {
+  return post("/template/items", { weekday, category, task });
+}
+
+export function updateTemplateItem(id: string, data: Partial<Omit<TemplateItem, "id" | "user_id">>) {
+  return apiFetch(`/template/items/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function deleteTemplateItem(id: string) {
+  return apiFetch(`/template/items/${id}`, { method: "DELETE" });
+}
+
+export function resetTemplate(): Promise<TemplateItem[]> {
+  return apiFetch(`/template/reset`, { method: "POST" });
 }
 
 // ---------- Quick Log (AI parsing) ----------
