@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import date
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
@@ -106,6 +107,26 @@ def onboard(
             body_part=payload.injury_body_part,
             severity=payload.injury_severity or 5,
             description=payload.injury_description,
+        ))
+
+    if payload.backhand_style or payload.preferred_surface:
+        tennis_profile = db.query(models.TennisProfile).filter(
+            models.TennisProfile.user_id == current_user_id
+        ).first()
+        if not tennis_profile:
+            tennis_profile = models.TennisProfile(user_id=current_user_id)
+            db.add(tennis_profile)
+        if payload.backhand_style:
+            tennis_profile.backhand_style = payload.backhand_style
+        if payload.preferred_surface:
+            tennis_profile.preferred_surface = payload.preferred_surface
+
+    if payload.initial_ranking_type and payload.initial_ranking_value:
+        db.add(models.TennisRanking(
+            user_id=current_user_id,
+            date=date.today(),
+            ranking_type=payload.initial_ranking_type,
+            value=payload.initial_ranking_value,
         ))
 
     db.commit()

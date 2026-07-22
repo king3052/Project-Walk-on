@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { getAnalytics, type AnalyticsData } from "@/lib/api";
+import { getAnalytics, getMe, getStrokeLogs, getTennisMatches, type AnalyticsData } from "@/lib/api";
 import { ActivityCalendar } from "@/components/ActivityCalendar";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -45,16 +45,13 @@ function pivotStrength(strength: AnalyticsData["strength"]) {
   for (const point of strength) {
     exercises.add(point.exercise);
     const row = byDate.get(point.date) || { date: point.date };
-    // keep the heaviest estimated 1RM per exercise per date
     const existing = row[point.exercise];
     if (typeof existing !== "number" || point.estimated_1rm > existing) {
       row[point.exercise] = point.estimated_1rm;
     }
     byDate.set(point.date, row);
   }
-  const rows = Array.from(byDate.values()).sort((a, b) =>
-    String(a.date).localeCompare(String(b.date))
-  );
+  const rows = Array.from(byDate.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));
   return { rows, exercises: Array.from(exercises) };
 }
 
@@ -79,6 +76,9 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState(90);
+  const [sport, setSport] = useState("Basketball");
+  const [strokeSeries, setStrokeSeries] = useState<{ date: string; pct: number }[]>([]);
+  const [serveSeries, setServeSeries] = useState<{ date: string; pct: number }[]>([]);
 
   useEffect(() => {
     if (!userId) return;
@@ -87,8 +87,49 @@ export default function AnalyticsPage() {
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load analytics."));
   }, [userId, range]);
 
+  useEffect(() => {
+    getMe()
+      .then((u) => setSport(u.sport || "Basketball"))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (sport !== "Tennis") return;
+    getStrokeLogs(range)
+      .then((logs) => {
+        const byDate = new Map<string, { attempts: number; makes: number }>();
+        logs.forEach((l) => {
+          const entry = byDate.get(l.date) || { attempts: 0, makes: 0 };
+          entry.attempts += l.attempts;
+          entry.makes += l.makes;
+          byDate.set(l.date, entry);
+        });
+        setStrokeSeries(
+          Array.from(byDate.entries())
+            .map(([date, { attempts, makes }]) => ({
+              date,
+              pct: attempts ? Math.round((makes / attempts) * 1000) / 10 : 0,
+            }))
+            .sort((a, b) => a.date.localeCompare(b.date))
+        );
+      })
+      .catch(() => setStrokeSeries([]));
+
+    getTennisMatches(range)
+      .then((matches) => {
+        setServeSeries(
+          matches
+            .filter((m) => m.first_serve_pct !== null)
+            .map((m) => ({ date: m.date, pct: m.first_serve_pct as number }))
+            .sort((a, b) => a.date.localeCompare(b.date))
+        );
+      })
+      .catch(() => setServeSeries([]));
+  }, [sport, range]);
+
   const strengthPivot = data ? pivotStrength(data.strength) : { rows: [], exercises: [] };
   const shootingSeries = data ? aggregateShooting(data.shooting) : [];
+  const isTennis = sport === "Tennis";
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-10 space-y-8">
@@ -152,21 +193,57 @@ export default function AnalyticsPage() {
         )}
       </ChartCard>
 
-      <ChartCard title="Shooting % by day">
-        {shootingSeries.length > 0 ? (
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={shootingSeries}>
-              <CartesianGrid stroke="#242424" vertical={false} />
-              <XAxis dataKey="date" tick={axisStyle} axisLine={{ stroke: "#242424" }} tickLine={false} />
-              <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} unit="%" />
-              <Tooltip contentStyle={tooltipStyle} />
-              <Line type="monotone" dataKey="pct" stroke="#4ADE80" strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <EmptyState text="No shooting sessions yet — log one from the Shooting tab." />
-        )}
-      </ChartCard>
+      {isTennis ? (
+        <>
+          <ChartCard title="Stroke consistency by day">
+            {strokeSeries.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={strokeSeries}>
+                  <CartesianGrid stroke="#242424" vertical={false} />
+                  <XAxis dataKey="date" tick={axisStyle} axisLine={{ stroke: "#242424" }} tickLine={false} />
+                  <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} unit="%" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Line type="monotone" dataKey="pct" stroke="#4ADE80" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No strokes logged yet — log some from the Tennis → Strokes page." />
+            )}
+          </ChartCard>
+
+          <ChartCard title="First serve % by match">
+            {serveSeries.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={serveSeries}>
+                  <CartesianGrid stroke="#242424" vertical={false} />
+                  <XAxis dataKey="date" tick={axisStyle} axisLine={{ stroke: "#242424" }} tickLine={false} />
+                  <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} unit="%" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Line type="monotone" dataKey="pct" stroke="#60A5FA" strokeWidth={2} dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No match serve stats logged yet — add detailed stats when logging a match." />
+            )}
+          </ChartCard>
+        </>
+      ) : (
+        <ChartCard title="Shooting % by day">
+          {shootingSeries.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={shootingSeries}>
+                <CartesianGrid stroke="#242424" vertical={false} />
+                <XAxis dataKey="date" tick={axisStyle} axisLine={{ stroke: "#242424" }} tickLine={false} />
+                <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} unit="%" />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Line type="monotone" dataKey="pct" stroke="#4ADE80" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState text="No shooting sessions yet — log one from the Shooting tab." />
+          )}
+        </ChartCard>
+      )}
 
       <ActivityCalendar activeDates={data?.active_dates || []} />
     </main>

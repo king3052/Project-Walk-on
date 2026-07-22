@@ -65,6 +65,8 @@ export default function OnboardingPage() {
   const [age, setAge] = useState<number>();
   const [shoeSize, setShoeSize] = useState("");
   const [experienceLevel, setExperienceLevel] = useState("Intermediate");
+  const [backhandStyle, setBackhandStyle] = useState("Two-handed");
+  const [preferredSurface, setPreferredSurface] = useState("Hard");
 
   // Step 2 — body measurements
   const [wingspanIn, setWingspanIn] = useState<number>();
@@ -87,6 +89,8 @@ export default function OnboardingPage() {
   const [goalSquat, setGoalSquat] = useState<number>();
   const [goalDeadlift, setGoalDeadlift] = useState<number>();
   const [trainingDays, setTrainingDays] = useState<number>();
+  const [initialRankingType, setInitialRankingType] = useState("UTR");
+  const [initialRankingValue, setInitialRankingValue] = useState("");
 
   // Step 5 — priority
   const [priority, setPriority] = useState<(typeof PRIORITIES)[number]["key"]>("weight_strength");
@@ -154,6 +158,10 @@ export default function OnboardingPage() {
       injury_body_part: hasInjury ? injuryBodyPart || undefined : undefined,
       injury_severity: hasInjury ? injurySeverity : undefined,
       injury_description: hasInjury ? injuryDescription || undefined : undefined,
+      backhand_style: sport === "Tennis" ? backhandStyle : undefined,
+      preferred_surface: sport === "Tennis" ? preferredSurface : undefined,
+      initial_ranking_type: sport === "Tennis" && initialRankingValue ? initialRankingType : undefined,
+      initial_ranking_value: sport === "Tennis" && initialRankingValue ? initialRankingValue : undefined,
     };
 
     try {
@@ -236,6 +244,24 @@ export default function OnboardingPage() {
                 <option>Advanced</option>
               </select>
             </Field>
+            {sport === "Tennis" && (
+              <>
+                <Field label="Backhand">
+                  <select value={backhandStyle} onChange={(e) => setBackhandStyle(e.target.value)} className={inputClass}>
+                    <option>One-handed</option>
+                    <option>Two-handed</option>
+                  </select>
+                </Field>
+                <Field label="Preferred surface">
+                  <select value={preferredSurface} onChange={(e) => setPreferredSurface(e.target.value)} className={inputClass}>
+                    <option>Hard</option>
+                    <option>Clay</option>
+                    <option>Grass</option>
+                    <option>Indoor</option>
+                  </select>
+                </Field>
+              </>
+            )}
             <button onClick={next} className="w-full text-sm bg-accent hover:bg-accent-dim text-accent-deep px-5 py-2.5 rounded-md transition-colors">
               Next
             </button>
@@ -295,6 +321,34 @@ export default function OnboardingPage() {
               <NumberField label="Goal deadlift (lb)" value={goalDeadlift} onChange={setGoalDeadlift} />
             </div>
             <NumberField label="Days per week you can realistically train" value={trainingDays} onChange={setTrainingDays} />
+            {sport === "Tennis" && (
+              <div>
+                <p className="text-xs text-fg-dim block mb-1">Current rating (optional)</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={initialRankingType}
+                    onChange={(e) => setInitialRankingType(e.target.value)}
+                    className={inputClass}
+                  >
+                    <option>UTR</option>
+                    <option>USTA</option>
+                    <option>ITF</option>
+                    <option>ATP</option>
+                    <option>WTA</option>
+                    <option>School</option>
+                    <option>State</option>
+                    <option>National</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={initialRankingValue}
+                    onChange={(e) => setInitialRankingValue(e.target.value)}
+                    placeholder="e.g. 8.5 or #42"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+            )}
             <div className="flex gap-2">
               <button onClick={back} className="text-sm text-fg-dim hover:text-fg-muted px-4 py-2.5 transition-colors">
                 ← Back
@@ -323,7 +377,7 @@ export default function OnboardingPage() {
                       : "border-surface-border text-fg hover:bg-surface-panelHover"
                   }`}
                 >
-                  {p.label}
+                  {p.key === "weight_basketball" ? `${sport} skill` : p.label}
                 </button>
               ))}
             </div>

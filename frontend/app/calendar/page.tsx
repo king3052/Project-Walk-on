@@ -8,6 +8,7 @@ import {
   toggleScheduledWorkoutComplete,
   deleteScheduledWorkout,
   seedWeekFromTemplate,
+  getMe,
   type ScheduledWorkout,
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
@@ -64,6 +65,7 @@ export default function CalendarPage() {
   const [workouts, setWorkouts] = useState<ScheduledWorkout[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(toISODate(today));
   const [workoutType, setWorkoutType] = useState(WORKOUT_TYPES[0]);
+  const [sport, setSport] = useState("Basketball");
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
@@ -81,6 +83,16 @@ export default function CalendarPage() {
   }
 
   useEffect(loadMonth, [monthDate]);
+
+  useEffect(() => {
+    getMe()
+      .then((u) => {
+        const userSport = u.sport || "Basketball";
+        setSport(userSport);
+        setWorkoutType(userSport === "Tennis" ? "Groundstrokes" : "Basketball");
+      })
+      .catch(() => {});
+  }, []);
 
   async function onAdd(e: React.FormEvent) {
     e.preventDefault();

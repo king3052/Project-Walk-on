@@ -314,6 +314,10 @@ export type OnboardingData = {
   injury_body_part?: string;
   injury_severity?: number;
   injury_description?: string;
+  backhand_style?: string;
+  preferred_surface?: string;
+  initial_ranking_type?: string;
+  initial_ranking_value?: string;
 };
 
 export function submitOnboarding(data: OnboardingData): Promise<UserRecord> {

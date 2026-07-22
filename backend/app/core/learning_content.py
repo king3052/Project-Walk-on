@@ -67,17 +67,24 @@ BASKETBALL_LEARNING_RESOURCES = [
 TENNIS_LEARNING_RESOURCES = [
     {
         "category": "Serve",
-        "title": "Tennis Serve Technique Fundamentals",
-        "description": "Grip, ball toss, and service motion broken down step by step.",
-        "source": "Tennis Nation",
-        "url": "https://www.tennisnation.com/free-lessons/technique/tennis-serve-technique-fundamentals/",
+        "title": "Serve Technique Lessons — Intuitive Tennis 247",
+        "description": "Nikola Aracic (former top-40 D1 player, 32 years teaching) breaks down serve technique in short, focused videos.",
+        "source": "Intuitive Tennis 247 (YouTube)",
+        "url": "https://www.youtube.com/@IntuitiveTennis247/videos",
     },
     {
         "category": "Groundstrokes",
-        "title": "Backhand Groundstroke: Grip, Stance & Setup",
-        "description": "One-handed vs. two-handed backhand mechanics and setup.",
-        "source": "Tennis Nation",
-        "url": "https://www.tennisnation.com/free-lessons/technique/tennis-backhand-groundstroke-ultimate-guide/",
+        "title": "Forehand & Backhand Technique — Intuitive Tennis 247",
+        "description": "Short-form technique breakdowns covering forehand and backhand mechanics.",
+        "source": "Intuitive Tennis 247 (YouTube)",
+        "url": "https://www.youtube.com/@IntuitiveTennis247/videos",
+    },
+    {
+        "category": "Mental Game",
+        "title": "Intuitive Tennis — full lessons and mental game coaching",
+        "description": "Longer-form lessons from the same coach, including confidence, focus, and handling pressure in matches.",
+        "source": "Intuitive Tennis (YouTube)",
+        "url": "https://www.youtube.com/@IntuitiveTennis",
     },
     {
         "category": "Footwork",

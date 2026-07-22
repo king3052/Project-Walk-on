@@ -81,6 +81,12 @@ class OnboardingPayload(BaseModel):
     injury_severity: Optional[int] = None
     injury_description: Optional[str] = None
 
+    # Tennis-specific (only used when sport == "Tennis")
+    backhand_style: Optional[str] = None
+    preferred_surface: Optional[str] = None
+    initial_ranking_type: Optional[str] = None
+    initial_ranking_value: Optional[str] = None
+
 
 # ---------- Athlete Profile ----------
 class AthleteProfileUpsert(BaseModel):
