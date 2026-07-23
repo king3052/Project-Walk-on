@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
-import { getUser, getProfile, getDashboard, getAchievements, type UserRecord, type AthleteProfile, type DashboardData, type Achievement } from "@/lib/api";
+import { getUser, getProfile, getDashboard, getAchievements, getTennisMatches, getRankings, type UserRecord, type AthleteProfile, type DashboardData, type Achievement } from "@/lib/api";
 
 function Row({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === "") return null;
@@ -20,6 +20,8 @@ export default function ResumePage() {
   const [profile, setProfile] = useState<AthleteProfile | null>(null);
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [tennisRecord, setTennisRecord] = useState<{ wins: number; losses: number } | null>(null);
+  const [latestRating, setLatestRating] = useState<{ type: string; value: string } | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -27,6 +29,21 @@ export default function ResumePage() {
     getProfile(userId).then(setProfile).catch(() => {});
     getDashboard(userId).then(setDashboard).catch(() => {});
     getAchievements(userId).then(setAchievements).catch(() => {});
+    getTennisMatches(365)
+      .then((matches) =>
+        setTennisRecord({
+          wins: matches.filter((m) => m.result === "Win").length,
+          losses: matches.filter((m) => m.result === "Loss").length,
+        })
+      )
+      .catch(() => {});
+    getRankings()
+      .then((rankings) => {
+        if (rankings.length === 0) return;
+        const latest = [...rankings].sort((a, b) => b.date.localeCompare(a.date))[0];
+        setLatestRating({ type: latest.ranking_type, value: latest.value });
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -74,8 +91,17 @@ export default function ResumePage() {
         </div>
 
         <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
-          <h2 className="text-xs uppercase tracking-wide text-fg-dim mb-3">Basketball</h2>
-          <Row label="Shooting % (this week)" value={dashboard ? `${dashboard.shooting_pct_this_week}%` : null} />
+          <h2 className="text-xs uppercase tracking-wide text-fg-dim mb-3">
+            {user?.sport === "Tennis" ? "Tennis" : "Basketball"}
+          </h2>
+          {user?.sport === "Tennis" ? (
+            <>
+              <Row label="Match record" value={tennisRecord ? `${tennisRecord.wins}-${tennisRecord.losses}` : null} />
+              <Row label={latestRating ? `${latestRating.type} rating` : "Rating"} value={latestRating?.value} />
+            </>
+          ) : (
+            <Row label="Shooting % (this week)" value={dashboard ? `${dashboard.shooting_pct_this_week}%` : null} />
+          )}
           <Row label="Athlete score" value={dashboard ? `${dashboard.athlete_score}/100` : null} />
         </div>
       </div>

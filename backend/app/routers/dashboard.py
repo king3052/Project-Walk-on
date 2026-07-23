@@ -105,7 +105,7 @@ def get_dashboard(
         pillars["strength"] = (sum(strength_progress) / len(strength_progress) * 100, w_strength)
 
     if total_attempts:
-        pillars["basketball"] = (shooting_pct, w_basketball)
+        pillars[user.sport.lower() if user and user.sport else "basketball"] = (shooting_pct, w_basketball)
 
     if avg_sleep:
         pillars["recovery"] = (min(avg_sleep / 8.0, 1.0) * 100, w_recovery)

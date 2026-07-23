@@ -3,12 +3,14 @@
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { getGoals, createGoal, updateGoalStatus, type Goal } from "@/lib/api";
+import { getGoals, createGoal, updateGoalStatus, getMe, type Goal } from "@/lib/api";
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
 
-const CATEGORIES = ["Physical", "Strength", "Basketball", "Lifestyle"];
+function categoriesFor(sport: string) {
+  return ["Physical", "Strength", sport, "Lifestyle"];
+}
 
 const STATUS_LABEL: Record<Goal["status"], string> = {
   NOT_STARTED: "Not started",
@@ -20,12 +22,19 @@ const STATUS_LABEL: Record<Goal["status"], string> = {
 export default function GoalsPage() {
   const { userId } = useAuth();
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [sport, setSport] = useState("Basketball");
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState(CATEGORIES[0]);
+  const [category, setCategory] = useState("Physical");
   const [target, setTarget] = useState("");
   const [deadline, setDeadline] = useState("");
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    getMe()
+      .then((u) => setSport(u.sport || "Basketball"))
+      .catch(() => {});
+  }, []);
 
   function loadGoals() {
     if (!userId) return;
@@ -71,7 +80,7 @@ export default function GoalsPage() {
     }
   }
 
-  const grouped = CATEGORIES.map((cat) => ({
+  const grouped = categoriesFor(sport).map((cat) => ({
     category: cat,
     items: goals.filter((g) => g.category.toLowerCase() === cat.toLowerCase()),
   }));
@@ -97,7 +106,7 @@ export default function GoalsPage() {
           <div>
             <label className="text-xs tracking-wide text-fg-dim block mb-1">Category</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
-              {CATEGORIES.map((c) => (
+              {categoriesFor(sport).map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>

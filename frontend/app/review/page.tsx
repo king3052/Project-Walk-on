@@ -3,7 +3,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { logWeeklyReview, getWeeklyReviews, type WeeklyReview } from "@/lib/api";
+import { logWeeklyReview, getWeeklyReviews, getMe, type WeeklyReview } from "@/lib/api";
 
 function mostRecentSunday(): string {
   const d = new Date();
@@ -18,6 +18,13 @@ const inputClass =
 export default function ReviewPage() {
   const { userId } = useAuth();
   const [weekStart, setWeekStart] = useState(mostRecentSunday());
+  const [sport, setSport] = useState("Basketball");
+
+  useEffect(() => {
+    getMe()
+      .then((u) => setSport(u.sport || "Basketball"))
+      .catch(() => {});
+  }, []);
   const [wins, setWins] = useState("");
   const [weakness, setWeakness] = useState("");
   const [nextFocus, setNextFocus] = useState("");
@@ -76,7 +83,7 @@ export default function ReviewPage() {
           <textarea
             value={wins}
             onChange={(e) => setWins(e.target.value)}
-            placeholder="+3 lbs, +10 lb squat, +4% shooting…"
+            placeholder={sport === "Tennis" ? "+3 lbs, faster first serve, +5% first-serve %…" : "+3 lbs, +10 lb squat, +4% shooting…"}
             className={inputClass}
             rows={3}
           />
@@ -86,7 +93,7 @@ export default function ReviewPage() {
           <textarea
             value={weakness}
             onChange={(e) => setWeakness(e.target.value)}
-            placeholder="Left-hand finishing…"
+            placeholder={sport === "Tennis" ? "Backhand under pressure…" : "Left-hand finishing…"}
             className={inputClass}
             rows={2}
           />
@@ -96,7 +103,7 @@ export default function ReviewPage() {
           <textarea
             value={nextFocus}
             onChange={(e) => setNextFocus(e.target.value)}
-            placeholder="Attack left side…"
+            placeholder={sport === "Tennis" ? "More net approaches…" : "Attack left side…"}
             className={inputClass}
             rows={2}
           />

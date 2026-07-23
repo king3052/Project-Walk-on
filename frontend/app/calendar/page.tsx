@@ -13,25 +13,9 @@ import {
 } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 
-const WORKOUT_TYPES = [
-  "Basketball",
-  "Serve",
-  "Groundstrokes",
-  "Footwork",
-  "Strength",
-  "Strength & Conditioning",
-  "Conditioning",
-  "Nutrition",
-  "Recovery",
-  "Film",
-  "Analytics",
-  "Goals",
-  "Mental",
-  "Life",
-  "Planning",
-  "Journal",
-  "Rest",
-];
+const UNIVERSAL_TYPES = ["Nutrition", "Recovery", "Film", "Analytics", "Goals", "Mental", "Life", "Planning", "Journal", "Rest"];
+const BASKETBALL_TYPES = ["Basketball", "Strength", "Conditioning", ...UNIVERSAL_TYPES];
+const TENNIS_TYPES = ["Serve", "Groundstrokes", "Footwork", "Strength & Conditioning", ...UNIVERSAL_TYPES];
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const inputClass =
@@ -64,7 +48,7 @@ export default function CalendarPage() {
   const [monthDate, setMonthDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [workouts, setWorkouts] = useState<ScheduledWorkout[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(toISODate(today));
-  const [workoutType, setWorkoutType] = useState(WORKOUT_TYPES[0]);
+  const [workoutType, setWorkoutType] = useState("Strength");
   const [sport, setSport] = useState("Basketball");
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
@@ -268,7 +252,7 @@ export default function CalendarPage() {
           <div>
             <label className="text-xs tracking-wide text-fg-dim block mb-1">Type</label>
             <select value={workoutType} onChange={(e) => setWorkoutType(e.target.value)} className={inputClass}>
-              {WORKOUT_TYPES.map((t) => (
+              {(sport === "Tennis" ? TENNIS_TYPES : BASKETBALL_TYPES).map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
-import { getFilmSessions, createFilmSession, addFilmTag, analyzeFilmPatterns, type FilmSession } from "@/lib/api";
+import { getFilmSessions, createFilmSession, addFilmTag, analyzeFilmPatterns, getMe, type FilmSession } from "@/lib/api";
 import { PageHeader } from "@/components/PageHeader";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -10,7 +10,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
 
-const TAG_TYPES = [
+const BASKETBALL_TAG_TYPES = [
   { value: "good_possession", label: "Good possession" },
   { value: "bad_turnover", label: "Bad turnover" },
   { value: "late_rotation", label: "Late rotation" },
@@ -18,9 +18,26 @@ const TAG_TYPES = [
   { value: "shot_selection", label: "Shot selection" },
 ];
 
-function TagForm({ sessionId, onAdded }: { sessionId: string; onAdded: () => void }) {
+const TENNIS_TAG_TYPES = [
+  { value: "footwork", label: "Footwork" },
+  { value: "serve_toss", label: "Serve toss" },
+  { value: "forehand_error", label: "Forehand error" },
+  { value: "backhand_error", label: "Backhand error" },
+  { value: "good_rally", label: "Good rally" },
+  { value: "unforced_error", label: "Unforced error" },
+];
+
+function TagForm({
+  sessionId,
+  tagTypes,
+  onAdded,
+}: {
+  sessionId: string;
+  tagTypes: { value: string; label: string }[];
+  onAdded: () => void;
+}) {
   const [timestamp, setTimestamp] = useState(0);
-  const [tagType, setTagType] = useState(TAG_TYPES[0].value);
+  const [tagType, setTagType] = useState(tagTypes[0].value);
   const [note, setNote] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -43,7 +60,7 @@ function TagForm({ sessionId, onAdded }: { sessionId: string; onAdded: () => voi
         <label className="text-xs text-fg-dim block mb-1">Sec</label>
         <input
           type="number"
-            onFocus={(e) => e.target.select()}
+          onFocus={(e) => e.target.select()}
           value={timestamp}
           onChange={(e) => setTimestamp(Number(e.target.value))}
           className={inputClass}
@@ -52,7 +69,7 @@ function TagForm({ sessionId, onAdded }: { sessionId: string; onAdded: () => voi
       <div className="w-44">
         <label className="text-xs text-fg-dim block mb-1">Tag</label>
         <select value={tagType} onChange={(e) => setTagType(e.target.value)} className={inputClass}>
-          {TAG_TYPES.map((t) => (
+          {tagTypes.map((t) => (
             <option key={t.value} value={t.value}>
               {t.label}
             </option>
@@ -77,6 +94,7 @@ function TagForm({ sessionId, onAdded }: { sessionId: string; onAdded: () => voi
 export default function FilmPage() {
   const { userId } = useAuth();
   const [sessions, setSessions] = useState<FilmSession[]>([]);
+  const [sport, setSport] = useState("Basketball");
   const [title, setTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [date, setDate] = useState(today());
@@ -84,6 +102,15 @@ export default function FilmPage() {
   const [status, setStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
+
+  const isTennis = sport === "Tennis";
+  const tagTypes = isTennis ? TENNIS_TAG_TYPES : BASKETBALL_TAG_TYPES;
+
+  useEffect(() => {
+    getMe()
+      .then((u) => setSport(u.sport || "Basketball"))
+      .catch(() => {});
+  }, []);
 
   async function onAnalyze() {
     setAnalyzing(true);
@@ -128,7 +155,11 @@ export default function FilmPage() {
     <main className="mx-auto max-w-4xl px-6 py-10 space-y-8">
       <PageHeader
         title="Film room"
-        description="Paste a link to game or practice film (YouTube, Google Drive, Hudl…) and tag moments with a timestamp."
+        description={
+          isTennis
+            ? "Paste a link to match or practice film (YouTube, Google Drive, Hudl…) and tag moments with a timestamp."
+            : "Paste a link to game or practice film (YouTube, Google Drive, Hudl…) and tag moments with a timestamp."
+        }
       />
 
       <form onSubmit={onSubmit} className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-4">
@@ -140,7 +171,7 @@ export default function FilmPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Pickup run — Tuesday"
+              placeholder={isTennis ? "Practice session — Tuesday" : "Pickup run — Tuesday"}
               className={inputClass}
               required
             />
@@ -218,13 +249,13 @@ export default function FilmPage() {
                       <span className="text-accent tabular-nums">
                         {Math.floor(t.timestamp_sec / 60)}:{String(t.timestamp_sec % 60).padStart(2, "0")}
                       </span>{" "}
-                      — {TAG_TYPES.find((tt) => tt.value === t.tag_type)?.label || t.tag_type}
+                      — {tagTypes.find((tt) => tt.value === t.tag_type)?.label || t.tag_type}
                       {t.note ? ` — ${t.note}` : ""}
                     </li>
                   ))}
               </ul>
             )}
-            <TagForm sessionId={s.id} onAdded={loadSessions} />
+            <TagForm sessionId={s.id} tagTypes={tagTypes} onAdded={loadSessions} />
           </div>
         ))}
       </div>
