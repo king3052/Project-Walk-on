@@ -599,6 +599,43 @@ class DashboardOut(BaseModel):
 # TENNIS MODULE
 # =====================================================================
 
+# ---------- Point-by-point live scoring ----------
+class ScoringSettingsUpdate(BaseModel):
+    scoring_format: Optional[str] = None  # best_of_3 | best_of_3_tb10 | single_set | best_of_5
+    no_ad: Optional[bool] = None
+    first_server: Optional[str] = None  # "Me" | "Opponent"
+
+
+class PointCreate(BaseModel):
+    description: Optional[str] = None
+    won: bool
+
+
+class PointOut(BaseModel):
+    id: str
+    match_id: str
+    sequence: int
+    description: Optional[str] = None
+    won: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class BulkParseRequest(BaseModel):
+    text: str
+
+
+class ParsedPoint(BaseModel):
+    description: str
+    won: bool
+
+
+class BulkParseResult(BaseModel):
+    points: list[ParsedPoint]
+
+
 class TennisProfileUpsert(BaseModel):
     backhand_style: Optional[str] = None
     preferred_surface: Optional[str] = None

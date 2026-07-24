@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { TennisNav } from "@/components/TennisNav";
@@ -319,6 +320,12 @@ export default function TennisMatchesPage() {
                   {m.date} · {m.score || "no score"} {m.tournament ? `· ${m.tournament}` : ""}
                 </p>
               </button>
+              <Link
+                href={`/tennis/matches/${m.id}`}
+                className="text-xs text-accent hover:underline px-2 py-1 shrink-0"
+              >
+                Track points →
+              </Link>
               <button onClick={() => onDelete(m.id)} className="text-xs text-fg-dim hover:text-warn px-2 py-1">
                 Delete
               </button>

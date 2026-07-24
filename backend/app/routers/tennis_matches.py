@@ -117,16 +117,42 @@ def generate_match_scouting(
     if match.notes:
         stats_lines.append(f"Player notes: {match.notes}")
 
-    prompt = (
-        "You are a tennis coach analyzing one match's stats, given below. Identify 2-3 strengths, "
-        "2-3 weaknesses, and any tactical patterns worth noting. Be specific to the numbers given — "
-        "don't invent stats that aren't there. Respond with ONLY valid JSON: "
-        '{"strengths": "text", "weaknesses": "text", "patterns": "text"}\n\n'
-        f"{chr(10).join(stats_lines)}"
+    point_rows = (
+        db.query(models.TennisPointLog)
+        .filter(models.TennisPointLog.match_id == match_id)
+        .order_by(models.TennisPointLog.sequence.asc())
+        .all()
     )
+    point_log_block = ""
+    if point_rows:
+        lines = [f"{i+1}. {'WON' if r.won else 'LOST'} — {r.description or '(no description)'}" for i, r in enumerate(point_rows)]
+        point_log_block = (
+            "\n\nFull point-by-point log for this match (in order, W/L is from the tracked player's "
+            "perspective):\n" + "\n".join(lines)
+        )
+
+    if point_log_block:
+        prompt = (
+            "You are a tennis coach analyzing a match using the full point-by-point log below, plus "
+            "summary stats. Identify 2-3 strengths, 2-3 weaknesses, and tactical patterns — look "
+            "specifically for things only visible at the point level: streaks, performance after "
+            "specific events (double faults, long rallies, break/game points), and which described "
+            "shot types or errors cluster together. Be specific and cite point numbers or patterns "
+            "from the actual log — don't invent anything not supported by it. Respond with ONLY "
+            'valid JSON: {"strengths": "text", "weaknesses": "text", "patterns": "text"}\n\n'
+            f"{chr(10).join(stats_lines)}{point_log_block}"
+        )
+    else:
+        prompt = (
+            "You are a tennis coach analyzing one match's stats, given below. Identify 2-3 strengths, "
+            "2-3 weaknesses, and any tactical patterns worth noting. Be specific to the numbers given — "
+            "don't invent stats that aren't there. Respond with ONLY valid JSON: "
+            '{"strengths": "text", "weaknesses": "text", "patterns": "text"}\n\n'
+            f"{chr(10).join(stats_lines)}"
+        )
     import json
 
-    raw = call_groq(prompt, max_tokens=350, json_mode=True)
+    raw = call_groq(prompt, max_tokens=450, json_mode=True)
     try:
         parsed = json.loads(raw)
     except json.JSONDecodeError:

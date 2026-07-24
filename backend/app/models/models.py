@@ -409,6 +409,27 @@ class TennisMatch(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Point-by-point live scoring settings — only used if the match is tracked
+    # via the point log below rather than (or in addition to) manual stat entry.
+    scoring_format = Column(String, default="best_of_3")  # best_of_3 | best_of_3_tb10 | single_set | best_of_5
+    no_ad = Column(Boolean, default=False)
+    first_server = Column(String, default="Me")  # "Me" | "Opponent"
+
+
+class TennisPointLog(Base):
+    """The single source of truth for point-by-point match tracking. Games,
+    sets, and match completion are all DERIVED from this ordered log by
+    app.core.tennis_scoring.replay_match() — nothing here is redundantly
+    stored, so there's no risk of it drifting out of sync."""
+    __tablename__ = "tennis_point_log"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    match_id = Column(UUID(as_uuid=False), ForeignKey("tennis_matches.id"), nullable=False)
+    sequence = Column(Integer, nullable=False)
+    description = Column(Text, nullable=True)
+    won = Column(Boolean, nullable=False)  # True = the tracked athlete won this point
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 
 class TennisMatchScouting(Base):
     """AI-generated post-match analysis, tied to one specific match."""

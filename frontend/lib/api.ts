@@ -709,6 +709,92 @@ export function deleteTennisMatch(id: string) {
   return apiFetch(`/tennis/matches/${id}`, { method: "DELETE" });
 }
 
+// ---------- Tennis point-by-point scoring ----------
+export type TennisPointRecord = { description: string; won: boolean };
+
+export type TennisGameState = {
+  game_number: number;
+  server: "Me" | "Opponent";
+  points: TennisPointRecord[];
+  score_me: number;
+  score_opp: number;
+  is_tiebreak: boolean;
+  winner: "Me" | "Opponent" | null;
+  complete: boolean;
+};
+
+export type TennisSetState = {
+  set_number: number;
+  games: TennisGameState[];
+  games_won: { Me: number; Opponent: number };
+  is_tiebreak_set: boolean;
+  tiebreak_score: string | null;
+  winner: "Me" | "Opponent" | null;
+  complete: boolean;
+};
+
+export type TennisMatchState = {
+  sets: TennisSetState[];
+  sets_won_me: number;
+  sets_won_opponent: number;
+  match_complete: boolean;
+  match_winner: "Me" | "Opponent" | null;
+  current_score_label: string;
+  current_set_games: string;
+  overall_set_score: string;
+  settings?: { scoring_format: string; no_ad: boolean; first_server: string };
+};
+
+export type TennisPointLogEntry = {
+  id: string;
+  match_id: string;
+  sequence: number;
+  description: string | null;
+  won: boolean;
+  created_at: string;
+};
+
+export function getMatchState(matchId: string): Promise<TennisMatchState> {
+  return apiFetch(`/tennis/matches/${matchId}/state`);
+}
+
+export function listMatchPoints(matchId: string): Promise<TennisPointLogEntry[]> {
+  return apiFetch(`/tennis/matches/${matchId}/points`);
+}
+
+export function updateScoringSettings(
+  matchId: string,
+  data: { scoring_format?: string; no_ad?: boolean; first_server?: string }
+): Promise<TennisMatchState> {
+  return apiFetch(`/tennis/matches/${matchId}/scoring-settings`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export function addMatchPoint(
+  matchId: string,
+  description: string,
+  won: boolean
+): Promise<TennisMatchState> {
+  return post(`/tennis/matches/${matchId}/points`, { description, won });
+}
+
+export function addMatchPointsBulk(
+  matchId: string,
+  points: TennisPointRecord[]
+): Promise<TennisMatchState> {
+  return post(`/tennis/matches/${matchId}/points/bulk`, { points });
+}
+
+export function undoLastPoint(matchId: string): Promise<TennisMatchState> {
+  return apiFetch(`/tennis/matches/${matchId}/points/last`, { method: "DELETE" });
+}
+
+export function parseMatchPointsText(
+  matchId: string,
+  text: string
+): Promise<{ points: TennisPointRecord[] }> {
+  return post(`/tennis/matches/${matchId}/points/parse`, { text });
+}
+
 export type TennisMatchScouting = {
   id: string;
   match_id: string;
