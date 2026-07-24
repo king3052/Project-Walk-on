@@ -4,11 +4,12 @@ import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { getAICoachSummaries, generateAICoachSummary, type AICoachSummary } from "@/lib/api";
+import { toLocalISODate } from "@/lib/date";
 
 function mostRecentSunday(): string {
   const d = new Date();
   d.setDate(d.getDate() - d.getDay());
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 export default function CoachPage() {

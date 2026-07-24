@@ -11,8 +11,7 @@ import {
   logConditioning,
   type StrengthSetInput,
 } from "@/lib/api";
-
-const today = () => new Date().toISOString().slice(0, 10);
+import { toLocalISODate as today } from "@/lib/date";
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <label className="text-xs tracking-wide text-fg-dim block mb-1">{children}</label>;

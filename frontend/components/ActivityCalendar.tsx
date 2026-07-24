@@ -1,3 +1,5 @@
+import { toLocalISODate } from "@/lib/date";
+
 type ActivityCalendarProps = {
   activeDates: string[]; // "YYYY-MM-DD"
   days?: number;
@@ -11,7 +13,7 @@ export function ActivityCalendar({ activeDates, days = 84 }: ActivityCalendarPro
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(d.getDate() - i);
-    const iso = d.toISOString().slice(0, 10);
+    const iso = toLocalISODate(d);
     cells.push({ date: iso, active: activeSet.has(iso) });
   }
 

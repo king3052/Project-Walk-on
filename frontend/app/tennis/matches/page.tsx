@@ -14,8 +14,8 @@ import {
   type TennisMatch,
   type TennisMatchScouting,
 } from "@/lib/api";
+import { toLocalISODate as today } from "@/lib/date";
 
-const today = () => new Date().toISOString().slice(0, 10);
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-2 py-1.5 text-sm text-fg focus:outline-none focus:border-accent";
 

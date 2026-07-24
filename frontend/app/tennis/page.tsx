@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { TennisNav } from "@/components/TennisNav";
+import { toLocalISODate } from "@/lib/date";
 import {
   getTennisMatches,
   getTournaments,
@@ -28,7 +29,7 @@ function Widget({ label, value, sub }: { label: string; value: string; sub?: str
 }
 
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  return toLocalISODate();
 }
 
 function computeStreak(dates: string[]): number {
@@ -37,14 +38,14 @@ function computeStreak(dates: string[]): number {
   const today = todayISO();
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayISO = yesterday.toISOString().slice(0, 10);
+  const yesterdayISO = toLocalISODate(yesterday);
   if (unique[0] !== today && unique[0] !== yesterdayISO) return 0;
 
   let streak = 1;
   let cursor = new Date(unique[0] + "T00:00:00");
   for (let i = 1; i < unique.length; i++) {
     cursor.setDate(cursor.getDate() - 1);
-    const expected = cursor.toISOString().slice(0, 10);
+    const expected = toLocalISODate(cursor);
     if (unique[i] === expected) {
       streak++;
     } else {
@@ -96,7 +97,7 @@ export default function TennisOverviewPage() {
   const weeklyHours = (() => {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    const weekAgoISO = weekAgo.toISOString().slice(0, 10);
+    const weekAgoISO = toLocalISODate(weekAgo);
     const minutes = matches
       .filter((m) => m.date >= weekAgoISO)
       .reduce((sum, m) => sum + (m.duration_min || 0), 0);

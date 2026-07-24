@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { getInjuries, createInjury, updateInjury, type Injury } from "@/lib/api";
-
-const today = () => new Date().toISOString().slice(0, 10);
+import { toLocalISODate as today } from "@/lib/date";
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";

@@ -6,8 +6,8 @@ import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { TennisNav } from "@/components/TennisNav";
 import { getRankings, createRanking, deleteRanking, type TennisRanking } from "@/lib/api";
+import { toLocalISODate as today } from "@/lib/date";
 
-const today = () => new Date().toISOString().slice(0, 10);
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-2 py-1.5 text-sm text-fg focus:outline-none focus:border-accent";
 

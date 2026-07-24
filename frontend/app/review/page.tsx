@@ -4,12 +4,13 @@ import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { logWeeklyReview, getWeeklyReviews, getMe, type WeeklyReview } from "@/lib/api";
+import { toLocalISODate } from "@/lib/date";
 
 function mostRecentSunday(): string {
   const d = new Date();
   const day = d.getDay(); // 0 = Sunday
   d.setDate(d.getDate() - day);
-  return d.toISOString().slice(0, 10);
+  return toLocalISODate(d);
 }
 
 const inputClass =
