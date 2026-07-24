@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
@@ -30,6 +31,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 export default function TennisMatchesPage() {
   const { showToast } = useToast();
+  const router = useRouter();
   const [matches, setMatches] = useState<TennisMatch[]>([]);
   const [showStats, setShowStats] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -37,11 +39,32 @@ export default function TennisMatchesPage() {
   const [scoutingLoading, setScoutingLoading] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
+  const [liveOpponent, setLiveOpponent] = useState("");
+  const [liveDate, setLiveDate] = useState(today());
+  const [liveSurface, setLiveSurface] = useState("Hard");
+  const [startingLive, setStartingLive] = useState(false);
+
   const [form, setForm] = useState<Partial<TennisMatch>>({
     date: today(),
     result: "Win",
     surface: "Hard",
   });
+
+  async function onStartLive(e: React.FormEvent) {
+    e.preventDefault();
+    setStartingLive(true);
+    try {
+      const created = await createTennisMatch({
+        date: liveDate,
+        opponent: liveOpponent || undefined,
+        surface: liveSurface,
+      });
+      router.push(`/tennis/matches/${created.id}`);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
+      setStartingLive(false);
+    }
+  }
 
   function load() {
     getTennisMatches(365)
@@ -111,10 +134,58 @@ export default function TennisMatchesPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-8">
       <TennisNav />
-      <PageHeader title="Match Tracker" description="Every match, its full stats, and AI scouting after the fact." />
+      <PageHeader title="Match Tracker" description="Track a match live, point by point, or log final stats after the fact." />
+
+      <form onSubmit={onStartLive} className="rounded-lg border border-accent/40 bg-surface-panel p-5 space-y-4">
+        <div>
+          <h2 className="text-sm text-accent">🎾 Start a live match</h2>
+          <p className="text-xs text-fg-dim mt-1">
+            Playing right now? Start here — you'll track it point by point and the score is calculated for you.
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Opponent">
+            <input
+              type="text"
+              value={liveOpponent}
+              onChange={(e) => setLiveOpponent(e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Date">
+            <input
+              type="date"
+              value={liveDate}
+              onChange={(e) => setLiveDate(e.target.value)}
+              className={inputClass}
+            />
+          </Field>
+          <Field label="Surface">
+            <select value={liveSurface} onChange={(e) => setLiveSurface(e.target.value)} className={inputClass}>
+              <option>Hard</option>
+              <option>Clay</option>
+              <option>Grass</option>
+              <option>Indoor</option>
+            </select>
+          </Field>
+        </div>
+        <button
+          type="submit"
+          disabled={startingLive}
+          className="text-sm bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-5 py-2 rounded-md transition-colors font-medium"
+        >
+          {startingLive ? "Starting…" : "Start live tracking →"}
+        </button>
+      </form>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px bg-surface-border flex-1" />
+        <p className="text-xs text-fg-dim">or log a completed match</p>
+        <div className="h-px bg-surface-border flex-1" />
+      </div>
 
       <form onSubmit={onSubmit} className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-4">
-        <h2 className="text-xs uppercase tracking-wide text-fg-dim">Log a match</h2>
+        <h2 className="text-xs uppercase tracking-wide text-fg-dim">Log a match (final stats only, no point tracking)</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Field label="Date">
             <input
