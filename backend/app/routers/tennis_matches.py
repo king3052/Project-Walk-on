@@ -74,6 +74,9 @@ def delete_match(
     db.query(models.TennisMatchScouting).filter(models.TennisMatchScouting.match_id == match_id).delete(
         synchronize_session=False
     )
+    db.query(models.TennisPointLog).filter(models.TennisPointLog.match_id == match_id).delete(
+        synchronize_session=False
+    )
     db.delete(match)
     db.commit()
     return {"deleted": True}
