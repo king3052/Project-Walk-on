@@ -20,8 +20,20 @@ async function apiFetch(path: string, options: RequestInit = {}) {
     },
   });
   if (!res.ok) {
-    const detail = await res.json().catch(() => ({}));
-    throw new Error(detail.detail || `Request failed: ${res.status}`);
+    const body = await res.json().catch(() => ({}));
+    let message = `Request failed: ${res.status}`;
+    if (typeof body.detail === "string") {
+      message = body.detail;
+    } else if (Array.isArray(body.detail)) {
+      // FastAPI validation errors: [{ loc: [...], msg: "...", type: "..." }, ...]
+      message = body.detail
+        .map((d: { loc?: (string | number)[]; msg?: string }) => {
+          const field = d.loc && d.loc.length ? d.loc[d.loc.length - 1] : "field";
+          return `${field}: ${d.msg || "invalid"}`;
+        })
+        .join("; ");
+    }
+    throw new Error(message);
   }
   if (res.status === 204) return null;
   return res.json();

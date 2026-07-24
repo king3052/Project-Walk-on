@@ -655,7 +655,7 @@ class TennisProfileOut(TennisProfileUpsert):
 
 
 class TennisMatchCreate(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None  # ignored — the server always uses the authenticated caller's id
     date: date
     opponent: Optional[str] = None
     tournament: Optional[str] = None
@@ -727,7 +727,7 @@ class TennisMatchScoutingOut(BaseModel):
 
 
 class TennisStrokeLogCreate(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None  # ignored — the server always uses the authenticated caller's id
     date: date
     stroke_category: str
     stroke_type: str
@@ -753,7 +753,7 @@ class TennisStrokeLogOut(TennisStrokeLogCreate):
 
 
 class TennisTournamentCreate(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None  # ignored — the server always uses the authenticated caller's id
     name: str
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -787,7 +787,7 @@ class TennisTournamentOut(TennisTournamentCreate):
 
 
 class TennisRankingCreate(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None  # ignored — the server always uses the authenticated caller's id
     date: date
     ranking_type: str
     value: str
