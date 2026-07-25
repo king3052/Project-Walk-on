@@ -506,3 +506,65 @@ class TennisRanking(Base):
     date = Column(Date, default=date.today, nullable=False)
     ranking_type = Column(String, nullable=False)  # UTR | USTA | ITF | ATP | WTA | School | State | National
     value = Column(String, nullable=False)  # kept as string since UTR is decimal, rankings are integers, etc.
+
+
+# =====================================================================
+# TENNIS MODULE — batch 2: Equipment Manager, Practice Sessions, Mental
+# =====================================================================
+
+class TennisRacquet(Base):
+    __tablename__ = "tennis_racquets"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    model = Column(String, nullable=False)
+    weight_g = Column(Float, nullable=True)
+    balance_point = Column(String, nullable=True)  # e.g. "320mm" or "head-light"
+    string_type = Column(String, nullable=True)
+    string_tension_lb = Column(Float, nullable=True)
+    hours_played = Column(Float, default=0)
+    last_restrung_date = Column(Date, nullable=True)
+    grip_replaced_date = Column(Date, nullable=True)
+    active = Column(Boolean, default=True)
+    notes = Column(Text, nullable=True)
+
+
+class TennisShoe(Base):
+    __tablename__ = "tennis_shoes"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    model = Column(String, nullable=False)
+    surface = Column(String, nullable=True)  # Hard | Clay | Grass | Indoor | All-court
+    hours_played = Column(Float, default=0)
+    purchased_date = Column(Date, nullable=True)
+    active = Column(Boolean, default=True)
+    notes = Column(Text, nullable=True)
+
+
+class TennisPracticeSession(Base):
+    __tablename__ = "tennis_practice_sessions"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    duration_min = Column(Integer, nullable=True)
+    intensity = Column(Integer, nullable=True)  # 1-10
+    coach = Column(String, nullable=True)
+    partner = Column(String, nullable=True)
+    focus_area = Column(String, nullable=True)  # e.g. "Serve + Volleys"
+    notes = Column(Text, nullable=True)
+
+
+class TennisMentalLog(Base):
+    __tablename__ = "tennis_mental_logs"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    date = Column(Date, default=date.today, nullable=False)
+    confidence = Column(Integer, nullable=True)  # 1-10
+    focus = Column(Integer, nullable=True)  # 1-10
+    pressure_handling = Column(Integer, nullable=True)  # 1-10
+    visualization_minutes = Column(Integer, nullable=True)
+    pre_match_routine = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)

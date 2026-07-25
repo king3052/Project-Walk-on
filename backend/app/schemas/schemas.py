@@ -815,3 +815,122 @@ class TennisRankingOut(TennisRankingCreate):
 
     class Config:
         from_attributes = True
+
+
+# ---------- Equipment Manager ----------
+class TennisRacquetCreate(BaseModel):
+    model: str
+    weight_g: Optional[float] = None
+    balance_point: Optional[str] = None
+    string_type: Optional[str] = None
+    string_tension_lb: Optional[float] = None
+    hours_played: Optional[float] = 0
+    last_restrung_date: Optional[date] = None
+    grip_replaced_date: Optional[date] = None
+    active: Optional[bool] = True
+    notes: Optional[str] = None
+
+
+class TennisRacquetUpdate(BaseModel):
+    model: Optional[str] = None
+    weight_g: Optional[float] = None
+    balance_point: Optional[str] = None
+    string_type: Optional[str] = None
+    string_tension_lb: Optional[float] = None
+    hours_played: Optional[float] = None
+    last_restrung_date: Optional[date] = None
+    grip_replaced_date: Optional[date] = None
+    active: Optional[bool] = None
+    notes: Optional[str] = None
+
+
+class TennisRacquetOut(TennisRacquetCreate):
+    id: str
+    user_id: str
+
+    class Config:
+        from_attributes = True
+
+
+class TennisShoeCreate(BaseModel):
+    model: str
+    surface: Optional[str] = None
+    hours_played: Optional[float] = 0
+    purchased_date: Optional[date] = None
+    active: Optional[bool] = True
+    notes: Optional[str] = None
+
+
+class TennisShoeUpdate(BaseModel):
+    model: Optional[str] = None
+    surface: Optional[str] = None
+    hours_played: Optional[float] = None
+    purchased_date: Optional[date] = None
+    active: Optional[bool] = None
+    notes: Optional[str] = None
+
+
+class TennisShoeOut(TennisShoeCreate):
+    id: str
+    user_id: str
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Practice Sessions ----------
+class TennisPracticeSessionCreate(BaseModel):
+    date: date
+    duration_min: Optional[int] = None
+    intensity: Optional[int] = None
+    coach: Optional[str] = None
+    partner: Optional[str] = None
+    focus_area: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class TennisPracticeSessionUpdate(BaseModel):
+    date: Optional[date] = None
+    duration_min: Optional[int] = None
+    intensity: Optional[int] = None
+    coach: Optional[str] = None
+    partner: Optional[str] = None
+    focus_area: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class TennisPracticeSessionOut(TennisPracticeSessionCreate):
+    id: str
+    user_id: str
+
+    class Config:
+        from_attributes = True
+
+
+# ---------- Mental Performance ----------
+class TennisMentalLogCreate(BaseModel):
+    date: date
+    confidence: Optional[int] = None
+    focus: Optional[int] = None
+    pressure_handling: Optional[int] = None
+    visualization_minutes: Optional[int] = None
+    pre_match_routine: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class TennisMentalLogUpdate(BaseModel):
+    date: Optional[date] = None
+    confidence: Optional[int] = None
+    focus: Optional[int] = None
+    pressure_handling: Optional[int] = None
+    visualization_minutes: Optional[int] = None
+    pre_match_routine: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class TennisMentalLogOut(TennisMentalLogCreate):
+    id: str
+    user_id: str
+
+    class Config:
+        from_attributes = True

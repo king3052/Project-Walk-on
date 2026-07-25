@@ -5,13 +5,15 @@ import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { getAnalytics, getMe, getStrokeLogs, getTennisMatches, type AnalyticsData } from "@/lib/api";
+import { getAnalytics, getMe, getStrokeLogs, getTennisMatches, getTennisAggregates, type AnalyticsData } from "@/lib/api";
 import { ActivityCalendar } from "@/components/ActivityCalendar";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -79,6 +81,8 @@ export default function AnalyticsPage() {
   const [sport, setSport] = useState("Basketball");
   const [strokeSeries, setStrokeSeries] = useState<{ date: string; pct: number }[]>([]);
   const [serveSeries, setServeSeries] = useState<{ date: string; pct: number }[]>([]);
+  const [breakPointSeries, setBreakPointSeries] = useState<{ date: string; pct: number }[]>([]);
+  const [shotOutcomeBreakdown, setShotOutcomeBreakdown] = useState<{ label: string; count: number }[]>([]);
 
   useEffect(() => {
     if (!userId) return;
@@ -125,6 +129,16 @@ export default function AnalyticsPage() {
         );
       })
       .catch(() => setServeSeries([]));
+
+    getTennisAggregates(range)
+      .then((agg) => {
+        setBreakPointSeries(agg.break_point_trend);
+        setShotOutcomeBreakdown(agg.shot_outcome_breakdown);
+      })
+      .catch(() => {
+        setBreakPointSeries([]);
+        setShotOutcomeBreakdown([]);
+      });
   }, [sport, range]);
 
   const strengthPivot = data ? pivotStrength(data.strength) : { rows: [], exercises: [] };
@@ -224,6 +238,38 @@ export default function AnalyticsPage() {
               </ResponsiveContainer>
             ) : (
               <EmptyState text="No match serve stats logged yet — add detailed stats when logging a match." />
+            )}
+          </ChartCard>
+
+          <ChartCard title="Break point conversion by match">
+            {breakPointSeries.length > 0 ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={breakPointSeries}>
+                  <CartesianGrid stroke="#242424" vertical={false} />
+                  <XAxis dataKey="date" tick={axisStyle} axisLine={{ stroke: "#242424" }} tickLine={false} />
+                  <YAxis tick={axisStyle} axisLine={false} tickLine={false} width={36} unit="%" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Line type="monotone" dataKey="pct" stroke="#F87171" strokeWidth={2} dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No break points tracked yet — use point-by-point live tracking on a match to see this." />
+            )}
+          </ChartCard>
+
+          <ChartCard title="Tagged shot / outcome breakdown">
+            {shotOutcomeBreakdown.length > 0 ? (
+              <ResponsiveContainer width="100%" height={Math.max(220, shotOutcomeBreakdown.length * 32)}>
+                <BarChart data={shotOutcomeBreakdown} layout="vertical" margin={{ left: 100 }}>
+                  <CartesianGrid stroke="#242424" horizontal={false} />
+                  <XAxis type="number" tick={axisStyle} axisLine={{ stroke: "#242424" }} tickLine={false} />
+                  <YAxis type="category" dataKey="label" tick={{ ...axisStyle, fontSize: 10 }} axisLine={false} tickLine={false} width={95} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="count" fill="#4ADE80" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="Tag shot type / outcome while live-tracking a match to see this breakdown." />
             )}
           </ChartCard>
         </>

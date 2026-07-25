@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { PageHeader } from "@/components/PageHeader";
-import { getInjuries, createInjury, updateInjury, type Injury } from "@/lib/api";
+import { getInjuries, createInjury, updateInjury, getMe, type Injury } from "@/lib/api";
 import { toLocalISODate as today } from "@/lib/date";
 
 const inputClass =
@@ -23,6 +23,13 @@ export default function InjuriesPage() {
 
   const [dateReported, setDateReported] = useState(today());
   const [bodyPart, setBodyPart] = useState("");
+  const [sport, setSport] = useState("Basketball");
+
+  useEffect(() => {
+    getMe()
+      .then((u) => setSport(u.sport || "Basketball"))
+      .catch(() => {});
+  }, []);
   const [severity, setSeverity] = useState(5);
   const [description, setDescription] = useState("");
   const [pending, setPending] = useState(false);
@@ -95,6 +102,24 @@ export default function InjuriesPage() {
               className={inputClass}
               required
             />
+            {sport === "Tennis" && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {["Shoulder", "Elbow", "Wrist", "Hip", "Back", "Knee", "Ankle"].map((part) => (
+                  <button
+                    key={part}
+                    type="button"
+                    onClick={() => setBodyPart(part)}
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      bodyPart === part
+                        ? "border-accent text-accent bg-accent/10"
+                        : "border-surface-border text-fg-dim hover:text-fg-muted"
+                    }`}
+                  >
+                    {part}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="text-xs tracking-wide text-fg-dim block mb-1">Severity (1-10): {severity}</label>

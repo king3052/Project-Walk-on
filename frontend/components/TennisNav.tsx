@@ -9,6 +9,8 @@ const LINKS = [
   { href: "/tennis/strokes", label: "Strokes" },
   { href: "/tennis/tournaments", label: "Tournaments" },
   { href: "/tennis/rankings", label: "Rankings" },
+  { href: "/tennis/equipment", label: "Equipment" },
+  { href: "/tennis/mental", label: "Mental" },
   { href: "/tennis/profile", label: "Profile" },
 ];
 

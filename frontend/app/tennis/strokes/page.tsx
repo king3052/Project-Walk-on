@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { TennisNav } from "@/components/TennisNav";
-import { getStrokeLogs, createStrokeLog, deleteStrokeLog, type TennisStrokeLog } from "@/lib/api";
+import { getStrokeLogs, createStrokeLog, deleteStrokeLog, getPracticeSessions, createPracticeSession, deletePracticeSession, type TennisStrokeLog, type TennisPracticeSession } from "@/lib/api";
 import { toLocalISODate as today } from "@/lib/date";
 
 const inputClass =
@@ -32,12 +32,53 @@ export default function TennisStrokesPage() {
   const [notes, setNotes] = useState("");
   const [pending, setPending] = useState(false);
 
+  const [sessions, setSessions] = useState<TennisPracticeSession[]>([]);
+  const [sessionDate, setSessionDate] = useState(today());
+  const [sessionDuration, setSessionDuration] = useState(60);
+  const [sessionIntensity, setSessionIntensity] = useState(6);
+  const [sessionCoach, setSessionCoach] = useState("");
+  const [sessionPartner, setSessionPartner] = useState("");
+  const [sessionFocus, setSessionFocus] = useState("");
+  const [addingSession, setAddingSession] = useState(false);
+
   function load() {
     getStrokeLogs(30)
       .then(setLogs)
       .catch(() => setLogs([]));
+    getPracticeSessions()
+      .then(setSessions)
+      .catch(() => setSessions([]));
   }
   useEffect(load, []);
+
+  async function onAddSession(e: React.FormEvent) {
+    e.preventDefault();
+    setAddingSession(true);
+    try {
+      await createPracticeSession({
+        date: sessionDate,
+        duration_min: sessionDuration,
+        intensity: sessionIntensity,
+        coach: sessionCoach || undefined,
+        partner: sessionPartner || undefined,
+        focus_area: sessionFocus || undefined,
+      });
+      showToast("Practice session logged.", "success");
+      setSessionCoach("");
+      setSessionPartner("");
+      setSessionFocus("");
+      load();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
+    } finally {
+      setAddingSession(false);
+    }
+  }
+
+  async function onDeleteSession(id: string) {
+    await deletePracticeSession(id);
+    load();
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -80,6 +121,83 @@ export default function TennisStrokesPage() {
         title="Stroke Tracker"
         description="Forehand, backhand, serve, return, volley, and specialty shots — logged and tracked for consistency."
       />
+
+      <section className="space-y-3">
+        <h2 className="text-xs uppercase tracking-wide text-fg-dim">Practice sessions</h2>
+        <form onSubmit={onAddSession} className="rounded-lg border border-surface-border bg-surface-panel p-4 space-y-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <input type="date" value={sessionDate} onChange={(e) => setSessionDate(e.target.value)} className={inputClass} />
+            <input
+              type="number"
+              onFocus={(e) => e.target.select()}
+              value={sessionDuration}
+              onChange={(e) => setSessionDuration(Number(e.target.value))}
+              placeholder="Duration (min)"
+              className={inputClass}
+            />
+            <input
+              type="text"
+              value={sessionCoach}
+              onChange={(e) => setSessionCoach(e.target.value)}
+              placeholder="Coach (optional)"
+              className={inputClass}
+            />
+            <input
+              type="text"
+              value={sessionPartner}
+              onChange={(e) => setSessionPartner(e.target.value)}
+              placeholder="Partner (optional)"
+              className={inputClass}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              value={sessionFocus}
+              onChange={(e) => setSessionFocus(e.target.value)}
+              placeholder="Focus area (e.g. Serve + Volleys)"
+              className={inputClass}
+            />
+            <div>
+              <label className="text-xs text-fg-dim block mb-1">Intensity: {sessionIntensity}/10</label>
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={sessionIntensity}
+                onChange={(e) => setSessionIntensity(Number(e.target.value))}
+                className="w-full accent-[#4ADE80]"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={addingSession}
+            className="text-xs bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-4 py-1.5 rounded-md transition-colors"
+          >
+            {addingSession ? "Logging…" : "Log practice session"}
+          </button>
+        </form>
+        {sessions.length > 0 && (
+          <div className="space-y-1.5">
+            {sessions.slice(0, 5).map((s) => (
+              <div
+                key={s.id}
+                className="rounded-md border border-surface-border bg-surface-panel px-3 py-2 flex items-center justify-between"
+              >
+                <p className="text-xs text-fg-muted">
+                  {s.date} · {s.duration_min}min · intensity {s.intensity}/10
+                  {s.focus_area ? ` · ${s.focus_area}` : ""}
+                  {s.coach ? ` · with ${s.coach}` : ""}
+                </p>
+                <button onClick={() => onDeleteSession(s.id)} className="text-xs text-fg-dim hover:text-warn px-2">
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
         {byCategory.map(({ cat, pct, count }) => (

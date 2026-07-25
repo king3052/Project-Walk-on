@@ -967,3 +967,114 @@ export type OpponentHistory = {
 export function getOpponentHistory(opponentName: string): Promise<OpponentHistory> {
   return apiFetch(`/tennis/analysis/opponent/${encodeURIComponent(opponentName)}`);
 }
+
+// ---------- Tennis Equipment Manager ----------
+export type TennisRacquet = {
+  id: string;
+  user_id: string;
+  model: string;
+  weight_g: number | null;
+  balance_point: string | null;
+  string_type: string | null;
+  string_tension_lb: number | null;
+  hours_played: number;
+  last_restrung_date: string | null;
+  grip_replaced_date: string | null;
+  active: boolean;
+  notes: string | null;
+  needs_restring: boolean;
+};
+
+export function getRacquets(): Promise<TennisRacquet[]> {
+  return apiFetch(`/tennis/equipment/racquets`);
+}
+export function createRacquet(data: Partial<TennisRacquet>): Promise<TennisRacquet> {
+  return post("/tennis/equipment/racquets", data);
+}
+export function updateRacquet(id: string, data: Partial<TennisRacquet>) {
+  return apiFetch(`/tennis/equipment/racquets/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+export function deleteRacquet(id: string) {
+  return apiFetch(`/tennis/equipment/racquets/${id}`, { method: "DELETE" });
+}
+
+export type TennisShoe = {
+  id: string;
+  user_id: string;
+  model: string;
+  surface: string | null;
+  hours_played: number;
+  purchased_date: string | null;
+  active: boolean;
+  notes: string | null;
+  needs_replacement: boolean;
+};
+
+export function getShoes(): Promise<TennisShoe[]> {
+  return apiFetch(`/tennis/equipment/shoes`);
+}
+export function createShoe(data: Partial<TennisShoe>): Promise<TennisShoe> {
+  return post("/tennis/equipment/shoes", data);
+}
+export function updateShoe(id: string, data: Partial<TennisShoe>) {
+  return apiFetch(`/tennis/equipment/shoes/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+export function deleteShoe(id: string) {
+  return apiFetch(`/tennis/equipment/shoes/${id}`, { method: "DELETE" });
+}
+
+// ---------- Tennis Practice Sessions ----------
+export type TennisPracticeSession = {
+  id: string;
+  user_id: string;
+  date: string;
+  duration_min: number | null;
+  intensity: number | null;
+  coach: string | null;
+  partner: string | null;
+  focus_area: string | null;
+  notes: string | null;
+};
+
+export function getPracticeSessions(): Promise<TennisPracticeSession[]> {
+  return apiFetch(`/tennis/practice/`);
+}
+export function createPracticeSession(data: Partial<TennisPracticeSession>): Promise<TennisPracticeSession> {
+  return post("/tennis/practice/", data);
+}
+export function deletePracticeSession(id: string) {
+  return apiFetch(`/tennis/practice/${id}`, { method: "DELETE" });
+}
+
+// ---------- Tennis Mental Performance ----------
+export type TennisMentalLog = {
+  id: string;
+  user_id: string;
+  date: string;
+  confidence: number | null;
+  focus: number | null;
+  pressure_handling: number | null;
+  visualization_minutes: number | null;
+  pre_match_routine: string | null;
+  notes: string | null;
+};
+
+export function getMentalLogs(): Promise<TennisMentalLog[]> {
+  return apiFetch(`/tennis/mental/`);
+}
+export function createMentalLog(data: Partial<TennisMentalLog>): Promise<TennisMentalLog> {
+  return post("/tennis/mental/", data);
+}
+export function deleteMentalLog(id: string) {
+  return apiFetch(`/tennis/mental/${id}`, { method: "DELETE" });
+}
+
+// ---------- Tennis Analytics aggregates ----------
+export type TennisAggregates = {
+  break_point_trend: { date: string; pct: number }[];
+  shot_outcome_breakdown: { label: string; count: number }[];
+};
+
+export function getTennisAggregates(days = 90): Promise<TennisAggregates> {
+  return apiFetch(`/tennis/analysis/aggregates?days=${days}`);
+}

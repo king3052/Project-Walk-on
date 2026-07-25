@@ -120,6 +120,59 @@ def refresh_profile(
     return existing
 
 
+@router.get("/aggregates")
+def get_aggregates(
+    days: int = 90, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    """Powers the Analytics page's tennis-specific charts: break-point
+    conversion over time, and a shot-type/outcome breakdown across all
+    tagged points in the window."""
+    from datetime import date as date_cls, timedelta
+
+    matches = (
+        db.query(models.TennisMatch)
+        .filter(
+            models.TennisMatch.user_id == current_user_id,
+            models.TennisMatch.date >= date_cls.today() - timedelta(days=days),
+        )
+        .order_by(models.TennisMatch.date.asc())
+        .all()
+    )
+
+    break_point_trend = []
+    shot_outcome_totals: dict = {}
+
+    for m in matches:
+        rows = (
+            db.query(models.TennisPointLog)
+            .filter(models.TennisPointLog.match_id == m.id)
+            .order_by(models.TennisPointLog.sequence.asc())
+            .all()
+        )
+        if not rows:
+            continue
+        state = replay_match(
+            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type} for r in rows],
+            scoring_format=m.scoring_format or "best_of_3",
+            no_ad=bool(m.no_ad),
+            first_server=m.first_server or "Me",
+        )
+        agg = summarize_points(state)
+        bp = agg["break_points"]
+        if bp["me_chances"]:
+            break_point_trend.append({
+                "date": m.date.isoformat() if hasattr(m.date, "isoformat") else str(m.date),
+                "pct": round(bp["me_won"] / bp["me_chances"] * 100, 1),
+            })
+        for key, count in agg["shot_type_outcomes"].items():
+            shot_outcome_totals[key] = shot_outcome_totals.get(key, 0) + count
+
+    return {
+        "break_point_trend": break_point_trend,
+        "shot_outcome_breakdown": [{"label": k, "count": v} for k, v in shot_outcome_totals.items()],
+    }
+
+
 @router.get("/opponent/{opponent_name}")
 def get_opponent_history(
     opponent_name: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
