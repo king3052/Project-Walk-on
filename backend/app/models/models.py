@@ -56,7 +56,7 @@ class User(Base):
     shooting_logs = relationship("ShootingLog", back_populates="user")
     nutrition_logs = relationship("NutritionLog", back_populates="user")
     recovery_logs = relationship("RecoveryLog", back_populates="user")
-    goals = relationship("Goal", back_populates="user")
+    goals = relationship("Goal", back_populates="user", foreign_keys="Goal.user_id")
 
 
 class AthleteProfile(Base):
@@ -335,7 +335,7 @@ class Goal(Base):
     status = Column(Enum(GoalStatus), default=GoalStatus.NOT_STARTED)
     proposed_by_coach_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=True)
 
-    user = relationship("User", back_populates="goals")
+    user = relationship("User", back_populates="goals", foreign_keys=[user_id])
 
 
 class BodyweightLog(Base):
