@@ -58,6 +58,13 @@ def onboard(
     if not user:
         raise HTTPException(status_code=404, detail="User not found — call /users/sync first")
 
+    if payload.role == "Coach":
+        user.role = "Coach"
+        user.onboarding_complete = True
+        db.commit()
+        db.refresh(user)
+        return user
+
     if payload.height_in is not None:
         user.height_in = payload.height_in
     if payload.weight_lb is not None:

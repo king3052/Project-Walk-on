@@ -14,6 +14,7 @@ class UserCreate(BaseModel):
     position: Optional[str] = None
     dominant_hand: Optional[str] = None
     sport: Optional[str] = None
+    role: Optional[str] = None
 
 
 class UserOut(UserCreate):
@@ -33,6 +34,7 @@ class UserSync(BaseModel):
 
 class OnboardingPayload(BaseModel):
     """Sent once from the /onboarding page to set up a brand new account."""
+    role: Optional[str] = None  # "Athlete" | "Coach" — Coach skips all the athlete-specific fields below
     # Basics
     sport: Optional[str] = None
     height_in: Optional[float] = None
@@ -934,3 +936,99 @@ class TennisMentalLogOut(TennisMentalLogCreate):
 
     class Config:
         from_attributes = True
+
+
+# =====================================================================
+# COACH PORTAL
+# =====================================================================
+
+class CoachInviteCodeOut(BaseModel):
+    id: str
+    player_user_id: str
+    code: str
+    used: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class RedeemCodeRequest(BaseModel):
+    code: str
+
+
+class LinkedPlayerOut(BaseModel):
+    link_id: str
+    player_user_id: str
+    player_name: str
+    player_sport: Optional[str] = None
+    linked_since: datetime
+
+
+class LinkedCoachOut(BaseModel):
+    link_id: str
+    coach_user_id: str
+    coach_name: str
+    linked_since: datetime
+
+
+class VisibilitySettingsUpdate(BaseModel):
+    share_journal: Optional[bool] = None
+    share_mental: Optional[bool] = None
+
+
+class VisibilitySettingsOut(BaseModel):
+    player_user_id: str
+    share_journal: bool
+    share_mental: bool
+
+    class Config:
+        from_attributes = True
+
+
+class CoachCommentCreate(BaseModel):
+    target_type: str  # "match" | "practice_session" | "stroke_log"
+    target_id: str
+    comment: str
+
+
+class CoachCommentOut(BaseModel):
+    id: str
+    player_user_id: str
+    author_user_id: str
+    author_name: Optional[str] = None
+    target_type: str
+    target_id: str
+    comment: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CoachAssignmentCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    video_url: Optional[str] = None
+    due_date: Optional[date] = None
+
+
+class CoachAssignmentOut(BaseModel):
+    id: str
+    coach_user_id: str
+    player_user_id: str
+    title: str
+    description: Optional[str] = None
+    video_url: Optional[str] = None
+    due_date: Optional[date] = None
+    status: str
+    player_note: Optional[str] = None
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AssignmentCompleteRequest(BaseModel):
+    player_note: Optional[str] = None

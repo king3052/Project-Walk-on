@@ -47,6 +47,7 @@ class User(Base):
     position = Column(String, nullable=True)
     dominant_hand = Column(String, nullable=True)
     sport = Column(String, default="Basketball")  # "Basketball" | "Tennis"
+    role = Column(String, default="Athlete")  # "Athlete" | "Coach"
     onboarding_complete = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -568,3 +569,74 @@ class TennisMentalLog(Base):
     visualization_minutes = Column(Integer, nullable=True)
     pre_match_routine = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
+
+
+# =====================================================================
+# COACH PORTAL
+# =====================================================================
+
+class CoachInviteCode(Base):
+    """A one-time code a player generates and shares with their coach out
+    of band (text, in person, etc.) — no email infrastructure needed."""
+    __tablename__ = "coach_invite_codes"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    player_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    code = Column(String, unique=True, nullable=False, index=True)
+    used = Column(Boolean, default=False)
+    used_by_coach_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CoachPlayerLink(Base):
+    """The actual established relationship. Revocable by the player at any time."""
+    __tablename__ = "coach_player_links"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    coach_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    player_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class PlayerVisibilitySettings(Base):
+    """Per-player, per-category opt-in controls for what a linked coach can
+    see. Defaults to private for the more personal categories — the player
+    has to actively choose to share them."""
+    __tablename__ = "player_visibility_settings"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    player_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
+    share_journal = Column(Boolean, default=False)
+    share_mental = Column(Boolean, default=False)
+
+
+class CoachComment(Base):
+    """A comment from a coach (or reply from the player) attached to a
+    specific logged item — a match, practice session, or stroke log."""
+    __tablename__ = "coach_comments"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    player_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    author_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)  # coach or player
+    target_type = Column(String, nullable=False)  # "match" | "practice_session" | "stroke_log"
+    target_id = Column(UUID(as_uuid=False), nullable=False)
+    comment = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CoachAssignment(Base):
+    """A drill or video a coach assigns to a specific player."""
+    __tablename__ = "coach_assignments"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    coach_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    player_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    video_url = Column(String, nullable=True)
+    due_date = Column(Date, nullable=True)
+    status = Column(String, default="Assigned")  # "Assigned" | "Completed"
+    player_note = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
