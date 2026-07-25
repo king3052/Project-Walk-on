@@ -30,7 +30,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         setOnboarded(u.onboarding_complete);
         setRole(u.role || "Athlete");
       })
-      .catch(() => setOnboarded(true)); // fail open — don't trap the user if this call has a hiccup
+      .catch(() => {
+        setOnboarded(true);
+        setRole("Athlete");
+      }); // fail open — don't trap the user in a permanent loading state if this call has a hiccup
   }, [userId, pathname]);
 
   useEffect(() => {
