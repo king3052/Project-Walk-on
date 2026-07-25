@@ -20,37 +20,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
+    if (loading) return;
     if (!userId) {
       setOnboarded(null);
       setRole(null);
+      if (!isLoginPage) router.push("/login");
       return;
     }
+
+    // Once we've confirmed this session is onboarded and sitting in the right
+    // place for its role, later navigations don't need to hit the network
+    // again — this is what made every single page change feel sluggish.
+    const alreadyVerified = onboarded === true && role !== null && (role === "Coach" ? isCoachPage : true);
+    if (alreadyVerified && !isOnboardingPage) return;
+
     getMe()
       .then((u) => {
-        setOnboarded(u.onboarding_complete);
-        setRole(u.role || "Athlete");
+        const freshOnboarded = u.onboarding_complete;
+        const freshRole = u.role || "Athlete";
+        setOnboarded(freshOnboarded);
+        setRole(freshRole);
+
+        // Decide the redirect using the value we JUST fetched, not state read
+        // from a separate effect — that gap is exactly what caused the bounce
+        // back to onboarding right after finishing it.
+        if (freshOnboarded === false && !isOnboardingPage) {
+          router.push("/onboarding");
+        } else if (freshOnboarded && freshRole === "Coach" && !isCoachPage && !isOnboardingPage) {
+          router.push("/coaching");
+        }
       })
       .catch(() => {
         setOnboarded(true);
         setRole("Athlete");
       }); // fail open — don't trap the user in a permanent loading state if this call has a hiccup
-  }, [userId, pathname]);
-
-  useEffect(() => {
-    if (loading) return;
-    if (!userId && !isLoginPage) {
-      router.push("/login");
-      return;
-    }
-    if (userId && onboarded === false && !isOnboardingPage) {
-      router.push("/onboarding");
-      return;
-    }
-    // Coach accounts only ever see /coach/* — everything else in the app is athlete-only
-    if (userId && onboarded && role === "Coach" && !isCoachPage && !isOnboardingPage) {
-      router.push("/coaching");
-    }
-  }, [loading, userId, onboarded, role, isLoginPage, isOnboardingPage, isCoachPage, router]);
+  }, [loading, userId, pathname, isLoginPage, isOnboardingPage, isCoachPage, onboarded, role, router]);
 
   if (isLoginPage || isOnboardingPage) return <>{children}</>;
 
