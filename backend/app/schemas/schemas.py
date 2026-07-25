@@ -268,6 +268,7 @@ class GoalCreate(BaseModel):
 class GoalOut(GoalCreate):
     id: str
     status: GoalStatus
+    proposed_by_coach_id: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -1032,3 +1033,71 @@ class CoachAssignmentOut(BaseModel):
 
 class AssignmentCompleteRequest(BaseModel):
     player_note: Optional[str] = None
+
+
+# =====================================================================
+# COACH PORTAL — batch 2: structured match reviews, coach practice plans,
+# collaborative goals
+# =====================================================================
+
+class CoachMatchReviewCreate(BaseModel):
+    serve_rating: Optional[int] = None
+    footwork_rating: Optional[int] = None
+    mental_rating: Optional[int] = None
+    shot_selection_rating: Optional[int] = None
+    notes: Optional[str] = None
+
+
+class CoachMatchReviewOut(BaseModel):
+    id: str
+    coach_user_id: str
+    player_user_id: str
+    match_id: str
+    serve_rating: Optional[int] = None
+    footwork_rating: Optional[int] = None
+    mental_rating: Optional[int] = None
+    shot_selection_rating: Optional[int] = None
+    notes: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class PracticePlanItemInput(BaseModel):
+    day_of_week: int
+    activity: str
+    duration_min: Optional[int] = None
+    notes: Optional[str] = None
+
+
+class PracticePlanCreate(BaseModel):
+    week_start_date: date
+    items: list[PracticePlanItemInput]
+
+
+class PracticePlanItemOut(BaseModel):
+    id: str
+    day_of_week: int
+    activity: str
+    duration_min: Optional[int] = None
+    notes: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PracticePlanOut(BaseModel):
+    id: str
+    coach_user_id: str
+    player_user_id: str
+    week_start_date: date
+    created_at: datetime
+    items: list[PracticePlanItemOut]
+
+
+class CoachGoalCreate(BaseModel):
+    title: str
+    category: str
+    target: Optional[str] = None
+    deadline: Optional[date] = None

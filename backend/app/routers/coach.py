@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.push import notify_user
 from app.models import models
 from app.schemas import schemas
 
@@ -246,6 +247,7 @@ _TARGET_MODELS = {
     "match": models.TennisMatch,
     "practice_session": models.TennisPracticeSession,
     "stroke_log": models.TennisStrokeLog,
+    "goal": models.Goal,
 }
 
 
@@ -278,6 +280,17 @@ def add_comment(
     db.commit()
     db.refresh(comment)
     author = db.query(models.User).get(current_user_id)
+
+    if is_player:
+        # Player replied — notify their linked coach(es)
+        links = db.query(models.CoachPlayerLink).filter(
+            models.CoachPlayerLink.player_user_id == player_id, models.CoachPlayerLink.active.is_(True)
+        ).all()
+        for link in links:
+            notify_user(db, link.coach_user_id, "Project Walk-On Coach", f"{author.name if author else 'Your player'} replied to a comment")
+    else:
+        notify_user(db, player_id, "Project Walk-On", f"Your coach left a comment: {payload.comment[:80]}")
+
     return schemas.CoachCommentOut(
         id=comment.id, player_user_id=comment.player_user_id, author_user_id=comment.author_user_id,
         author_name=author.name if author else None, target_type=comment.target_type,
@@ -332,6 +345,7 @@ def create_assignment(
     db.add(assignment)
     db.commit()
     db.refresh(assignment)
+    notify_user(db, player_id, "Project Walk-On", f"Your coach assigned: {payload.title}")
     return assignment
 
 
@@ -378,4 +392,163 @@ def complete_assignment(
     assignment.completed_at = datetime.utcnow()
     db.commit()
     db.refresh(assignment)
+    player = db.query(models.User).get(current_user_id)
+    notify_user(
+        db, assignment.coach_user_id, "Project Walk-On Coach",
+        f"{player.name if player else 'Your player'} completed: {assignment.title}",
+    )
     return assignment
+
+
+# ---------- Structured match reviews (#3) ----------
+
+@router.post("/players/{player_id}/matches/{match_id}/review", response_model=schemas.CoachMatchReviewOut)
+def create_match_review(
+    player_id: str,
+    match_id: str,
+    payload: schemas.CoachMatchReviewCreate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    _require_active_link(db, current_user_id, player_id)
+    match = db.query(models.TennisMatch).get(match_id)
+    if not match or match.user_id != player_id:
+        raise HTTPException(status_code=404, detail="Match not found for this player")
+
+    review = models.CoachMatchReview(
+        coach_user_id=current_user_id, player_user_id=player_id, match_id=match_id, **payload.model_dump()
+    )
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    notify_user(db, player_id, "Project Walk-On", "Your coach reviewed your match")
+    return review
+
+
+@router.get("/players/{player_id}/matches/{match_id}/review", response_model=list[schemas.CoachMatchReviewOut])
+def list_match_reviews(
+    player_id: str, match_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    is_player = current_user_id == player_id
+    if not is_player:
+        _require_active_link(db, current_user_id, player_id)
+    return (
+        db.query(models.CoachMatchReview)
+        .filter(models.CoachMatchReview.player_user_id == player_id, models.CoachMatchReview.match_id == match_id)
+        .order_by(models.CoachMatchReview.created_at.desc())
+        .all()
+    )
+
+
+# ---------- Coach-built practice plans (#4) ----------
+
+@router.post("/players/{player_id}/practice-plans", response_model=schemas.PracticePlanOut)
+def create_practice_plan(
+    player_id: str,
+    payload: schemas.PracticePlanCreate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    _require_active_link(db, current_user_id, player_id)
+    plan = models.CoachPracticePlan(
+        coach_user_id=current_user_id, player_user_id=player_id, week_start_date=payload.week_start_date
+    )
+    db.add(plan)
+    db.commit()
+    db.refresh(plan)
+    for item in payload.items:
+        db.add(models.CoachPracticePlanItem(plan_id=plan.id, **item.model_dump()))
+    db.commit()
+
+    items = db.query(models.CoachPracticePlanItem).filter(models.CoachPracticePlanItem.plan_id == plan.id).all()
+    notify_user(db, player_id, "Project Walk-On", "Your coach built a practice plan for this week")
+    return schemas.PracticePlanOut(
+        id=plan.id, coach_user_id=plan.coach_user_id, player_user_id=plan.player_user_id,
+        week_start_date=plan.week_start_date, created_at=plan.created_at,
+        items=[schemas.PracticePlanItemOut.model_validate(i) for i in items],
+    )
+
+
+@router.get("/players/{player_id}/practice-plans", response_model=list[schemas.PracticePlanOut])
+def list_practice_plans_for_player(
+    player_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    is_player = current_user_id == player_id
+    if not is_player:
+        _require_active_link(db, current_user_id, player_id)
+    plans = (
+        db.query(models.CoachPracticePlan)
+        .filter(models.CoachPracticePlan.player_user_id == player_id)
+        .order_by(models.CoachPracticePlan.week_start_date.desc())
+        .all()
+    )
+    out = []
+    for plan in plans:
+        items = db.query(models.CoachPracticePlanItem).filter(models.CoachPracticePlanItem.plan_id == plan.id).all()
+        out.append(schemas.PracticePlanOut(
+            id=plan.id, coach_user_id=plan.coach_user_id, player_user_id=plan.player_user_id,
+            week_start_date=plan.week_start_date, created_at=plan.created_at,
+            items=[schemas.PracticePlanItemOut.model_validate(i) for i in items],
+        ))
+    return out
+
+
+@router.get("/my-practice-plans", response_model=list[schemas.PracticePlanOut])
+def list_my_practice_plans(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    plans = (
+        db.query(models.CoachPracticePlan)
+        .filter(models.CoachPracticePlan.player_user_id == current_user_id)
+        .order_by(models.CoachPracticePlan.week_start_date.desc())
+        .all()
+    )
+    out = []
+    for plan in plans:
+        items = db.query(models.CoachPracticePlanItem).filter(models.CoachPracticePlanItem.plan_id == plan.id).all()
+        out.append(schemas.PracticePlanOut(
+            id=plan.id, coach_user_id=plan.coach_user_id, player_user_id=plan.player_user_id,
+            week_start_date=plan.week_start_date, created_at=plan.created_at,
+            items=[schemas.PracticePlanItemOut.model_validate(i) for i in items],
+        ))
+    return out
+
+
+@router.delete("/practice-plans/{plan_id}")
+def delete_practice_plan(
+    plan_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    plan = db.query(models.CoachPracticePlan).get(plan_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    if plan.coach_user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not your plan")
+    db.query(models.CoachPracticePlanItem).filter(models.CoachPracticePlanItem.plan_id == plan_id).delete(
+        synchronize_session=False
+    )
+    db.delete(plan)
+    db.commit()
+    return {"deleted": True}
+
+
+# ---------- Collaborative goals (#6) ----------
+
+@router.post("/players/{player_id}/goals", response_model=schemas.GoalOut)
+def propose_goal(
+    player_id: str,
+    payload: schemas.CoachGoalCreate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    _require_active_link(db, current_user_id, player_id)
+    goal = models.Goal(
+        user_id=player_id,
+        title=payload.title,
+        category=payload.category,
+        target=payload.target,
+        deadline=payload.deadline,
+        proposed_by_coach_id=current_user_id,
+    )
+    db.add(goal)
+    db.commit()
+    db.refresh(goal)
+    notify_user(db, player_id, "Project Walk-On", f"Your coach suggested a goal: {payload.title}")
+    return goal

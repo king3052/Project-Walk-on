@@ -401,6 +401,7 @@ export type Goal = {
   id: string; user_id: string; title: string; category: string;
   target: string | null; deadline: string | null;
   status: "NOT_STARTED" | "IN_PROGRESS" | "ACHIEVED" | "MISSED";
+  proposed_by_coach_id?: string | null;
 };
 
 export function getGoals(userId: string): Promise<Goal[]> {
@@ -1195,4 +1196,80 @@ export function completeAssignment(id: string, playerNote?: string): Promise<Coa
     method: "PATCH",
     body: JSON.stringify({ player_note: playerNote || null }),
   });
+}
+
+// ---------- Coach Portal batch 2: match reviews, practice plans, goals ----------
+export type CoachMatchReview = {
+  id: string;
+  coach_user_id: string;
+  player_user_id: string;
+  match_id: string;
+  serve_rating: number | null;
+  footwork_rating: number | null;
+  mental_rating: number | null;
+  shot_selection_rating: number | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export function createMatchReview(
+  playerId: string,
+  matchId: string,
+  data: {
+    serve_rating?: number;
+    footwork_rating?: number;
+    mental_rating?: number;
+    shot_selection_rating?: number;
+    notes?: string;
+  }
+): Promise<CoachMatchReview> {
+  return post(`/coach/players/${playerId}/matches/${matchId}/review`, data);
+}
+
+export function listMatchReviews(playerId: string, matchId: string): Promise<CoachMatchReview[]> {
+  return apiFetch(`/coach/players/${playerId}/matches/${matchId}/review`);
+}
+
+export type PracticePlanItem = {
+  id: string;
+  day_of_week: number;
+  activity: string;
+  duration_min: number | null;
+  notes: string | null;
+};
+
+export type PracticePlan = {
+  id: string;
+  coach_user_id: string;
+  player_user_id: string;
+  week_start_date: string;
+  created_at: string;
+  items: PracticePlanItem[];
+};
+
+export function createPracticePlan(
+  playerId: string,
+  weekStartDate: string,
+  items: { day_of_week: number; activity: string; duration_min?: number; notes?: string }[]
+): Promise<PracticePlan> {
+  return post(`/coach/players/${playerId}/practice-plans`, { week_start_date: weekStartDate, items });
+}
+
+export function listPracticePlansForPlayer(playerId: string): Promise<PracticePlan[]> {
+  return apiFetch(`/coach/players/${playerId}/practice-plans`);
+}
+
+export function listMyPracticePlans(): Promise<PracticePlan[]> {
+  return apiFetch(`/coach/my-practice-plans`);
+}
+
+export function deletePracticePlan(planId: string) {
+  return apiFetch(`/coach/practice-plans/${planId}`, { method: "DELETE" });
+}
+
+export function proposeGoal(
+  playerId: string,
+  data: { title: string; category: string; target?: string; deadline?: string }
+) {
+  return post(`/coach/players/${playerId}/goals`, data);
 }

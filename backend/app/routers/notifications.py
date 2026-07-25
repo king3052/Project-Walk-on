@@ -17,12 +17,12 @@ from pywebpush import webpush, WebPushException
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.push import _send_push, VAPID_PRIVATE_KEY
 from app.models import models
 from app.schemas import schemas
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
-VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_CLAIM_EMAIL = os.getenv("VAPID_CLAIM_EMAIL", "mailto:example@example.com")
 CRON_SECRET = os.getenv("CRON_SECRET")
 
@@ -58,22 +58,6 @@ def unsubscribe(
     ).delete()
     db.commit()
     return {"unsubscribed": True}
-
-
-def _send_push(sub: models.PushSubscription, title: str, body: str) -> bool:
-    try:
-        webpush(
-            subscription_info={
-                "endpoint": sub.endpoint,
-                "keys": {"p256dh": sub.p256dh, "auth": sub.auth},
-            },
-            data=f'{{"title": "{title}", "body": "{body}"}}',
-            vapid_private_key=VAPID_PRIVATE_KEY,
-            vapid_claims={"sub": VAPID_CLAIM_EMAIL},
-        )
-        return True
-    except WebPushException:
-        return False
 
 
 @router.post("/send-reminders")

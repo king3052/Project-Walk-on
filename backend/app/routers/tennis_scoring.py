@@ -8,6 +8,7 @@ from app.core.auth import get_current_user_id
 from app.core.rate_limit import check_ai_rate_limit
 from app.core.ai import call_groq
 from app.core.tennis_scoring import replay_match
+from app.core.push import notify_user
 from app.models import models
 from app.schemas import schemas
 
@@ -48,6 +49,16 @@ def _sync_match_summary(db: Session, match: models.TennisMatch, state: dict) -> 
     match.result = "Win" if state["match_winner"] == "Me" else "Loss"
     match.score = state["overall_set_score"]
     db.commit()
+
+    player = db.query(models.User).get(match.user_id)
+    links = db.query(models.CoachPlayerLink).filter(
+        models.CoachPlayerLink.player_user_id == match.user_id, models.CoachPlayerLink.active.is_(True)
+    ).all()
+    for link in links:
+        notify_user(
+            db, link.coach_user_id, "Project Walk-On Coach",
+            f"{player.name if player else 'Your player'} finished a match: {match.result} vs {match.opponent or 'opponent'}",
+        )
 
 
 @router.patch("/{match_id}/scoring-settings")

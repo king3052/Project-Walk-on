@@ -333,6 +333,7 @@ class Goal(Base):
     target = Column(String, nullable=True)
     deadline = Column(Date, nullable=True)
     status = Column(Enum(GoalStatus), default=GoalStatus.NOT_STARTED)
+    proposed_by_coach_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=True)
 
     user = relationship("User", back_populates="goals")
 
@@ -640,3 +641,48 @@ class CoachAssignment(Base):
     player_note = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
+
+
+# =====================================================================
+# COACH PORTAL — batch 2: structured match reviews, coach practice plans
+# =====================================================================
+
+class CoachMatchReview(Base):
+    """A structured (not just freeform) review a coach leaves on a specific
+    match — ratings the player can actually act on, and real ground-truth
+    input the AI Scouting Profile can reference alongside its own inferences."""
+    __tablename__ = "coach_match_reviews"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    coach_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    player_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    match_id = Column(UUID(as_uuid=False), ForeignKey("tennis_matches.id"), nullable=False)
+    serve_rating = Column(Integer, nullable=True)  # 1-5
+    footwork_rating = Column(Integer, nullable=True)
+    mental_rating = Column(Integer, nullable=True)
+    shot_selection_rating = Column(Integer, nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CoachPracticePlan(Base):
+    """A weekly practice plan a coach builds for a specific player — one
+    plan per player per week, made up of CoachPracticePlanItem rows."""
+    __tablename__ = "coach_practice_plans"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    coach_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    player_user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    week_start_date = Column(Date, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CoachPracticePlanItem(Base):
+    __tablename__ = "coach_practice_plan_items"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    plan_id = Column(UUID(as_uuid=False), ForeignKey("coach_practice_plans.id"), nullable=False)
+    day_of_week = Column(Integer, nullable=False)  # 0=Sunday .. 6=Saturday
+    activity = Column(String, nullable=False)
+    duration_min = Column(Integer, nullable=True)
+    notes = Column(Text, nullable=True)

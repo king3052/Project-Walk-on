@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { TennisNav } from "@/components/TennisNav";
@@ -17,11 +18,13 @@ import {
   generateMatchScouting,
   getMatchScouting,
   getOpponentHistory,
+  listMatchReviews,
   type TennisMatch,
   type TennisMatchState,
   type TennisPointInput,
   type TennisMatchScouting,
   type OpponentHistory,
+  type CoachMatchReview,
 } from "@/lib/api";
 
 const SHOT_TYPES = ["Forehand", "Backhand", "Serve", "Return", "Volley", "Overhead", "Other"];
@@ -40,10 +43,12 @@ const FORMAT_LABELS: Record<string, string> = {
 export default function MatchTrackerPage() {
   const params = useParams();
   const matchId = params.id as string;
+  const { userId } = useAuth();
   const { showToast } = useToast();
 
   const [match, setMatch] = useState<TennisMatch | null>(null);
   const [state, setState] = useState<TennisMatchState | null>(null);
+  const [coachReviews, setCoachReviews] = useState<CoachMatchReview[]>([]);
   const [tab, setTab] = useState<"live" | "bulk">("live");
   const [showLog, setShowLog] = useState(false);
 
@@ -90,9 +95,14 @@ export default function MatchTrackerPage() {
         }
       })
       .catch(() => {});
+    if (userId) {
+      listMatchReviews(userId, matchId)
+        .then(setCoachReviews)
+        .catch(() => setCoachReviews([]));
+    }
   }
 
-  useEffect(load, [matchId]);
+  useEffect(load, [matchId, userId]);
 
   const hasPoints = !!state && state.sets.some((s) => s.games.some((g) => g.points.length > 0));
 
@@ -433,6 +443,21 @@ export default function MatchTrackerPage() {
             </div>
           )}
         </>
+      )}
+
+      {coachReviews.length > 0 && (
+        <div className="rounded-lg border border-accent/40 bg-surface-panel p-5 space-y-3">
+          <h2 className="text-xs uppercase tracking-wide text-fg-dim">From your coach</h2>
+          {coachReviews.map((r) => (
+            <div key={r.id} className="text-sm text-fg space-y-1">
+              <p className="text-xs text-fg-dim">
+                Serve {r.serve_rating}/5 · Footwork {r.footwork_rating}/5 · Mental {r.mental_rating}/5 · Shot
+                selection {r.shot_selection_rating}/5
+              </p>
+              {r.notes && <p>{r.notes}</p>}
+            </div>
+          ))}
+        </div>
       )}
 
       {state.match_complete && (

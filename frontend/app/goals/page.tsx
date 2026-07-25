@@ -3,7 +3,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { getGoals, createGoal, updateGoalStatus, getMe, type Goal } from "@/lib/api";
+import { getGoals, createGoal, updateGoalStatus, getMe, listComments, addComment, type Goal, type CoachComment } from "@/lib/api";
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
@@ -18,6 +18,71 @@ const STATUS_LABEL: Record<Goal["status"], string> = {
   ACHIEVED: "Achieved",
   MISSED: "Missed",
 };
+
+function GoalCommentThread({ goalId }: { goalId: string }) {
+  const { userId } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [comments, setComments] = useState<CoachComment[]>([]);
+  const [text, setText] = useState("");
+  const [pending, setPending] = useState(false);
+
+  function load() {
+    if (!userId) return;
+    listComments(userId, "goal", goalId)
+      .then(setComments)
+      .catch(() => setComments([]));
+  }
+
+  useEffect(() => {
+    if (open) load();
+  }, [open]);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!text.trim() || !userId) return;
+    setPending(true);
+    try {
+      await addComment(userId, "goal", goalId, text);
+      setText("");
+      load();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="mt-1">
+      <button onClick={() => setOpen((v) => !v)} className="text-xs text-accent hover:underline">
+        {open ? "Hide comments" : `Comments${comments.length ? ` (${comments.length})` : ""}`}
+      </button>
+      {open && (
+        <div className="mt-2 space-y-2 pl-3 border-l border-surface-border">
+          {comments.map((c) => (
+            <p key={c.id} className="text-xs text-fg">
+              <span className="text-accent">{c.author_name || "Someone"}:</span> {c.comment}
+            </p>
+          ))}
+          <form onSubmit={onSubmit} className="flex gap-2">
+            <input
+              type="text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Leave a comment…"
+              className="flex-1 bg-surface-panelHover border border-surface-border rounded-md px-2 py-1 text-xs text-fg focus:outline-none focus:border-accent"
+            />
+            <button
+              type="submit"
+              disabled={pending}
+              className="text-xs bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-3 py-1 rounded-md transition-colors shrink-0"
+            >
+              Post
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GoalsPage() {
   const { userId } = useAuth();
@@ -149,23 +214,30 @@ export default function GoalsPage() {
             ) : (
               <div className="space-y-2">
                 {items.map((g) => (
-                  <button
-                    key={g.id}
-                    onClick={() => cycleStatus(g)}
-                    className="w-full text-left rounded-lg border border-surface-border bg-surface-panel px-4 py-3 flex items-center justify-between hover:bg-surface-panelHover transition-colors"
-                  >
-                    <div>
-                      <p className="text-sm text-fg">{g.title}</p>
-                      {g.target && <p className="text-xs text-fg-dim">{g.target}</p>}
-                    </div>
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        g.status === "ACHIEVED" ? "text-accent" : "text-fg-dim"
-                      }`}
+                  <div key={g.id} className="rounded-lg border border-surface-border bg-surface-panel px-4 py-3">
+                    <button
+                      onClick={() => cycleStatus(g)}
+                      className="w-full text-left flex items-center justify-between hover:opacity-80 transition-opacity"
                     >
-                      {STATUS_LABEL[g.status]}
-                    </span>
-                  </button>
+                      <div>
+                        <p className="text-sm text-fg">
+                          {g.title}
+                          {g.proposed_by_coach_id && (
+                            <span className="ml-2 text-xs text-accent">suggested by coach</span>
+                          )}
+                        </p>
+                        {g.target && <p className="text-xs text-fg-dim">{g.target}</p>}
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          g.status === "ACHIEVED" ? "text-accent" : "text-fg-dim"
+                        }`}
+                      >
+                        {STATUS_LABEL[g.status]}
+                      </span>
+                    </button>
+                    <GoalCommentThread goalId={g.id} />
+                  </div>
                 ))}
               </div>
             )}

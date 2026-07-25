@@ -18,11 +18,13 @@ import {
   refreshScoutingProfile,
   listMyAssignments,
   completeAssignment,
+  listMyPracticePlans,
   type TennisMatch,
   type TennisTournament,
   type TennisRanking,
   type TennisScoutingProfile,
   type CoachAssignment,
+  type PracticePlan,
 } from "@/lib/api";
 
 function Widget({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -73,6 +75,7 @@ export default function TennisOverviewPage() {
   const [profile, setProfile] = useState<TennisScoutingProfile | null>(null);
   const [refreshingProfile, setRefreshingProfile] = useState(false);
   const [assignments, setAssignments] = useState<CoachAssignment[]>([]);
+  const [practicePlans, setPracticePlans] = useState<PracticePlan[]>([]);
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const { showToast } = useToast();
@@ -133,6 +136,9 @@ export default function TennisOverviewPage() {
       .then((p) => setProfile(p.summary ? p : null))
       .catch(() => {});
     loadAssignments();
+    listMyPracticePlans()
+      .then(setPracticePlans)
+      .catch(() => setPracticePlans([]));
   }, [userId]);
 
   const wins = matches.filter((m) => m.result === "Win").length;
@@ -266,6 +272,28 @@ export default function TennisOverviewPage() {
                 </div>
               ))}
           </div>
+        </div>
+      )}
+
+      {practicePlans.length > 0 && (
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+          <h2 className="text-xs uppercase tracking-wide text-fg-dim mb-3">Your coach's practice plan</h2>
+          {practicePlans.slice(0, 1).map((plan) => (
+            <div key={plan.id} className="space-y-1">
+              <p className="text-xs text-fg-dim mb-2">Week of {plan.week_start_date}</p>
+              {[0, 1, 2, 3, 4, 5, 6].map((day) => {
+                const dayItems = plan.items.filter((i) => i.day_of_week === day);
+                if (dayItems.length === 0) return null;
+                const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                return (
+                  <div key={day} className="text-sm">
+                    <span className="text-accent">{dayNames[day]}:</span>{" "}
+                    {dayItems.map((i) => `${i.activity} (${i.duration_min}min)`).join(", ")}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
         </div>
       )}
 
