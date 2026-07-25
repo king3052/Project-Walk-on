@@ -574,6 +574,30 @@ export function getRecommendedLearning(): Promise<LearningRecommendation> {
   return apiFetch(`/learning/recommended`);
 }
 
+export type LearningFeedItem = {
+  id: string;
+  title: string;
+  video_url: string;
+  channel_title: string | null;
+  thumbnail_url: string | null;
+  reason: string | null;
+  fetched_at: string;
+};
+
+export type PersonalizedFeedResponse = {
+  items: LearningFeedItem[];
+  configured: boolean;
+  note?: string;
+};
+
+export function getPersonalizedFeed(): Promise<PersonalizedFeedResponse> {
+  return apiFetch(`/learning/personalized`);
+}
+
+export function refreshPersonalizedFeed(): Promise<PersonalizedFeedResponse> {
+  return apiFetch(`/learning/personalized/refresh`, { method: "POST" });
+}
+
 // ---------- Sports Science Lab ----------
 export type SportsScienceData = {
   daily_load: { date: string; load: number }[];

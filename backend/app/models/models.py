@@ -686,3 +686,23 @@ class CoachPracticePlanItem(Base):
     activity = Column(String, nullable=False)
     duration_min = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)
+
+
+# =====================================================================
+# LEARNING CENTER — personalized live video feed
+# =====================================================================
+
+class LearningFeedItem(Base):
+    """A real, live-searched video in a user's personalized Learning Center
+    feed. Refreshed at most every 2 days — old items for a user are wiped
+    and replaced on refresh, not accumulated indefinitely."""
+    __tablename__ = "learning_feed_items"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False)
+    video_url = Column(String, nullable=False)
+    channel_title = Column(String, nullable=True)
+    thumbnail_url = Column(String, nullable=True)
+    reason = Column(Text, nullable=True)  # why this was picked, tied to the weak point
+    fetched_at = Column(DateTime, default=datetime.utcnow)
