@@ -54,6 +54,20 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [roleChoice, setRoleChoice] = useState<"Athlete" | "Coach" | null>(null);
+  const [submittingCoach, setSubmittingCoach] = useState(false);
+
+  async function onFinishCoach() {
+    setSubmittingCoach(true);
+    try {
+      await submitOnboarding({ role: "Coach" });
+      router.push("/coaching");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setSubmittingCoach(false);
+    }
+  }
 
   // Step 1 — basics
   const [sport, setSport] = useState("Basketball");
@@ -177,6 +191,51 @@ export default function OnboardingPage() {
   return (
     <main className="min-h-[100dvh] flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
+        {roleChoice === null && (
+          <div className="text-center space-y-6">
+            <Image src="/logo-mascot.png" alt="" width={64} height={54} className="mx-auto mb-3" />
+            <h1 className="font-display text-3xl tracking-tight text-fg">Are you an athlete or a coach?</h1>
+            <div className="space-y-3">
+              <button
+                onClick={() => setRoleChoice("Athlete")}
+                className="w-full rounded-md border border-surface-border hover:bg-surface-panelHover px-5 py-4 text-left transition-colors"
+              >
+                <p className="text-sm text-fg">I&apos;m an athlete</p>
+                <p className="text-xs text-fg-dim mt-1">Track your own training, matches, and progress.</p>
+              </button>
+              <button
+                onClick={() => setRoleChoice("Coach")}
+                className="w-full rounded-md border border-surface-border hover:bg-surface-panelHover px-5 py-4 text-left transition-colors"
+              >
+                <p className="text-sm text-fg">I&apos;m a coach</p>
+                <p className="text-xs text-fg-dim mt-1">View your players&apos; progress, comment, and assign drills.</p>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {roleChoice === "Coach" && (
+          <div className="text-center space-y-6">
+            <Image src="/logo-mascot.png" alt="" width={64} height={54} className="mx-auto mb-3" />
+            <h1 className="font-display text-3xl tracking-tight text-fg">You&apos;re set up as a coach</h1>
+            <p className="text-sm text-fg-dim">
+              Once a player shares an invite code with you, you&apos;ll be able to link to them from your Coach Dashboard.
+            </p>
+            <button
+              onClick={onFinishCoach}
+              disabled={submittingCoach}
+              className="w-full text-sm bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-5 py-2.5 rounded-md transition-colors"
+            >
+              {submittingCoach ? "Setting up…" : "Go to Coach Dashboard"}
+            </button>
+            <button onClick={() => setRoleChoice(null)} className="text-xs text-fg-dim hover:text-fg-muted">
+              ← Back
+            </button>
+            {error && <p className="text-warn text-sm">{error}</p>}
+          </div>
+        )}
+
+        {roleChoice === "Athlete" && (
         <div className="mb-6 text-center">
           <Image src="/logo-mascot.png" alt="" width={64} height={54} className="mx-auto mb-3" />
           <h1 className="font-display text-3xl tracking-tight text-fg">Let&apos;s set you up</h1>
@@ -192,7 +251,10 @@ export default function OnboardingPage() {
             ))}
           </div>
         </div>
+        )}
 
+        {roleChoice === "Athlete" && (
+        <>
         {step === 1 && (
           <div className="space-y-4">
             <h2 className="text-xs uppercase tracking-wide text-fg-dim">Basics</h2>
@@ -444,6 +506,8 @@ export default function OnboardingPage() {
             </div>
             {error && <p className="text-warn text-sm">{error}</p>}
           </div>
+        )}
+        </>
         )}
       </div>
     </main>

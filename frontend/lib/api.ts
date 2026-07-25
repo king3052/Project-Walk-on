@@ -281,7 +281,7 @@ export type AthleteProfile = {
 
 export type UserRecord = {
   id: string; email: string; name: string; height_in: number | null; weight_lb: number | null;
-  position: string | null; dominant_hand: string | null; sport: string | null; onboarding_complete: boolean; created_at: string;
+  position: string | null; dominant_hand: string | null; sport: string | null; role: string | null; onboarding_complete: boolean; created_at: string;
 };
 
 export function getUser(userId: string): Promise<UserRecord> {
@@ -293,6 +293,7 @@ export function getMe(): Promise<UserRecord> {
 }
 
 export type OnboardingData = {
+  role?: string;
   sport?: string;
   height_in?: number;
   weight_lb?: number;
@@ -1077,4 +1078,121 @@ export type TennisAggregates = {
 
 export function getTennisAggregates(days = 90): Promise<TennisAggregates> {
   return apiFetch(`/tennis/analysis/aggregates?days=${days}`);
+}
+
+// =====================================================================
+// COACH PORTAL
+// =====================================================================
+
+export type InviteCode = { id: string; player_user_id: string; code: string; used: boolean; created_at: string };
+
+export function generateInviteCode(): Promise<InviteCode> {
+  return post("/coach/invite-code", {});
+}
+
+export function redeemInviteCode(code: string) {
+  return post("/coach/link", { code });
+}
+
+export type LinkedPlayer = {
+  link_id: string;
+  player_user_id: string;
+  player_name: string;
+  player_sport: string | null;
+  linked_since: string;
+};
+
+export function listMyPlayers(): Promise<LinkedPlayer[]> {
+  return apiFetch(`/coach/players`);
+}
+
+export type LinkedCoach = { link_id: string; coach_user_id: string; coach_name: string; linked_since: string };
+
+export function listMyCoaches(): Promise<LinkedCoach[]> {
+  return apiFetch(`/coach/my-coaches`);
+}
+
+export function revokeCoachLink(linkId: string) {
+  return apiFetch(`/coach/links/${linkId}`, { method: "DELETE" });
+}
+
+export type VisibilitySettings = { player_user_id: string; share_journal: boolean; share_mental: boolean };
+
+export function getVisibilitySettings(): Promise<VisibilitySettings> {
+  return apiFetch(`/coach/visibility-settings`);
+}
+
+export function updateVisibilitySettings(data: { share_journal?: boolean; share_mental?: boolean }) {
+  return apiFetch(`/coach/visibility-settings`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+export type PlayerDashboard = {
+  player_name: string;
+  player_sport: string | null;
+  matches: { id: string; date: string; opponent: string | null; result: string | null; score: string | null }[];
+  practice_sessions: { id: string; date: string; duration_min: number | null; focus_area: string | null }[];
+  goals: { id: string; title: string; status: string }[];
+  journal_shared: boolean;
+  mental_shared: boolean;
+  journal?: { date: string; went_well: string | null; mistakes: string | null }[];
+  mental_logs?: { date: string; confidence: number | null; focus: number | null; pressure_handling: number | null }[];
+};
+
+export function getPlayerDashboard(playerId: string): Promise<PlayerDashboard> {
+  return apiFetch(`/coach/players/${playerId}/dashboard`);
+}
+
+export type CoachComment = {
+  id: string;
+  player_user_id: string;
+  author_user_id: string;
+  author_name: string | null;
+  target_type: string;
+  target_id: string;
+  comment: string;
+  created_at: string;
+};
+
+export function addComment(playerId: string, targetType: string, targetId: string, comment: string): Promise<CoachComment> {
+  return post(`/coach/players/${playerId}/comments`, { target_type: targetType, target_id: targetId, comment });
+}
+
+export function listComments(playerId: string, targetType: string, targetId: string): Promise<CoachComment[]> {
+  return apiFetch(`/coach/players/${playerId}/comments?target_type=${targetType}&target_id=${targetId}`);
+}
+
+export type CoachAssignment = {
+  id: string;
+  coach_user_id: string;
+  player_user_id: string;
+  title: string;
+  description: string | null;
+  video_url: string | null;
+  due_date: string | null;
+  status: "Assigned" | "Completed";
+  player_note: string | null;
+  created_at: string;
+  completed_at: string | null;
+};
+
+export function createAssignment(
+  playerId: string,
+  data: { title: string; description?: string; video_url?: string; due_date?: string }
+): Promise<CoachAssignment> {
+  return post(`/coach/players/${playerId}/assignments`, data);
+}
+
+export function listAssignmentsForPlayer(playerId: string): Promise<CoachAssignment[]> {
+  return apiFetch(`/coach/players/${playerId}/assignments`);
+}
+
+export function listMyAssignments(): Promise<CoachAssignment[]> {
+  return apiFetch(`/coach/my-assignments`);
+}
+
+export function completeAssignment(id: string, playerNote?: string): Promise<CoachAssignment> {
+  return apiFetch(`/coach/assignments/${id}/complete`, {
+    method: "PATCH",
+    body: JSON.stringify({ player_note: playerNote || null }),
+  });
 }

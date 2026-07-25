@@ -16,10 +16,13 @@ import {
   getDashboard,
   getScoutingProfile,
   refreshScoutingProfile,
+  listMyAssignments,
+  completeAssignment,
   type TennisMatch,
   type TennisTournament,
   type TennisRanking,
   type TennisScoutingProfile,
+  type CoachAssignment,
 } from "@/lib/api";
 
 function Widget({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -69,7 +72,28 @@ export default function TennisOverviewPage() {
   const [athleteScore, setAthleteScore] = useState<number | null>(null);
   const [profile, setProfile] = useState<TennisScoutingProfile | null>(null);
   const [refreshingProfile, setRefreshingProfile] = useState(false);
+  const [assignments, setAssignments] = useState<CoachAssignment[]>([]);
+  const [completingId, setCompletingId] = useState<string | null>(null);
+  const [noteDraft, setNoteDraft] = useState("");
   const { showToast } = useToast();
+
+  function loadAssignments() {
+    listMyAssignments()
+      .then(setAssignments)
+      .catch(() => setAssignments([]));
+  }
+
+  async function onCompleteAssignment(id: string) {
+    try {
+      await completeAssignment(id, noteDraft || undefined);
+      setCompletingId(null);
+      setNoteDraft("");
+      showToast("Marked complete.", "success");
+      loadAssignments();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
+    }
+  }
 
   async function onRefreshProfile() {
     setRefreshingProfile(true);
@@ -108,6 +132,7 @@ export default function TennisOverviewPage() {
     getScoutingProfile()
       .then((p) => setProfile(p.summary ? p : null))
       .catch(() => {});
+    loadAssignments();
   }, [userId]);
 
   const wins = matches.filter((m) => m.result === "Win").length;
@@ -183,6 +208,66 @@ export default function TennisOverviewPage() {
           </p>
         )}
       </div>
+
+      {assignments.filter((a) => a.status === "Assigned").length > 0 && (
+        <div className="rounded-lg border border-accent/40 bg-surface-panel p-5">
+          <h2 className="text-xs uppercase tracking-wide text-fg-dim mb-3">From your coach</h2>
+          <div className="space-y-3">
+            {assignments
+              .filter((a) => a.status === "Assigned")
+              .map((a) => (
+                <div key={a.id} className="rounded-md border border-surface-border bg-surface-panelHover p-3">
+                  <p className="text-sm text-fg">{a.title}</p>
+                  {a.description && <p className="text-xs text-fg-dim mt-1">{a.description}</p>}
+                  {a.video_url && (
+                    <a
+                      href={a.video_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-accent hover:underline block mt-1"
+                    >
+                      Watch video →
+                    </a>
+                  )}
+                  {a.due_date && <p className="text-xs text-fg-dim mt-1">Due {a.due_date}</p>}
+
+                  {completingId === a.id ? (
+                    <div className="mt-2 space-y-2">
+                      <input
+                        type="text"
+                        value={noteDraft}
+                        onChange={(e) => setNoteDraft(e.target.value)}
+                        placeholder="Note back to your coach (optional)"
+                        className="w-full bg-surface-panel border border-surface-border rounded-md px-2 py-1.5 text-xs text-fg focus:outline-none focus:border-accent"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onCompleteAssignment(a.id)}
+                          className="text-xs bg-accent hover:bg-accent-dim text-accent-deep px-3 py-1 rounded-md transition-colors"
+                        >
+                          Confirm complete
+                        </button>
+                        <button
+                          onClick={() => setCompletingId(null)}
+                          className="text-xs text-fg-dim hover:text-fg-muted px-2 py-1"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setCompletingId(a.id)}
+                      className="text-xs text-accent hover:underline mt-2"
+                    >
+                      Mark complete
+                    </button>
+                  )}
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6">
         <div className="rounded-lg border border-surface-border bg-surface-panel p-5">

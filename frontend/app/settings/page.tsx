@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import {
@@ -11,7 +12,13 @@ import {
   getSettings,
   saveSettings,
   clearAllData,
+  generateInviteCode,
+  listMyCoaches,
+  revokeCoachLink,
+  getVisibilitySettings,
+  updateVisibilitySettings,
   type ScoreWeights,
+  type LinkedCoach,
 } from "@/lib/api";
 
 const inputClass =
@@ -27,6 +34,7 @@ const WEIGHT_FIELDS: { key: keyof ScoreWeights; label: string }[] = [
 
 export default function SettingsPage() {
   const { userId, signOut } = useAuth();
+  const { showToast } = useToast();
   const router = useRouter();
 
   const [name, setName] = useState("");
@@ -49,6 +57,45 @@ export default function SettingsPage() {
   const [clearing, setClearing] = useState(false);
   const [clearError, setClearError] = useState<string | null>(null);
 
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
+  const [coaches, setCoaches] = useState<LinkedCoach[]>([]);
+  const [shareJournal, setShareJournal] = useState(false);
+  const [shareMental, setShareMental] = useState(false);
+
+  function loadCoachSection() {
+    listMyCoaches().then(setCoaches).catch(() => setCoaches([]));
+    getVisibilitySettings()
+      .then((v) => {
+        setShareJournal(v.share_journal);
+        setShareMental(v.share_mental);
+      })
+      .catch(() => {});
+  }
+
+  async function onGenerateCode() {
+    setGeneratingCode(true);
+    try {
+      const result = await generateInviteCode();
+      setInviteCode(result.code);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
+    } finally {
+      setGeneratingCode(false);
+    }
+  }
+
+  async function onRevokeCoach(linkId: string) {
+    await revokeCoachLink(linkId);
+    loadCoachSection();
+  }
+
+  async function onToggleShare(field: "share_journal" | "share_mental", value: boolean) {
+    if (field === "share_journal") setShareJournal(value);
+    else setShareMental(value);
+    await updateVisibilitySettings({ [field]: value });
+  }
+
   useEffect(() => {
     if (!userId) return;
     getMe().then((u) => {
@@ -57,6 +104,7 @@ export default function SettingsPage() {
       setSport(u.sport || "Basketball");
     });
     getSettings().then(setWeights);
+    loadCoachSection();
   }, [userId]);
 
   async function onSaveName(e: React.FormEvent) {
@@ -176,6 +224,73 @@ export default function SettingsPage() {
           Get a push notification if you haven&apos;t logged anything by evening.
         </p>
         <NotificationSettings />
+      </section>
+
+      <section className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-4">
+        <h2 className="text-xs uppercase tracking-wide text-fg-dim">Coach access</h2>
+
+        <div>
+          <p className="text-sm text-fg mb-1">Invite a coach</p>
+          <p className="text-xs text-fg-dim mb-3">
+            Generate a code and share it with your coach — they'll enter it on their end to link.
+          </p>
+          <button
+            onClick={onGenerateCode}
+            disabled={generatingCode}
+            className="text-sm bg-accent hover:bg-accent-dim disabled:opacity-50 text-accent-deep px-4 py-2 rounded-md transition-colors"
+          >
+            {generatingCode ? "Generating…" : "Generate invite code"}
+          </button>
+          {inviteCode && (
+            <p className="mt-2 font-mono text-lg text-accent tracking-widest">{inviteCode}</p>
+          )}
+        </div>
+
+        <div>
+          <p className="text-sm text-fg mb-2">Linked coaches</p>
+          {coaches.length === 0 ? (
+            <p className="text-xs text-fg-dim">No coach linked yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {coaches.map((c) => (
+                <div key={c.link_id} className="flex items-center justify-between text-sm">
+                  <span className="text-fg">{c.coach_name}</span>
+                  <button
+                    onClick={() => onRevokeCoach(c.link_id)}
+                    className="text-xs text-fg-dim hover:text-warn px-2 py-1"
+                  >
+                    Revoke access
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <p className="text-sm text-fg mb-2">What your coach can see</p>
+          <label className="flex items-center justify-between text-xs text-fg-dim py-1">
+            Journal entries
+            <input
+              type="checkbox"
+              checked={shareJournal}
+              onChange={(e) => onToggleShare("share_journal", e.target.checked)}
+              className="accent-[#4ADE80]"
+            />
+          </label>
+          <label className="flex items-center justify-between text-xs text-fg-dim py-1">
+            Mental Performance logs
+            <input
+              type="checkbox"
+              checked={shareMental}
+              onChange={(e) => onToggleShare("share_mental", e.target.checked)}
+              className="accent-[#4ADE80]"
+            />
+          </label>
+          <p className="text-xs text-fg-dim mt-1">
+            Matches, practice sessions, and goals are always visible to a linked coach.
+          </p>
+        </div>
       </section>
 
       <section className="rounded-lg border border-warn/40 bg-surface-panel p-5 space-y-4">
