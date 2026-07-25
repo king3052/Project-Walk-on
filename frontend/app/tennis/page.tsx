@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { TennisNav } from "@/components/TennisNav";
 import { toLocalISODate } from "@/lib/date";
@@ -13,9 +14,12 @@ import {
   getStrokeLogs,
   getRecoveryLogs,
   getDashboard,
+  getScoutingProfile,
+  refreshScoutingProfile,
   type TennisMatch,
   type TennisTournament,
   type TennisRanking,
+  type TennisScoutingProfile,
 } from "@/lib/api";
 
 function Widget({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -63,6 +67,22 @@ export default function TennisOverviewPage() {
   const [streak, setStreak] = useState(0);
   const [avgSleep, setAvgSleep] = useState<number | null>(null);
   const [athleteScore, setAthleteScore] = useState<number | null>(null);
+  const [profile, setProfile] = useState<TennisScoutingProfile | null>(null);
+  const [refreshingProfile, setRefreshingProfile] = useState(false);
+  const { showToast } = useToast();
+
+  async function onRefreshProfile() {
+    setRefreshingProfile(true);
+    try {
+      const updated = await refreshScoutingProfile();
+      setProfile(updated);
+      showToast(`Analyzed your last ${updated.matches_analyzed} matches.`, "success");
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Couldn't refresh — log some completed matches first.", "error");
+    } finally {
+      setRefreshingProfile(false);
+    }
+  }
 
   useEffect(() => {
     if (!userId) return;
@@ -84,6 +104,9 @@ export default function TennisOverviewPage() {
       .catch(() => {});
     getDashboard(userId)
       .then((d) => setAthleteScore(d.athlete_score))
+      .catch(() => {});
+    getScoutingProfile()
+      .then((p) => setProfile(p.summary ? p : null))
       .catch(() => {});
   }, [userId]);
 
@@ -126,6 +149,39 @@ export default function TennisOverviewPage() {
         {latestRankings.slice(0, 3).map((r) => (
           <Widget key={r.ranking_type} label={`${r.ranking_type} rating`} value={r.value} sub={r.date} />
         ))}
+      </div>
+
+      <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xs uppercase tracking-wide text-fg-dim">Scouting profile</h2>
+          <button
+            onClick={onRefreshProfile}
+            disabled={refreshingProfile}
+            className="text-xs text-accent hover:text-accent-dim disabled:opacity-50 transition-colors"
+          >
+            {refreshingProfile ? "Analyzing…" : profile ? "Refresh" : "Analyze last matches"}
+          </button>
+        </div>
+        {profile ? (
+          <div className="space-y-2">
+            <p className="text-sm text-fg leading-relaxed">{profile.summary}</p>
+            {profile.strengths && (
+              <p className="text-xs text-fg">
+                <span className="text-accent">Recurring strengths:</span> {profile.strengths}
+              </p>
+            )}
+            {profile.weaknesses && (
+              <p className="text-xs text-fg">
+                <span className="text-warn">Recurring weaknesses:</span> {profile.weaknesses}
+              </p>
+            )}
+            <p className="text-xs text-fg-dim">Based on your last {profile.matches_analyzed} matches.</p>
+          </div>
+        ) : (
+          <p className="text-sm text-fg-dim">
+            Analyzes your recent completed matches together to find trends a single match can't show.
+          </p>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

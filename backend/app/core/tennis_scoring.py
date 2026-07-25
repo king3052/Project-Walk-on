@@ -67,6 +67,119 @@ def _is_tiebreak_won(me: int, opp: int, target: int):
     return None
 
 
+def _would_win_game(score_me: int, score_opp: int, no_ad: bool, is_tiebreak: bool, tb_target: int = 7) -> dict:
+    """For the CURRENT (not-yet-played) point, which side(s) would win the game
+    if they won this next point."""
+    result = {"Me": False, "Opponent": False}
+    if is_tiebreak:
+        if _is_tiebreak_won(score_me + 1, score_opp, tb_target) == "Me":
+            result["Me"] = True
+        if _is_tiebreak_won(score_me, score_opp + 1, tb_target) == "Opponent":
+            result["Opponent"] = True
+    else:
+        if _is_game_won(score_me + 1, score_opp, no_ad) == "Me":
+            result["Me"] = True
+        if _is_game_won(score_me, score_opp + 1, no_ad) == "Opponent":
+            result["Opponent"] = True
+    return result
+
+
+def _would_win_set(games_me: int, games_opp: int, side: str) -> bool:
+    """Given a side just won a game (games_me/games_opp already include that
+    win), would that also clinch the set."""
+    me, opp = (games_me, games_opp) if side == "Me" else (games_opp, games_me)
+    if me >= 6 and me - opp >= 2:
+        return True
+    if me == 7:
+        return True  # either a 7-5 set or a 7-6 tiebreak win
+    return False
+
+
+def _single_or_both(sides: list) -> str | None:
+    if len(sides) == 0:
+        return None
+    if len(sides) == 1:
+        return sides[0]
+    return "Both"  # e.g. a no-ad deciding point is a game point for both players at once
+
+
+def _point_significance(
+    current_game: dict,
+    current_set: dict,
+    sets_won: dict,
+    sets_needed: int,
+    no_ad: bool,
+) -> dict:
+    """Computes, for the point about to be played, whether it's a game point,
+    break point, set point, and/or match point — for either side. Purely a
+    function of the state already tracked, so it costs nothing extra to
+    derive; it's just never been surfaced before."""
+    if current_set["is_tiebreak_set"]:
+        would_win_game = _would_win_game(current_game["score_me"], current_game["score_opp"], no_ad, True, 10)
+    else:
+        would_win_game = _would_win_game(
+            current_game["score_me"], current_game["score_opp"], no_ad, current_game["is_tiebreak"]
+        )
+
+    game_point_for = [side for side, v in would_win_game.items() if v]
+
+    break_point_for = [
+        side for side in game_point_for
+        if not current_set["is_tiebreak_set"] and current_game["server"] != side
+    ]
+
+    set_point_for = []
+    match_point_for = []
+    for side in game_point_for:
+        if current_set["is_tiebreak_set"]:
+            set_point_for.append(side)
+        else:
+            games_me = current_set["games_won"]["Me"] + (1 if side == "Me" else 0)
+            games_opp = current_set["games_won"]["Opponent"] + (1 if side == "Opponent" else 0)
+            if _would_win_set(games_me, games_opp, side):
+                set_point_for.append(side)
+        if side in set_point_for and sets_won[side] + 1 >= sets_needed:
+            match_point_for.append(side)
+
+    return {
+        "game_point_for": _single_or_both(game_point_for),
+        "break_point_for": _single_or_both(break_point_for),
+        "set_point_for": _single_or_both(set_point_for),
+        "match_point_for": _single_or_both(match_point_for),
+    }
+
+
+def summarize_points(state: dict) -> dict:
+    """Walks every point in a replayed match and turns the raw log into hard,
+    countable numbers — break/game/set/match point conversion, and shot
+    type / outcome type tallies where tagged. This is fed to the AI as
+    ground truth instead of asking it to infer counts from prose."""
+    all_points = [p for s in state["sets"] for g in s["games"] for p in g["points"]]
+
+    def conversion(key: str) -> dict:
+        me_chances = sum(1 for p in all_points if p.get(key) in ("Me", "Both"))
+        me_won = sum(1 for p in all_points if p.get(key) in ("Me", "Both") and p["won"])
+        opp_chances = sum(1 for p in all_points if p.get(key) in ("Opponent", "Both"))
+        opp_won = sum(1 for p in all_points if p.get(key) in ("Opponent", "Both") and not p["won"])
+        return {"me_won": me_won, "me_chances": me_chances, "opp_won": opp_won, "opp_chances": opp_chances}
+
+    shot_type_outcomes: dict = {}
+    for p in all_points:
+        if p.get("shot_type") or p.get("outcome_type"):
+            key = f"{p.get('shot_type') or 'Unspecified'} / {p.get('outcome_type') or 'unspecified'}"
+            shot_type_outcomes[key] = shot_type_outcomes.get(key, 0) + 1
+
+    return {
+        "total_points": len(all_points),
+        "points_won": sum(1 for p in all_points if p["won"]),
+        "break_points": conversion("break_point_for"),
+        "game_points": conversion("game_point_for"),
+        "set_points": conversion("set_point_for"),
+        "match_points": conversion("match_point_for"),
+        "shot_type_outcomes": shot_type_outcomes,
+    }
+
+
 def replay_match(
     points: list,
     scoring_format: str = "best_of_3",
@@ -124,7 +237,14 @@ def replay_match(
             break  # ignore any stray extra points logged after match end
 
         won = bool(p.get("won"))
-        current_game["points"].append({"description": p.get("description", ""), "won": won})
+        significance = _point_significance(current_game, current_set, sets_won, sets_needed, no_ad)
+        current_game["points"].append({
+            "description": p.get("description", ""),
+            "won": won,
+            "shot_type": p.get("shot_type"),
+            "outcome_type": p.get("outcome_type"),
+            **significance,
+        })
         if won:
             current_game["score_me"] += 1
         else:
@@ -191,8 +311,12 @@ def replay_match(
             current_score_label = _tiebreak_label(current_game["score_me"], current_game["score_opp"])
         else:
             current_score_label = _game_score_label(current_game["score_me"], current_game["score_opp"], no_ad)
+        current_point_significance = _point_significance(current_game, current_set, sets_won, sets_needed, no_ad)
     else:
         current_score_label = "Match complete"
+        current_point_significance = {
+            "game_point_for": None, "break_point_for": None, "set_point_for": None, "match_point_for": None
+        }
 
     set_summaries = []
     for s in sets:
@@ -213,4 +337,5 @@ def replay_match(
         "current_score_label": current_score_label,
         "current_set_games": f"{current_set['games_won']['Me']}-{current_set['games_won']['Opponent']}",
         "overall_set_score": ", ".join(set_summaries) if set_summaries else "0-0",
+        "current_point_significance": current_point_significance,
     }

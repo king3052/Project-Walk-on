@@ -30,7 +30,10 @@ def _replay(db: Session, match: models.TennisMatch) -> dict:
         .order_by(models.TennisPointLog.sequence.asc())
         .all()
     )
-    points = [{"description": r.description, "won": r.won} for r in rows]
+    points = [
+        {"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type}
+        for r in rows
+    ]
     return replay_match(
         points,
         scoring_format=match.scoring_format or "best_of_3",
@@ -105,6 +108,8 @@ def add_point(
         sequence=existing_count + 1,
         description=payload.description,
         won=payload.won,
+        shot_type=payload.shot_type,
+        outcome_type=payload.outcome_type,
     )
     db.add(point)
     db.commit()

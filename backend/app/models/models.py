@@ -428,7 +428,27 @@ class TennisPointLog(Base):
     sequence = Column(Integer, nullable=False)
     description = Column(Text, nullable=True)
     won = Column(Boolean, nullable=False)  # True = the tracked athlete won this point
+    # Optional structured tags alongside the free-text description — hard
+    # categorical data the AI can count/cross-tabulate instead of inferring
+    # shot type or outcome from prose every time.
+    shot_type = Column(String, nullable=True)  # Forehand | Backhand | Serve | Return | Volley | Overhead | Other
+    outcome_type = Column(String, nullable=True)  # Winner | Unforced Error | Forced Error | Ace | Double Fault | In Play
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class TennisScoutingProfile(Base):
+    """A standing, cross-match view of the athlete's tendencies — refreshed
+    (not per-match) so analysis of a new match can reference established
+    patterns instead of starting from a blank slate each time."""
+    __tablename__ = "tennis_scouting_profile"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
+    summary = Column(Text, nullable=True)
+    strengths = Column(Text, nullable=True)
+    weaknesses = Column(Text, nullable=True)
+    matches_analyzed = Column(Integer, default=0)
+    updated_at = Column(DateTime, default=datetime.utcnow)
 
 
 class TennisMatchScouting(Base):

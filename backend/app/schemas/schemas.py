@@ -609,6 +609,8 @@ class ScoringSettingsUpdate(BaseModel):
 class PointCreate(BaseModel):
     description: Optional[str] = None
     won: bool
+    shot_type: Optional[str] = None
+    outcome_type: Optional[str] = None
 
 
 class PointOut(BaseModel):
@@ -617,7 +619,22 @@ class PointOut(BaseModel):
     sequence: int
     description: Optional[str] = None
     won: bool
+    shot_type: Optional[str] = None
+    outcome_type: Optional[str] = None
     created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TennisScoutingProfileOut(BaseModel):
+    id: str
+    user_id: str
+    summary: Optional[str] = None
+    strengths: Optional[str] = None
+    weaknesses: Optional[str] = None
+    matches_analyzed: int
+    updated_at: datetime
 
     class Config:
         from_attributes = True

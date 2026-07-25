@@ -16,11 +16,16 @@ import {
   parseMatchPointsText,
   generateMatchScouting,
   getMatchScouting,
+  getOpponentHistory,
   type TennisMatch,
   type TennisMatchState,
-  type TennisPointRecord,
+  type TennisPointInput,
   type TennisMatchScouting,
+  type OpponentHistory,
 } from "@/lib/api";
+
+const SHOT_TYPES = ["Forehand", "Backhand", "Serve", "Return", "Volley", "Overhead", "Other"];
+const OUTCOME_TYPES = ["Winner", "Unforced Error", "Forced Error", "Ace", "Double Fault", "In Play"];
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
@@ -51,9 +56,14 @@ export default function MatchTrackerPage() {
   const [savingSettings, setSavingSettings] = useState(false);
 
   const [bulkText, setBulkText] = useState("");
-  const [parsedPoints, setParsedPoints] = useState<TennisPointRecord[] | null>(null);
+  const [parsedPoints, setParsedPoints] = useState<TennisPointInput[] | null>(null);
   const [parsing, setParsing] = useState(false);
   const [committing, setCommitting] = useState(false);
+
+  const [shotType, setShotType] = useState<string | null>(null);
+  const [outcomeType, setOutcomeType] = useState<string | null>(null);
+
+  const [opponentHistory, setOpponentHistory] = useState<OpponentHistory | null>(null);
 
   const [scouting, setScouting] = useState<TennisMatchScouting[]>([]);
   const [scoutingLoading, setScoutingLoading] = useState(false);
@@ -63,6 +73,11 @@ export default function MatchTrackerPage() {
       .then((matches) => {
         const m = matches.find((mm) => mm.id === matchId) || null;
         setMatch(m);
+        if (m?.opponent) {
+          getOpponentHistory(m.opponent)
+            .then((h) => setOpponentHistory(h.matches_played > 1 ? h : null)) // only show if there's real history beyond this match
+            .catch(() => {});
+        }
       })
       .catch(() => {});
     getMatchState(matchId)
@@ -101,9 +116,11 @@ export default function MatchTrackerPage() {
   async function onAddPoint(won: boolean) {
     setSubmitting(true);
     try {
-      const s = await addMatchPoint(matchId, description, won);
+      const s = await addMatchPoint(matchId, description, won, shotType || undefined, outcomeType || undefined);
       setState(s);
       setDescription("");
+      setShotType(null);
+      setOutcomeType(null);
       if (s.match_complete) {
         showToast(s.match_winner === "Me" ? "Match won! 🎾" : "Match logged.", "success");
       }
@@ -141,7 +158,7 @@ export default function MatchTrackerPage() {
     setParsedPoints((prev) => {
       if (!prev) return prev;
       const copy = [...prev];
-      copy[index] = { ...copy[index], [field]: value } as TennisPointRecord;
+      copy[index] = { ...copy[index], [field]: value } as TennisPointInput;
       return copy;
     });
   }
@@ -203,6 +220,18 @@ export default function MatchTrackerPage() {
       />
 
       <ScoreBoard state={state} />
+
+      {opponentHistory && (
+        <div className="rounded-lg border border-surface-border bg-surface-panel p-4">
+          <p className="text-xs text-fg-dim">
+            Head-to-head vs {opponentHistory.opponent}:{" "}
+            <span className="text-fg">
+              {opponentHistory.wins}-{opponentHistory.losses}
+            </span>{" "}
+            across {opponentHistory.matches_played} matches
+          </p>
+        </div>
+      )}
 
       {!hasPoints && (
         <div className="rounded-lg border border-surface-border bg-surface-panel p-4 space-y-3">
@@ -283,7 +312,46 @@ export default function MatchTrackerPage() {
                 placeholder="Good serve and rally, BH wide error…"
                 className={inputClass}
               />
-              <div className="grid grid-cols-2 gap-3">
+
+              <div>
+                <p className="text-xs text-fg-dim mb-1.5">Shot (optional, tap to tag)</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {SHOT_TYPES.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setShotType(shotType === s ? null : s)}
+                      className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                        shotType === s
+                          ? "border-accent text-accent bg-accent/10"
+                          : "border-surface-border text-fg-dim hover:text-fg-muted"
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-fg-dim mb-1.5">Outcome (optional, tap to tag)</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {OUTCOME_TYPES.map((o) => (
+                    <button
+                      key={o}
+                      onClick={() => setOutcomeType(outcomeType === o ? null : o)}
+                      className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                        outcomeType === o
+                          ? "border-accent text-accent bg-accent/10"
+                          : "border-surface-border text-fg-dim hover:text-fg-muted"
+                      }`}
+                    >
+                      {o}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 <button
                   onClick={() => onAddPoint(true)}
                   disabled={submitting}

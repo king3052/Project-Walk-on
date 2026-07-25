@@ -34,6 +34,7 @@ from app.routers import (
     tennis_profile,
     tennis_matches,
     tennis_scoring,
+    tennis_analysis,
     tennis_strokes,
     tennis_tournaments,
     tennis_rankings,
@@ -85,6 +86,7 @@ app.include_router(template.router)
 app.include_router(tennis_profile.router)
 app.include_router(tennis_matches.router)
 app.include_router(tennis_scoring.router)
+app.include_router(tennis_analysis.router)
 app.include_router(tennis_strokes.router)
 app.include_router(tennis_tournaments.router)
 app.include_router(tennis_rankings.router)

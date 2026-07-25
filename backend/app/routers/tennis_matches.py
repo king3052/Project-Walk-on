@@ -128,11 +128,55 @@ def generate_match_scouting(
     )
     point_log_block = ""
     if point_rows:
-        lines = [f"{i+1}. {'WON' if r.won else 'LOST'} — {r.description or '(no description)'}" for i, r in enumerate(point_rows)]
-        point_log_block = (
-            "\n\nFull point-by-point log for this match (in order, W/L is from the tracked player's "
-            "perspective):\n" + "\n".join(lines)
+        from app.core.tennis_scoring import replay_match, summarize_points
+
+        state = replay_match(
+            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type} for r in point_rows],
+            scoring_format=match.scoring_format or "best_of_3",
+            no_ad=bool(match.no_ad),
+            first_server=match.first_server or "Me",
         )
+        agg = summarize_points(state)
+        computed_lines = []
+        bp = agg["break_points"]
+        if bp["me_chances"]:
+            computed_lines.append(f"Break points converted: {bp['me_won']}/{bp['me_chances']}")
+        if bp["opp_chances"]:
+            computed_lines.append(f"Break points faced (saved): {bp['opp_chances'] - bp['opp_won']}/{bp['opp_chances']}")
+        if agg["shot_type_outcomes"]:
+            computed_lines.append("Tagged shot/outcome counts: " + ", ".join(f"{k} x{v}" for k, v in agg["shot_type_outcomes"].items()))
+
+        point_lines = [f"{i+1}. {'WON' if r.won else 'LOST'} — {r.description or '(no description)'}" for i, r in enumerate(point_rows)]
+        point_log_block = (
+            "\n\nComputed ground-truth stats from the point log (use these exact numbers, don't recompute):\n"
+            + "\n".join(computed_lines)
+            + "\n\nFull point-by-point log for this match (in order, W/L is from the tracked player's "
+            "perspective):\n" + "\n".join(point_lines)
+        )
+
+    context_block = ""
+    if match.opponent:
+        prior_matches = (
+            db.query(models.TennisMatch)
+            .filter(
+                models.TennisMatch.user_id == current_user_id,
+                models.TennisMatch.opponent.ilike(match.opponent),
+                models.TennisMatch.id != match_id,
+                models.TennisMatch.result.isnot(None),
+            )
+            .all()
+        )
+        if prior_matches:
+            wins = sum(1 for m in prior_matches if m.result == "Win")
+            context_block += (
+                f"\n\nHead-to-head vs {match.opponent} before this match: {wins}-{len(prior_matches) - wins}."
+            )
+
+    profile = db.query(models.TennisScoutingProfile).filter(models.TennisScoutingProfile.user_id == current_user_id).first()
+    if profile and profile.summary:
+        context_block += f"\n\nEstablished tendencies from past matches: {profile.summary}"
+        if profile.weaknesses:
+            context_block += f" Known recurring weaknesses: {profile.weaknesses}"
 
     if point_log_block:
         prompt = (
@@ -140,18 +184,20 @@ def generate_match_scouting(
             "summary stats. Identify 2-3 strengths, 2-3 weaknesses, and tactical patterns — look "
             "specifically for things only visible at the point level: streaks, performance after "
             "specific events (double faults, long rallies, break/game points), and which described "
-            "shot types or errors cluster together. Be specific and cite point numbers or patterns "
-            "from the actual log — don't invent anything not supported by it. Respond with ONLY "
-            'valid JSON: {"strengths": "text", "weaknesses": "text", "patterns": "text"}\n\n'
-            f"{chr(10).join(stats_lines)}{point_log_block}"
+            "shot types or errors cluster together. If head-to-head or established-tendency context is "
+            "given, weave it in where relevant (e.g. a recurring weakness showing up again). Be specific "
+            "and cite point numbers or patterns from the actual log — don't invent anything not "
+            'supported by it. Respond with ONLY valid JSON: {"strengths": "text", "weaknesses": "text", "patterns": "text"}\n\n'
+            f"{chr(10).join(stats_lines)}{point_log_block}{context_block}"
         )
     else:
         prompt = (
             "You are a tennis coach analyzing one match's stats, given below. Identify 2-3 strengths, "
-            "2-3 weaknesses, and any tactical patterns worth noting. Be specific to the numbers given — "
+            "2-3 weaknesses, and any tactical patterns worth noting. If head-to-head or established-"
+            "tendency context is given, weave it in where relevant. Be specific to the numbers given — "
             "don't invent stats that aren't there. Respond with ONLY valid JSON: "
             '{"strengths": "text", "weaknesses": "text", "patterns": "text"}\n\n'
-            f"{chr(10).join(stats_lines)}"
+            f"{chr(10).join(stats_lines)}{context_block}"
         )
     import json
 
