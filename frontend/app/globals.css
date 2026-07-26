@@ -14,6 +14,28 @@ body {
   -webkit-tap-highlight-color: transparent; /* no gray flash on tap */
 }
 
+/* Themed scrollbar — replaces the plain white OS-default scrollbar on desktop
+   with something matching the dark theme, for every scrollable element. */
+* {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #2A2A2A #0A0A0A; /* Firefox: thumb, track */
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #2A2A2A;
+  border-radius: 999px;
+  border: 2px solid #0A0A0A; /* creates the inset-thumb look against the track */
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: #4ADE80; /* accent green on hover */
+}
+
 /* iOS Safari auto-zooms into any input with computed font-size under 16px —
    force 16px on every form field so tapping into a field never triggers zoom. */
 input, select, textarea {

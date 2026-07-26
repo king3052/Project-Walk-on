@@ -13,7 +13,7 @@ export function CoachSidebar() {
   return (
     <aside className="print:hidden hidden md:flex w-56 shrink-0 border-r border-surface-border h-[100dvh] sticky top-0 flex-col">
       <div className="flex items-center gap-2 px-5 py-5 border-b border-surface-border">
-        <Image src="/logo-mascot.png" alt="" width={28} height={24} />
+        <Image src="/logo-mascot.png" alt="" width={28} height={28} />
         <div>
           <p className="text-xs text-accent leading-none">Coach</p>
           <p className="text-sm text-fg font-medium">Walk-On</p>

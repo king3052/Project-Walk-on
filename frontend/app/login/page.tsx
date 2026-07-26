@@ -49,7 +49,7 @@ export default function LoginPage() {
     <main className="min-h-[100dvh] flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <Image src="/logo-mascot.png" alt="" width={72} height={61} className="mx-auto mb-3" />
+          <Image src="/logo-mascot.png" alt="" width={72} height={72} className="mx-auto mb-3" />
           <p className="text-xs tracking-wide text-accent mb-1">Project</p>
           <h1 className="font-display text-4xl tracking-tight text-fg">Walk-On</h1>
         </div>

@@ -193,7 +193,7 @@ export default function OnboardingPage() {
       <div className="w-full max-w-md">
         {roleChoice === null && (
           <div className="text-center space-y-6">
-            <Image src="/logo-mascot.png" alt="" width={64} height={54} className="mx-auto mb-3" />
+            <Image src="/logo-mascot.png" alt="" width={64} height={64} className="mx-auto mb-3" />
             <h1 className="font-display text-3xl tracking-tight text-fg">Are you an athlete or a coach?</h1>
             <div className="space-y-3">
               <button
@@ -216,7 +216,7 @@ export default function OnboardingPage() {
 
         {roleChoice === "Coach" && (
           <div className="text-center space-y-6">
-            <Image src="/logo-mascot.png" alt="" width={64} height={54} className="mx-auto mb-3" />
+            <Image src="/logo-mascot.png" alt="" width={64} height={64} className="mx-auto mb-3" />
             <h1 className="font-display text-3xl tracking-tight text-fg">You&apos;re set up as a coach</h1>
             <p className="text-sm text-fg-dim">
               Once a player shares an invite code with you, you&apos;ll be able to link to them from your Coach Dashboard.
@@ -237,7 +237,7 @@ export default function OnboardingPage() {
 
         {roleChoice === "Athlete" && (
         <div className="mb-6 text-center">
-          <Image src="/logo-mascot.png" alt="" width={64} height={54} className="mx-auto mb-3" />
+          <Image src="/logo-mascot.png" alt="" width={64} height={64} className="mx-auto mb-3" />
           <h1 className="font-display text-3xl tracking-tight text-fg">Let&apos;s set you up</h1>
           <p className="text-xs text-fg-dim mt-2">
             Step {step} of {TOTAL_STEPS} — everything&apos;s optional and editable later in Profile or Settings.

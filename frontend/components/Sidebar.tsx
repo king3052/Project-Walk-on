@@ -32,24 +32,24 @@ import {
 const LINKS = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/tennis", label: "Tennis", icon: CircleDot },
-  { href: "/calendar", label: "Calendar", icon: CalendarDays },
-  { href: "/template", label: "Weekly template", icon: ListChecks },
   { href: "/log", label: "Log today", icon: ClipboardPlus },
-  { href: "/history", label: "History", icon: History },
+  { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/analytics", label: "Analytics", icon: LineChart },
-  { href: "/science", label: "Sports Science", icon: FlaskConical },
-  { href: "/injuries", label: "Injuries", icon: HeartPulse },
-  { href: "/ask", label: "Ask your data", icon: MessageCircleQuestion },
-  { href: "/learning", label: "Learning Center", icon: GraduationCap },
+  { href: "/history", label: "History", icon: History },
+  { href: "/template", label: "Weekly template", icon: ListChecks },
   { href: "/review", label: "Weekly review", icon: CalendarCheck },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/goals", label: "Goals", icon: Target },
-  { href: "/profile", label: "Profile", icon: UserCircle },
-  { href: "/film", label: "Film", icon: Clapperboard },
   { href: "/coach", label: "AI Coach", icon: Bot },
   { href: "/scouting", label: "Scouting report", icon: ClipboardCheck },
+  { href: "/learning", label: "Learning Center", icon: GraduationCap },
+  { href: "/ask", label: "Ask your data", icon: MessageCircleQuestion },
+  { href: "/science", label: "Sports Science", icon: FlaskConical },
+  { href: "/injuries", label: "Injuries", icon: HeartPulse },
+  { href: "/film", label: "Film", icon: Clapperboard },
   { href: "/achievements", label: "Achievements", icon: Trophy },
   { href: "/resume", label: "Resume", icon: FileText },
+  { href: "/profile", label: "Profile", icon: UserCircle },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -60,7 +60,7 @@ export function Sidebar() {
   return (
     <aside className="print:hidden hidden md:flex w-56 shrink-0 border-r border-surface-border h-[100dvh] sticky top-0 flex-col">
       <div className="px-5 py-6 border-b border-surface-border flex items-center gap-2.5">
-        <Image src="/logo-mascot.png" alt="" width={36} height={31} />
+        <Image src="/logo-mascot.png" alt="" width={32} height={32} />
         <div>
           <p className="text-xs tracking-wide text-accent leading-none">Project</p>
           <p className="font-display text-xl tracking-tight text-fg leading-tight">Walk-On</p>

@@ -33,28 +33,28 @@ import {
 
 const PRIMARY = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/tennis", label: "Tennis", icon: CircleDot },
   { href: "/log", label: "Log", icon: ClipboardPlus },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/analytics", label: "Analytics", icon: LineChart },
 ];
 
 const MORE_LINKS = [
-  { href: "/tennis", label: "Tennis", icon: CircleDot },
   { href: "/history", label: "History", icon: History },
   { href: "/template", label: "Weekly template", icon: ListChecks },
   { href: "/review", label: "Weekly review", icon: CalendarCheck },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/goals", label: "Goals", icon: Target },
-  { href: "/profile", label: "Profile", icon: UserCircle },
-  { href: "/film", label: "Film", icon: Clapperboard },
   { href: "/coach", label: "AI Coach", icon: Bot },
   { href: "/scouting", label: "Scouting report", icon: ClipboardCheck },
-  { href: "/achievements", label: "Achievements", icon: Trophy },
-  { href: "/resume", label: "Resume", icon: FileText },
+  { href: "/learning", label: "Learning Center", icon: GraduationCap },
+  { href: "/ask", label: "Ask your data", icon: MessageCircleQuestion },
   { href: "/science", label: "Sports Science", icon: FlaskConical },
   { href: "/injuries", label: "Injuries", icon: HeartPulse },
-  { href: "/ask", label: "Ask your data", icon: MessageCircleQuestion },
-  { href: "/learning", label: "Learning Center", icon: GraduationCap },
+  { href: "/film", label: "Film", icon: Clapperboard },
+  { href: "/achievements", label: "Achievements", icon: Trophy },
+  { href: "/resume", label: "Resume", icon: FileText },
+  { href: "/profile", label: "Profile", icon: UserCircle },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
