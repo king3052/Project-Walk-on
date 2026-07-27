@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { subscribePush, unsubscribePush } from "@/lib/api";
+import {
+  subscribePush,
+  unsubscribePush,
+  getNotificationPreferences,
+  updateNotificationPreferences,
+} from "@/lib/api";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -25,6 +30,9 @@ export function NotificationSettings() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [dailyReminders, setDailyReminders] = useState(true);
+  const [coachUpdates, setCoachUpdates] = useState(true);
+
   useEffect(() => {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
       setSupported(false);
@@ -34,7 +42,20 @@ export function NotificationSettings() {
       const sub = await reg.pushManager.getSubscription();
       setEnabled(!!sub);
     });
+
+    getNotificationPreferences()
+      .then((p) => {
+        setDailyReminders(p.daily_reminders);
+        setCoachUpdates(p.coach_updates);
+      })
+      .catch(() => {});
   }, []);
+
+  async function onTogglePreference(field: "daily_reminders" | "coach_updates", value: boolean) {
+    if (field === "daily_reminders") setDailyReminders(value);
+    else setCoachUpdates(value);
+    await updateNotificationPreferences({ [field]: value });
+  }
 
   async function onToggle() {
     setPending(true);
@@ -78,7 +99,7 @@ export function NotificationSettings() {
   }
 
   return (
-    <div>
+    <div className="space-y-3">
       <button
         onClick={onToggle}
         disabled={pending}
@@ -88,9 +109,32 @@ export function NotificationSettings() {
             : "bg-accent hover:bg-accent-dim text-accent-deep"
         }`}
       >
-        {pending ? "Please wait…" : enabled ? "Disable daily reminders" : "Enable daily reminders"}
+        {pending ? "Please wait…" : enabled ? "Disable notifications on this device" : "Enable notifications"}
       </button>
-      {error && <p className="text-warn text-sm mt-2">{error}</p>}
+      {error && <p className="text-warn text-sm">{error}</p>}
+
+      {enabled && (
+        <div className="pt-1 space-y-1">
+          <label className="flex items-center justify-between text-xs text-fg-dim py-1">
+            Daily training reminders
+            <input
+              type="checkbox"
+              checked={dailyReminders}
+              onChange={(e) => onTogglePreference("daily_reminders", e.target.checked)}
+              className="accent-[#4ADE80]"
+            />
+          </label>
+          <label className="flex items-center justify-between text-xs text-fg-dim py-1">
+            Coach Portal updates (comments, assignments, reviews, goals)
+            <input
+              type="checkbox"
+              checked={coachUpdates}
+              onChange={(e) => onTogglePreference("coach_updates", e.target.checked)}
+              className="accent-[#4ADE80]"
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 }

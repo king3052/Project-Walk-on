@@ -614,6 +614,8 @@ class PointCreate(BaseModel):
     won: bool
     shot_type: Optional[str] = None
     outcome_type: Optional[str] = None
+    mood: Optional[str] = None
+    mood_note: Optional[str] = None
 
 
 class PointOut(BaseModel):
@@ -624,6 +626,8 @@ class PointOut(BaseModel):
     won: bool
     shot_type: Optional[str] = None
     outcome_type: Optional[str] = None
+    mood: Optional[str] = None
+    mood_note: Optional[str] = None
     created_at: datetime
 
     class Config:
@@ -889,6 +893,7 @@ class TennisPracticeSessionCreate(BaseModel):
     coach: Optional[str] = None
     partner: Optional[str] = None
     focus_area: Optional[str] = None
+    performance_notes: Optional[str] = None
     notes: Optional[str] = None
 
 
@@ -899,6 +904,7 @@ class TennisPracticeSessionUpdate(BaseModel):
     coach: Optional[str] = None
     partner: Optional[str] = None
     focus_area: Optional[str] = None
+    performance_notes: Optional[str] = None
     notes: Optional[str] = None
 
 
@@ -1101,3 +1107,21 @@ class CoachGoalCreate(BaseModel):
     category: str
     target: Optional[str] = None
     deadline: Optional[date] = None
+
+
+# =====================================================================
+# NOTIFICATION PREFERENCES
+# =====================================================================
+
+class NotificationPreferencesUpdate(BaseModel):
+    daily_reminders: Optional[bool] = None
+    coach_updates: Optional[bool] = None
+
+
+class NotificationPreferencesOut(BaseModel):
+    user_id: str
+    daily_reminders: bool
+    coach_updates: bool
+
+    class Config:
+        from_attributes = True

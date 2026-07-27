@@ -377,6 +377,7 @@ export default function CoachPlayerDetailPage() {
             <p className="text-sm text-fg">
               {p.date} · {p.duration_min}min {p.focus_area ? `· ${p.focus_area}` : ""}
             </p>
+            {p.performance_notes && <p className="text-xs text-fg-dim italic mt-0.5">{p.performance_notes}</p>}
             <CommentThread playerId={playerId} targetType="practice_session" targetId={p.id} />
           </div>
         ))}

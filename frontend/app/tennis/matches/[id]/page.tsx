@@ -29,6 +29,14 @@ import {
 
 const SHOT_TYPES = ["Forehand", "Backhand", "Serve", "Return", "Volley", "Overhead", "Other"];
 const OUTCOME_TYPES = ["Winner", "Unforced Error", "Forced Error", "Ace", "Double Fault", "In Play"];
+const MOODS = [
+  { value: "Confident", emoji: "😊" },
+  { value: "Focused", emoji: "😐" },
+  { value: "Nervous", emoji: "😰" },
+  { value: "Frustrated", emoji: "😤" },
+  { value: "Angry", emoji: "😠" },
+  { value: "Discouraged", emoji: "😔" },
+];
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
@@ -67,6 +75,8 @@ export default function MatchTrackerPage() {
 
   const [shotType, setShotType] = useState<string | null>(null);
   const [outcomeType, setOutcomeType] = useState<string | null>(null);
+  const [mood, setMood] = useState<string | null>(null);
+  const [moodNote, setMoodNote] = useState("");
 
   const [opponentHistory, setOpponentHistory] = useState<OpponentHistory | null>(null);
 
@@ -126,11 +136,16 @@ export default function MatchTrackerPage() {
   async function onAddPoint(won: boolean) {
     setSubmitting(true);
     try {
-      const s = await addMatchPoint(matchId, description, won, shotType || undefined, outcomeType || undefined);
+      const s = await addMatchPoint(
+        matchId, description, won, shotType || undefined, outcomeType || undefined,
+        mood || undefined, moodNote || undefined
+      );
       setState(s);
       setDescription("");
       setShotType(null);
       setOutcomeType(null);
+      setMood(null);
+      setMoodNote("");
       if (s.match_complete) {
         showToast(s.match_winner === "Me" ? "Match won! 🎾" : "Match logged.", "success");
       }
@@ -359,6 +374,35 @@ export default function MatchTrackerPage() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <p className="text-xs text-fg-dim mb-1.5">How are you feeling? (optional)</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {MOODS.map((m) => (
+                    <button
+                      key={m.value}
+                      onClick={() => setMood(mood === m.value ? null : m.value)}
+                      title={m.value}
+                      className={`text-lg w-9 h-9 rounded-full border transition-colors flex items-center justify-center ${
+                        mood === m.value
+                          ? "border-accent bg-accent/10"
+                          : "border-surface-border hover:border-fg-muted"
+                      }`}
+                    >
+                      {m.emoji}
+                    </button>
+                  ))}
+                </div>
+                {mood && (
+                  <input
+                    type="text"
+                    value={moodNote}
+                    onChange={(e) => setMoodNote(e.target.value)}
+                    placeholder="Anything you want to note? (optional)"
+                    className={`${inputClass} mt-2 text-xs`}
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-1">

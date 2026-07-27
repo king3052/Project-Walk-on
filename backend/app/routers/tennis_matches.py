@@ -131,7 +131,7 @@ def generate_match_scouting(
         from app.core.tennis_scoring import replay_match, summarize_points
 
         state = replay_match(
-            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type} for r in point_rows],
+            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note} for r in point_rows],
             scoring_format=match.scoring_format or "best_of_3",
             no_ad=bool(match.no_ad),
             first_server=match.first_server or "Me",
@@ -145,8 +145,19 @@ def generate_match_scouting(
             computed_lines.append(f"Break points faced (saved): {bp['opp_chances'] - bp['opp_won']}/{bp['opp_chances']}")
         if agg["shot_type_outcomes"]:
             computed_lines.append("Tagged shot/outcome counts: " + ", ".join(f"{k} x{v}" for k, v in agg["shot_type_outcomes"].items()))
+        if agg["mood_stats"]:
+            mood_lines = [
+                f"{mood}: {stats['count']} points (won {stats['won']}/{stats['count']}, "
+                f"{stats['on_pressure_point']} on a break/game/set/match point)"
+                for mood, stats in agg["mood_stats"].items()
+            ]
+            computed_lines.append("Mood/behavior tags and how they correlate with point outcomes:\n  " + "\n  ".join(mood_lines))
 
-        point_lines = [f"{i+1}. {'WON' if r.won else 'LOST'} — {r.description or '(no description)'}" for i, r in enumerate(point_rows)]
+        point_lines = [
+            f"{i+1}. {'WON' if r.won else 'LOST'} — {r.description or '(no description)'}"
+            + (f" [mood: {r.mood}{' — ' + r.mood_note if r.mood_note else ''}]" if r.mood else "")
+            for i, r in enumerate(point_rows)
+        ]
         point_log_block = (
             "\n\nComputed ground-truth stats from the point log (use these exact numbers, don't recompute):\n"
             + "\n".join(computed_lines)
@@ -183,11 +194,15 @@ def generate_match_scouting(
             "You are a tennis coach analyzing a match using the full point-by-point log below, plus "
             "summary stats. Identify 2-3 strengths, 2-3 weaknesses, and tactical patterns — look "
             "specifically for things only visible at the point level: streaks, performance after "
-            "specific events (double faults, long rallies, break/game points), and which described "
-            "shot types or errors cluster together. If head-to-head or established-tendency context is "
-            "given, weave it in where relevant (e.g. a recurring weakness showing up again). Be specific "
-            "and cite point numbers or patterns from the actual log — don't invent anything not "
-            'supported by it. Respond with ONLY valid JSON: {"strengths": "text", "weaknesses": "text", "patterns": "text"}\n\n'
+            "specific events (double faults, long rallies, break/game points), which described "
+            "shot types or errors cluster together, and — where mood/behavior tags are present — "
+            "whether emotional state correlates with point outcomes (e.g. a much lower win rate when "
+            "tagged Frustrated or Angry, especially on pressure points). Only discuss mood if it's "
+            "actually tagged in the data; don't speculate about emotional state from prose alone. If "
+            "head-to-head or established-tendency context is given, weave it in where relevant (e.g. a "
+            "recurring weakness showing up again). Be specific and cite point numbers or patterns from "
+            "the actual log — don't invent anything not supported by it. Respond with ONLY valid JSON: "
+            '{"strengths": "text", "weaknesses": "text", "patterns": "text"}\n\n'
             f"{chr(10).join(stats_lines)}{point_log_block}{context_block}"
         )
     else:

@@ -2,6 +2,15 @@
 
 import type { TennisMatchState } from "@/lib/api";
 
+const MOOD_EMOJI: Record<string, string> = {
+  Confident: "😊",
+  Focused: "😐",
+  Nervous: "😰",
+  Frustrated: "😤",
+  Angry: "😠",
+  Discouraged: "😔",
+};
+
 function SignificanceBadges({ state }: { state: TennisMatchState }) {
   const sig = state.current_point_significance;
   const badges: { label: string; mine: boolean }[] = [];
@@ -102,6 +111,13 @@ export function PointLogView({ state }: { state: TennisMatchState }) {
                             <span className="text-fg-dim">
                               {" "}
                               ({[p.shot_type, p.outcome_type].filter(Boolean).join(" / ")})
+                            </span>
+                          )}
+                          {p.mood && (
+                            <span className="text-fg-dim" title={p.mood_note || undefined}>
+                              {" "}
+                              {MOOD_EMOJI[p.mood] || ""} {p.mood}
+                              {p.mood_note ? ` — ${p.mood_note}` : ""}
                             </span>
                           )}
                         </li>

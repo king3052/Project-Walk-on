@@ -102,6 +102,24 @@ app.include_router(tennis_rankings.router)
 
 @app.on_event("startup")
 def on_startup():
+    # Fail loudly at startup if the ORM's relationships are misconfigured
+    # (e.g. an ambiguous foreign key between two tables) rather than only
+    # surfacing as a 500 on whichever endpoint a user happens to hit first.
+    # This turns a confusing partial outage into an immediate, obvious
+    # deploy failure with a clear cause.
+    from sqlalchemy.orm import configure_mappers
+
+    try:
+        configure_mappers()
+    except Exception as exc:
+        raise RuntimeError(
+            "SCHEMA CONFIGURATION ERROR at startup — the app will not start. "
+            "This usually means two models have an ambiguous foreign key "
+            "relationship (e.g. two FKs to the same table without an explicit "
+            "foreign_keys= on the relationship()). Check any model touched in "
+            "the most recent change. Original error: " + str(exc)
+        ) from exc
+
     # MVP: create tables directly. Switch to Alembic migrations once the schema stabilizes.
     Base.metadata.create_all(bind=engine)
 

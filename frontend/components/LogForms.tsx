@@ -306,17 +306,28 @@ export function NutritionForm({ userId }: { userId: string }) {
 export function RecoveryForm({ userId }: { userId: string }) {
   const { showToast } = useToast();
   const [date, setDate] = useState(today());
-  const [sleep, setSleep] = useState(8);
+  const [bedtime, setBedtime] = useState("22:00");
+  const [wakeTime, setWakeTime] = useState("06:00");
   const [energy, setEnergy] = useState(7);
   const [stress, setStress] = useState(4);
   const [soreness, setSoreness] = useState(3);
   const [pending, setPending] = useState(false);
 
+  function calculateSleepHours(bed: string, wake: string): number {
+    const [bedH, bedM] = bed.split(":").map(Number);
+    const [wakeH, wakeM] = wake.split(":").map(Number);
+    let minutes = wakeH * 60 + wakeM - (bedH * 60 + bedM);
+    if (minutes <= 0) minutes += 24 * 60; // crossed midnight
+    return Math.round((minutes / 60) * 10) / 10;
+  }
+
+  const sleepHours = calculateSleepHours(bedtime, wakeTime);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPending(true);
     try {
-      await logRecovery(userId, date, { sleep_hours: sleep, energy, stress, soreness });
+      await logRecovery(userId, date, { sleep_hours: sleepHours, energy, stress, soreness });
       showToast(`Logged recovery for ${date}.`, "success");
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
@@ -331,17 +342,19 @@ export function RecoveryForm({ userId }: { userId: string }) {
         <FieldLabel>Date</FieldLabel>
         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={inputClass} />
       </div>
-      <div>
-        <FieldLabel>Sleep (hours)</FieldLabel>
-        <input
-          type="number"
-            onFocus={(e) => e.target.select()}
-          step="0.1"
-          value={sleep}
-          onChange={(e) => setSleep(Number(e.target.value))}
-          className={inputClass}
-        />
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FieldLabel>Bedtime</FieldLabel>
+          <input type="time" value={bedtime} onChange={(e) => setBedtime(e.target.value)} className={inputClass} />
+        </div>
+        <div>
+          <FieldLabel>Wake time</FieldLabel>
+          <input type="time" value={wakeTime} onChange={(e) => setWakeTime(e.target.value)} className={inputClass} />
+        </div>
       </div>
+      <p className="text-xs text-fg-dim -mt-2">
+        Sleep: <span className="text-fg">{sleepHours}h</span>
+      </p>
       <div className="grid grid-cols-3 gap-3">
         <div>
           <FieldLabel>Energy (1-10)</FieldLabel>

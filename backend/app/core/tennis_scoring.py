@@ -169,6 +169,18 @@ def summarize_points(state: dict) -> dict:
             key = f"{p.get('shot_type') or 'Unspecified'} / {p.get('outcome_type') or 'unspecified'}"
             shot_type_outcomes[key] = shot_type_outcomes.get(key, 0) + 1
 
+    mood_stats: dict = {}
+    for p in all_points:
+        mood = p.get("mood")
+        if not mood:
+            continue
+        entry = mood_stats.setdefault(mood, {"count": 0, "won": 0, "on_pressure_point": 0})
+        entry["count"] += 1
+        if p["won"]:
+            entry["won"] += 1
+        if p.get("break_point_for") or p.get("game_point_for") or p.get("set_point_for") or p.get("match_point_for"):
+            entry["on_pressure_point"] += 1
+
     return {
         "total_points": len(all_points),
         "points_won": sum(1 for p in all_points if p["won"]),
@@ -177,6 +189,7 @@ def summarize_points(state: dict) -> dict:
         "set_points": conversion("set_point_for"),
         "match_points": conversion("match_point_for"),
         "shot_type_outcomes": shot_type_outcomes,
+        "mood_stats": mood_stats,
     }
 
 
@@ -243,6 +256,8 @@ def replay_match(
             "won": won,
             "shot_type": p.get("shot_type"),
             "outcome_type": p.get("outcome_type"),
+            "mood": p.get("mood"),
+            "mood_note": p.get("mood_note"),
             **significance,
         })
         if won:

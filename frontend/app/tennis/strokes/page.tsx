@@ -39,6 +39,7 @@ export default function TennisStrokesPage() {
   const [sessionCoach, setSessionCoach] = useState("");
   const [sessionPartner, setSessionPartner] = useState("");
   const [sessionFocus, setSessionFocus] = useState("");
+  const [sessionPerformance, setSessionPerformance] = useState("");
   const [addingSession, setAddingSession] = useState(false);
 
   function load() {
@@ -62,11 +63,13 @@ export default function TennisStrokesPage() {
         coach: sessionCoach || undefined,
         partner: sessionPartner || undefined,
         focus_area: sessionFocus || undefined,
+        performance_notes: sessionPerformance || undefined,
       });
       showToast("Practice session logged.", "success");
       setSessionCoach("");
       setSessionPartner("");
       setSessionFocus("");
+      setSessionPerformance("");
       load();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
@@ -170,6 +173,16 @@ export default function TennisStrokesPage() {
               />
             </div>
           </div>
+          <div>
+            <label className="text-xs text-fg-dim block mb-1">How did you perform?</label>
+            <textarea
+              value={sessionPerformance}
+              onChange={(e) => setSessionPerformance(e.target.value)}
+              placeholder="What went well, what you struggled with, how you felt…"
+              className={inputClass}
+              rows={2}
+            />
+          </div>
           <button
             type="submit"
             disabled={addingSession}
@@ -185,11 +198,16 @@ export default function TennisStrokesPage() {
                 key={s.id}
                 className="rounded-md border border-surface-border bg-surface-panel px-3 py-2 flex items-center justify-between"
               >
-                <p className="text-xs text-fg-muted">
-                  {s.date} · {s.duration_min}min · intensity {s.intensity}/10
-                  {s.focus_area ? ` · ${s.focus_area}` : ""}
-                  {s.coach ? ` · with ${s.coach}` : ""}
-                </p>
+                <div>
+                  <p className="text-xs text-fg-muted">
+                    {s.date} · {s.duration_min}min · intensity {s.intensity}/10
+                    {s.focus_area ? ` · ${s.focus_area}` : ""}
+                    {s.coach ? ` · with ${s.coach}` : ""}
+                  </p>
+                  {s.performance_notes && (
+                    <p className="text-xs text-fg-dim italic mt-0.5">{s.performance_notes}</p>
+                  )}
+                </div>
                 <button onClick={() => onDeleteSession(s.id)} className="text-xs text-fg-dim hover:text-warn px-2">
                   Delete
                 </button>

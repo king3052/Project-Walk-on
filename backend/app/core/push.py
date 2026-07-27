@@ -34,12 +34,23 @@ def _send_push(sub: models.PushSubscription, title: str, body: str) -> bool:
         return False
 
 
-def notify_user(db: Session, user_id: str, title: str, body: str) -> None:
+def notify_user(db: Session, user_id: str, title: str, body: str, category: str = "coach_update") -> None:
     """Best-effort push to every device a user has subscribed on. Silently
-    does nothing if push isn't configured or the user has no subscriptions —
-    callers should never have to check that themselves."""
+    does nothing if push isn't configured, the user has no subscriptions,
+    or the user has opted out of this notification category — callers
+    never have to check any of that themselves."""
     if not VAPID_PRIVATE_KEY:
         return
+
+    prefs = db.query(models.NotificationPreferences).filter(
+        models.NotificationPreferences.user_id == user_id
+    ).first()
+    if prefs:
+        if category == "daily_reminder" and not prefs.daily_reminders:
+            return
+        if category == "coach_update" and not prefs.coach_updates:
+            return
+
     subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == user_id).all()
     stale = []
     for sub in subs:

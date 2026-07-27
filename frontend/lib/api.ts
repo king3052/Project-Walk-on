@@ -554,6 +554,16 @@ export function unsubscribePush(sub: { endpoint: string; p256dh: string; auth: s
   return post("/notifications/unsubscribe", sub);
 }
 
+export type NotificationPreferences = { user_id: string; daily_reminders: boolean; coach_updates: boolean };
+
+export function getNotificationPreferences(): Promise<NotificationPreferences> {
+  return apiFetch(`/notifications/preferences`);
+}
+
+export function updateNotificationPreferences(data: { daily_reminders?: boolean; coach_updates?: boolean }) {
+  return apiFetch(`/notifications/preferences`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
 // ---------- Learning Center ----------
 export type LearningResource = {
   category: string;
@@ -760,6 +770,8 @@ export type TennisPointRecord = PointSignificance & {
   won: boolean;
   shot_type?: string | null;
   outcome_type?: string | null;
+  mood?: string | null;
+  mood_note?: string | null;
 };
 
 export type TennisGameState = {
@@ -804,6 +816,8 @@ export type TennisPointLogEntry = {
   won: boolean;
   shot_type: string | null;
   outcome_type: string | null;
+  mood: string | null;
+  mood_note: string | null;
   created_at: string;
 };
 
@@ -827,13 +841,17 @@ export function addMatchPoint(
   description: string,
   won: boolean,
   shotType?: string,
-  outcomeType?: string
+  outcomeType?: string,
+  mood?: string,
+  moodNote?: string
 ): Promise<TennisMatchState> {
   return post(`/tennis/matches/${matchId}/points`, {
     description,
     won,
     shot_type: shotType || null,
     outcome_type: outcomeType || null,
+    mood: mood || null,
+    mood_note: moodNote || null,
   });
 }
 
@@ -1059,6 +1077,7 @@ export type TennisPracticeSession = {
   coach: string | null;
   partner: string | null;
   focus_area: string | null;
+  performance_notes: string | null;
   notes: string | null;
 };
 
@@ -1155,7 +1174,7 @@ export type PlayerDashboard = {
   player_name: string;
   player_sport: string | null;
   matches: { id: string; date: string; opponent: string | null; result: string | null; score: string | null }[];
-  practice_sessions: { id: string; date: string; duration_min: number | null; focus_area: string | null }[];
+  practice_sessions: { id: string; date: string; duration_min: number | null; focus_area: string | null; performance_notes: string | null }[];
   goals: { id: string; title: string; status: string }[];
   journal_shared: boolean;
   mental_shared: boolean;

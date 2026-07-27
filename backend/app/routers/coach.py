@@ -210,7 +210,7 @@ def get_player_dashboard(
             for m in matches
         ],
         "practice_sessions": [
-            {"id": p.id, "date": p.date, "duration_min": p.duration_min, "focus_area": p.focus_area}
+            {"id": p.id, "date": p.date, "duration_min": p.duration_min, "focus_area": p.focus_area, "performance_notes": p.performance_notes}
             for p in practice_sessions
         ],
         "goals": [{"id": g.id, "title": g.title, "status": g.status.value if hasattr(g.status, "value") else g.status} for g in goals],

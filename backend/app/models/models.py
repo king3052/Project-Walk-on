@@ -435,6 +435,8 @@ class TennisPointLog(Base):
     # shot type or outcome from prose every time.
     shot_type = Column(String, nullable=True)  # Forehand | Backhand | Serve | Return | Volley | Overhead | Other
     outcome_type = Column(String, nullable=True)  # Winner | Unforced Error | Forced Error | Ace | Double Fault | In Play
+    mood = Column(String, nullable=True)  # Confident | Focused | Frustrated | Angry | Nervous | Discouraged
+    mood_note = Column(Text, nullable=True)  # short optional context for the mood tag
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -555,6 +557,7 @@ class TennisPracticeSession(Base):
     coach = Column(String, nullable=True)
     partner = Column(String, nullable=True)
     focus_area = Column(String, nullable=True)  # e.g. "Serve + Volleys"
+    performance_notes = Column(Text, nullable=True)  # how the session actually went
     notes = Column(Text, nullable=True)
 
 
@@ -706,3 +709,18 @@ class LearningFeedItem(Base):
     thumbnail_url = Column(String, nullable=True)
     reason = Column(Text, nullable=True)  # why this was picked, tied to the weak point
     fetched_at = Column(DateTime, default=datetime.utcnow)
+
+
+# =====================================================================
+# NOTIFICATION PREFERENCES
+# =====================================================================
+
+class NotificationPreferences(Base):
+    """Per-user opt-out controls, checked centrally in app.core.push before
+    any push is actually sent — callers never need to check this themselves."""
+    __tablename__ = "notification_preferences"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
+    daily_reminders = Column(Boolean, default=True)
+    coach_updates = Column(Boolean, default=True)  # comments, assignments, reviews, goals, completions

@@ -60,6 +60,38 @@ def unsubscribe(
     return {"unsubscribed": True}
 
 
+@router.get("/preferences", response_model=schemas.NotificationPreferencesOut)
+def get_preferences(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    prefs = db.query(models.NotificationPreferences).filter(
+        models.NotificationPreferences.user_id == current_user_id
+    ).first()
+    if not prefs:
+        prefs = models.NotificationPreferences(user_id=current_user_id)
+        db.add(prefs)
+        db.commit()
+        db.refresh(prefs)
+    return prefs
+
+
+@router.patch("/preferences", response_model=schemas.NotificationPreferencesOut)
+def update_preferences(
+    payload: schemas.NotificationPreferencesUpdate,
+    current_user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    prefs = db.query(models.NotificationPreferences).filter(
+        models.NotificationPreferences.user_id == current_user_id
+    ).first()
+    if not prefs:
+        prefs = models.NotificationPreferences(user_id=current_user_id)
+        db.add(prefs)
+    for k, v in payload.model_dump(exclude_unset=True).items():
+        setattr(prefs, k, v)
+    db.commit()
+    db.refresh(prefs)
+    return prefs
+
+
 @router.post("/send-reminders")
 def send_reminders(
     x_cron_secret: str = Header(None),
@@ -76,6 +108,12 @@ def send_reminders(
     stale = []
 
     for sub in subs:
+        prefs = db.query(models.NotificationPreferences).filter(
+            models.NotificationPreferences.user_id == sub.user_id
+        ).first()
+        if prefs and not prefs.daily_reminders:
+            continue
+
         # Skip anyone who's already logged something today across the main log types
         logged_today = any([
             db.query(models.TrainingSession).filter(

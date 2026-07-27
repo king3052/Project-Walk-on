@@ -27,7 +27,7 @@ def _match_summary_block(db: Session, match: models.TennisMatch) -> str:
     lines = [f"Match on {match.date} vs {match.opponent or 'unknown'} ({match.result or 'result unknown'}, {match.score or 'no score'})"]
     if rows:
         state = replay_match(
-            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type} for r in rows],
+            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note} for r in rows],
             scoring_format=match.scoring_format or "best_of_3",
             no_ad=bool(match.no_ad),
             first_server=match.first_server or "Me",
@@ -40,6 +40,11 @@ def _match_summary_block(db: Session, match: models.TennisMatch) -> str:
             lines.append(f"  Break points faced: saved {bp['opp_chances'] - bp['opp_won']}/{bp['opp_chances']}")
         if agg["shot_type_outcomes"]:
             lines.append("  Tagged shots: " + ", ".join(f"{k} x{v}" for k, v in agg["shot_type_outcomes"].items()))
+        if agg["mood_stats"]:
+            lines.append(
+                "  Mood tags: "
+                + ", ".join(f"{m} {s['won']}/{s['count']} won" for m, s in agg["mood_stats"].items())
+            )
     if match.first_serve_pct is not None:
         lines.append(f"  First serve %: {match.first_serve_pct}")
     if match.unforced_errors is not None:
@@ -95,8 +100,11 @@ def refresh_profile(
     prompt = (
         f"You are a tennis coach reviewing an athlete's last {len(matches)} matches TOGETHER, looking "
         "for trends a single match can't show — recurring strengths, recurring weaknesses, and whether "
-        "things are improving or getting worse over time. Be specific and cite actual matches/numbers "
-        "from the data below — don't invent anything. Respond with ONLY valid JSON: "
+        "things are improving or getting worse over time. Where mood/behavior tags appear across "
+        "matches, note if a recurring emotional pattern (e.g. consistently low win rate when Frustrated "
+        "or Angry) shows up more than once — but only if the data actually shows it, don't speculate. "
+        "Be specific and cite actual matches/numbers from the data below — don't invent anything. "
+        "Respond with ONLY valid JSON: "
         '{"summary": "2-3 sentence overview of trajectory", "strengths": "recurring strengths, cite matches", '
         '"weaknesses": "recurring weaknesses, cite matches"}\n\n'
         f"Matches (oldest to most recent):\n" + "\n\n".join(match_blocks) + prior_profile_block
@@ -152,7 +160,7 @@ def get_aggregates(
         if not rows:
             continue
         state = replay_match(
-            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type} for r in rows],
+            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note} for r in rows],
             scoring_format=m.scoring_format or "best_of_3",
             no_ad=bool(m.no_ad),
             first_server=m.first_server or "Me",
