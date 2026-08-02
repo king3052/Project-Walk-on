@@ -611,3 +611,64 @@ def propose_goal(
     db.refresh(goal)
     notify_user(db, player_id, "Project Walk-On", f"Your coach suggested a goal: {payload.title}")
     return goal
+
+
+# ---------- Full point-by-point log + AI scouting, for a linked coach ----------
+
+@router.get("/players/{player_id}/matches/{match_id}/points-detail")
+def get_match_points_for_coach(
+    player_id: str, match_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    """Same replayed point-by-point state the player sees on their own
+    Match Tracker page — gated on an active coaching link instead of
+    ownership, so a coach can review every point, not just the summary."""
+    _require_active_link(db, current_user_id, player_id)
+
+    match = db.query(models.TennisMatch).get(match_id)
+    if not match or match.user_id != player_id:
+        raise HTTPException(status_code=404, detail="Match not found for this player")
+
+    from app.core.tennis_scoring import replay_match
+
+    rows = (
+        db.query(models.TennisPointLog)
+        .filter(models.TennisPointLog.match_id == match_id)
+        .order_by(models.TennisPointLog.sequence.asc())
+        .all()
+    )
+    points = [
+        {
+            "description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type,
+            "mood": r.mood, "mood_note": r.mood_note,
+        }
+        for r in rows
+    ]
+    state = replay_match(
+        points,
+        scoring_format=match.scoring_format or "best_of_3",
+        no_ad=bool(match.no_ad),
+        first_server=match.first_server or "Me",
+    )
+    return {
+        "settings": {"scoring_format": match.scoring_format, "no_ad": match.no_ad, "first_server": match.first_server},
+        **state,
+    }
+
+
+@router.get("/players/{player_id}/matches/{match_id}/scouting", response_model=list[schemas.TennisMatchScoutingOut])
+def get_match_scouting_for_coach(
+    player_id: str, match_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    """The player's existing AI-generated scouting report(s) for this match —
+    same data the player sees, gated on an active coaching link."""
+    _require_active_link(db, current_user_id, player_id)
+    match = db.query(models.TennisMatch).get(match_id)
+    if not match or match.user_id != player_id:
+        raise HTTPException(status_code=404, detail="Match not found for this player")
+
+    return (
+        db.query(models.TennisMatchScouting)
+        .filter(models.TennisMatchScouting.match_id == match_id, models.TennisMatchScouting.user_id == player_id)
+        .order_by(models.TennisMatchScouting.created_at.desc())
+        .all()
+    )

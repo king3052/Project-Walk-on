@@ -1326,3 +1326,11 @@ export function proposeGoal(
 ) {
   return post(`/coach/players/${playerId}/goals`, data);
 }
+
+export function getMatchPointsForCoach(playerId: string, matchId: string): Promise<TennisMatchState> {
+  return apiFetch(`/coach/players/${playerId}/matches/${matchId}/points-detail`);
+}
+
+export function getMatchScoutingForCoach(playerId: string, matchId: string): Promise<TennisMatchScouting[]> {
+  return apiFetch(`/coach/players/${playerId}/matches/${matchId}/scouting`);
+}

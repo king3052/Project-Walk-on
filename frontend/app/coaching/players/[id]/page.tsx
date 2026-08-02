@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
+import { PointLogView } from "@/components/TennisScoreBoard";
 import {
   getPlayerDashboard,
   listComments,
@@ -16,10 +17,14 @@ import {
   listPracticePlansForPlayer,
   deletePracticePlan,
   proposeGoal,
+  getMatchPointsForCoach,
+  getMatchScoutingForCoach,
   type PlayerDashboard,
   type CoachComment,
   type CoachAssignment,
   type CoachMatchReview,
+  type TennisMatchState,
+  type TennisMatchScouting,
   type PracticePlan,
 } from "@/lib/api";
 
@@ -215,6 +220,82 @@ function MatchReviewForm({ playerId, matchId }: { playerId: string; matchId: str
   );
 }
 
+function MatchDetailPanel({ playerId, matchId }: { playerId: string; matchId: string }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<TennisMatchState | null>(null);
+  const [scouting, setScouting] = useState<TennisMatchScouting[]>([]);
+
+  async function onOpen() {
+    const next = !open;
+    setOpen(next);
+    if (next && !state) {
+      setLoading(true);
+      try {
+        const [pointState, scoutingReports] = await Promise.all([
+          getMatchPointsForCoach(playerId, matchId),
+          getMatchScoutingForCoach(playerId, matchId),
+        ]);
+        setState(pointState);
+        setScouting(scoutingReports);
+      } catch {
+        // leave state null — the panel will show nothing rather than crash
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
+  return (
+    <div className="mt-2">
+      <button onClick={onOpen} className="text-xs text-accent hover:underline">
+        {open ? "Hide full match detail" : "See every point + AI scouting"}
+      </button>
+      {open && (
+        <div className="mt-3 space-y-4">
+          {loading && <p className="text-xs text-fg-dim">Loading…</p>}
+
+          {!loading && scouting.length > 0 && (
+            <div className="rounded-md bg-surface-panelHover p-3 space-y-1.5">
+              <p className="text-xs uppercase tracking-wide text-fg-dim">AI scouting</p>
+              {scouting.map((report) => (
+                <div key={report.id} className="space-y-1">
+                  {report.strengths && (
+                    <p className="text-xs text-fg">
+                      <span className="text-accent">Strengths:</span> {report.strengths}
+                    </p>
+                  )}
+                  {report.weaknesses && (
+                    <p className="text-xs text-fg">
+                      <span className="text-warn">Weaknesses:</span> {report.weaknesses}
+                    </p>
+                  )}
+                  {report.patterns && (
+                    <p className="text-xs text-fg">
+                      <span className="text-fg-muted">Patterns:</span> {report.patterns}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loading && state && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-fg-dim mb-2">Every point</p>
+              <PointLogView state={state} />
+            </div>
+          )}
+
+          {!loading && !state && scouting.length === 0 && (
+            <p className="text-xs text-fg-dim">No point-by-point data or AI scouting for this match yet.</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CoachPlayerDetailPage() {
   const params = useParams();
   const playerId = params.id as string;
@@ -368,6 +449,7 @@ export default function CoachPlayerDetailPage() {
                 </p>
                 <CommentThread playerId={playerId} targetType="match" targetId={m.id} />
                 <MatchReviewForm playerId={playerId} matchId={m.id} />
+                <MatchDetailPanel playerId={playerId} matchId={m.id} />
               </div>
             ))}
           </div>
