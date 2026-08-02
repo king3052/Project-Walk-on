@@ -1134,6 +1134,14 @@ export function generateInviteCode(): Promise<InviteCode> {
   return post("/coach/invite-code", {});
 }
 
+export function listMyInviteCodes(): Promise<InviteCode[]> {
+  return apiFetch(`/coach/invite-codes`);
+}
+
+export function deleteInviteCode(codeId: string) {
+  return apiFetch(`/coach/invite-codes/${codeId}`, { method: "DELETE" });
+}
+
 export function redeemInviteCode(code: string) {
   return post("/coach/link", { code });
 }
@@ -1175,6 +1183,8 @@ export type PlayerDashboard = {
   player_sport: string | null;
   matches: { id: string; date: string; opponent: string | null; result: string | null; score: string | null }[];
   practice_sessions: { id: string; date: string; duration_min: number | null; focus_area: string | null; performance_notes: string | null }[];
+  training_sessions: { id: string; date: string; type: string; duration_min: number | null; rpe: number | null }[];
+  shooting_sessions: { id: string; date: string; shot_type: string; attempts: number; makes: number }[];
   goals: { id: string; title: string; status: string }[];
   journal_shared: boolean;
   mental_shared: boolean;

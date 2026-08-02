@@ -13,11 +13,14 @@ import {
   saveSettings,
   clearAllData,
   generateInviteCode,
+  listMyInviteCodes,
+  deleteInviteCode,
   listMyCoaches,
   revokeCoachLink,
   getVisibilitySettings,
   updateVisibilitySettings,
   type ScoreWeights,
+  type InviteCode,
   type LinkedCoach,
 } from "@/lib/api";
 
@@ -57,7 +60,7 @@ export default function SettingsPage() {
   const [clearing, setClearing] = useState(false);
   const [clearError, setClearError] = useState<string | null>(null);
 
-  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
   const [generatingCode, setGeneratingCode] = useState(false);
   const [coaches, setCoaches] = useState<LinkedCoach[]>([]);
   const [shareJournal, setShareJournal] = useState(false);
@@ -65,6 +68,7 @@ export default function SettingsPage() {
 
   function loadCoachSection() {
     listMyCoaches().then(setCoaches).catch(() => setCoaches([]));
+    listMyInviteCodes().then(setInviteCodes).catch(() => setInviteCodes([]));
     getVisibilitySettings()
       .then((v) => {
         setShareJournal(v.share_journal);
@@ -76,8 +80,8 @@ export default function SettingsPage() {
   async function onGenerateCode() {
     setGeneratingCode(true);
     try {
-      const result = await generateInviteCode();
-      setInviteCode(result.code);
+      await generateInviteCode();
+      loadCoachSection();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Something went wrong.", "error");
     } finally {
@@ -85,7 +89,15 @@ export default function SettingsPage() {
     }
   }
 
-  async function onRevokeCoach(linkId: string) {
+  async function onDeleteCode(codeId: string) {
+    await deleteInviteCode(codeId);
+    loadCoachSection();
+  }
+
+  async function onRevokeCoach(linkId: string, coachName: string) {
+    if (!window.confirm(`Revoke ${coachName}'s access to your data? They'll lose the ability to view your training, matches, and progress.`)) {
+      return;
+    }
     await revokeCoachLink(linkId);
     loadCoachSection();
   }
@@ -241,8 +253,21 @@ export default function SettingsPage() {
           >
             {generatingCode ? "Generating…" : "Generate invite code"}
           </button>
-          {inviteCode && (
-            <p className="mt-2 font-mono text-lg text-accent tracking-widest">{inviteCode}</p>
+          {inviteCodes.length > 0 && (
+            <div className="mt-3 space-y-1.5">
+              <p className="text-xs text-fg-dim">Active, unused codes:</p>
+              {inviteCodes.map((c) => (
+                <div key={c.id} className="flex items-center justify-between">
+                  <p className="font-mono text-lg text-accent tracking-widest">{c.code}</p>
+                  <button
+                    onClick={() => onDeleteCode(c.id)}
+                    className="text-xs text-fg-dim hover:text-warn px-2 py-1"
+                  >
+                    Discard
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
@@ -256,7 +281,7 @@ export default function SettingsPage() {
                 <div key={c.link_id} className="flex items-center justify-between text-sm">
                   <span className="text-fg">{c.coach_name}</span>
                   <button
-                    onClick={() => onRevokeCoach(c.link_id)}
+                    onClick={() => onRevokeCoach(c.link_id, c.coach_name)}
                     className="text-xs text-fg-dim hover:text-warn px-2 py-1"
                   >
                     Revoke access

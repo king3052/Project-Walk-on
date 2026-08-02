@@ -280,6 +280,7 @@ export default function CoachPlayerDetailPage() {
   }
 
   async function onDeletePlan(planId: string) {
+    if (!window.confirm("Delete this practice plan? This can't be undone.")) return;
     await deletePracticePlan(planId);
     loadPlans();
   }
@@ -353,35 +354,67 @@ export default function CoachPlayerDetailPage() {
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-8">
       <PageHeader title={dashboard.player_name} description={dashboard.player_sport || undefined} />
 
-      <div className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-2">
-        <h2 className="text-xs uppercase tracking-wide text-fg-dim">Recent matches</h2>
-        {dashboard.matches.length === 0 && <p className="text-sm text-fg-dim">No matches logged yet.</p>}
-        {dashboard.matches.map((m) => (
-          <div key={m.id} className="border-b border-surface-border last:border-0 pb-2 last:pb-0">
-            <p className="text-sm">
-              <span className={m.result === "Win" ? "text-accent" : "text-warn"}>{m.result || "—"}</span>{" "}
-              <span className="text-fg">vs {m.opponent || "unknown"}</span>{" "}
-              <span className="text-fg-dim">— {m.date} {m.score ? `(${m.score})` : ""}</span>
-            </p>
-            <CommentThread playerId={playerId} targetType="match" targetId={m.id} />
-            <MatchReviewForm playerId={playerId} matchId={m.id} />
+      {dashboard.player_sport === "Tennis" ? (
+        <>
+          <div className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-2">
+            <h2 className="text-xs uppercase tracking-wide text-fg-dim">Recent matches</h2>
+            {dashboard.matches.length === 0 && <p className="text-sm text-fg-dim">No matches logged yet.</p>}
+            {dashboard.matches.map((m) => (
+              <div key={m.id} className="border-b border-surface-border last:border-0 pb-2 last:pb-0">
+                <p className="text-sm">
+                  <span className={m.result === "Win" ? "text-accent" : "text-warn"}>{m.result || "—"}</span>{" "}
+                  <span className="text-fg">vs {m.opponent || "unknown"}</span>{" "}
+                  <span className="text-fg-dim">— {m.date} {m.score ? `(${m.score})` : ""}</span>
+                </p>
+                <CommentThread playerId={playerId} targetType="match" targetId={m.id} />
+                <MatchReviewForm playerId={playerId} matchId={m.id} />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      <div className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-2">
-        <h2 className="text-xs uppercase tracking-wide text-fg-dim">Recent practice sessions</h2>
-        {dashboard.practice_sessions.length === 0 && <p className="text-sm text-fg-dim">None logged yet.</p>}
-        {dashboard.practice_sessions.map((p) => (
-          <div key={p.id} className="border-b border-surface-border last:border-0 pb-2 last:pb-0">
-            <p className="text-sm text-fg">
-              {p.date} · {p.duration_min}min {p.focus_area ? `· ${p.focus_area}` : ""}
-            </p>
-            {p.performance_notes && <p className="text-xs text-fg-dim italic mt-0.5">{p.performance_notes}</p>}
-            <CommentThread playerId={playerId} targetType="practice_session" targetId={p.id} />
+          <div className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-2">
+            <h2 className="text-xs uppercase tracking-wide text-fg-dim">Recent practice sessions</h2>
+            {dashboard.practice_sessions.length === 0 && <p className="text-sm text-fg-dim">None logged yet.</p>}
+            {dashboard.practice_sessions.map((p) => (
+              <div key={p.id} className="border-b border-surface-border last:border-0 pb-2 last:pb-0">
+                <p className="text-sm text-fg">
+                  {p.date} · {p.duration_min}min {p.focus_area ? `· ${p.focus_area}` : ""}
+                </p>
+                {p.performance_notes && <p className="text-xs text-fg-dim italic mt-0.5">{p.performance_notes}</p>}
+                <CommentThread playerId={playerId} targetType="practice_session" targetId={p.id} />
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      ) : (
+        <>
+          <div className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-2">
+            <h2 className="text-xs uppercase tracking-wide text-fg-dim">Recent training sessions</h2>
+            {dashboard.training_sessions.length === 0 && <p className="text-sm text-fg-dim">None logged yet.</p>}
+            {dashboard.training_sessions.map((t) => (
+              <div key={t.id} className="border-b border-surface-border last:border-0 pb-2 last:pb-0">
+                <p className="text-sm text-fg">
+                  {t.date} · {t.type} {t.duration_min ? `· ${t.duration_min}min` : ""} {t.rpe ? `· RPE ${t.rpe}` : ""}
+                </p>
+                <CommentThread playerId={playerId} targetType="training_session" targetId={t.id} />
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-2">
+            <h2 className="text-xs uppercase tracking-wide text-fg-dim">Recent shooting sessions</h2>
+            {dashboard.shooting_sessions.length === 0 && <p className="text-sm text-fg-dim">None logged yet.</p>}
+            {dashboard.shooting_sessions.map((s) => (
+              <div key={s.id} className="border-b border-surface-border last:border-0 pb-2 last:pb-0">
+                <p className="text-sm text-fg">
+                  {s.date} · {s.shot_type} — {s.makes}/{s.attempts} ({Math.round((s.makes / s.attempts) * 100)}%)
+                </p>
+                <CommentThread playerId={playerId} targetType="shooting_log" targetId={s.id} />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <div className="rounded-lg border border-surface-border bg-surface-panel p-5">
         <h2 className="text-xs uppercase tracking-wide text-fg-dim mb-2">Goals</h2>

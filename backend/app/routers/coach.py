@@ -46,6 +46,32 @@ def generate_invite_code(current_user_id: str = Depends(get_current_user_id), db
     return code_row
 
 
+@router.get("/invite-codes", response_model=list[schemas.CoachInviteCodeOut])
+def list_my_invite_codes(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    """Unused codes this player has generated — so a code doesn't silently
+    vanish from view the moment you navigate away from Settings."""
+    return (
+        db.query(models.CoachInviteCode)
+        .filter(models.CoachInviteCode.player_user_id == current_user_id, models.CoachInviteCode.used.is_(False))
+        .order_by(models.CoachInviteCode.created_at.desc())
+        .all()
+    )
+
+
+@router.delete("/invite-codes/{code_id}")
+def delete_invite_code(
+    code_id: str, current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
+    code_row = db.query(models.CoachInviteCode).get(code_id)
+    if not code_row:
+        raise HTTPException(status_code=404, detail="Code not found")
+    if code_row.player_user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not your code")
+    db.delete(code_row)
+    db.commit()
+    return {"deleted": True}
+
+
 @router.post("/link")
 def redeem_invite_code(
     payload: schemas.RedeemCodeRequest,
@@ -82,6 +108,7 @@ def redeem_invite_code(
     else:
         db.add(models.CoachPlayerLink(coach_user_id=current_user_id, player_user_id=code_row.player_user_id))
     db.commit()
+    notify_user(db, code_row.player_user_id, "Project Walk-On", f"{coach.name} connected as your coach")
     return {"linked": True}
 
 
@@ -186,37 +213,67 @@ def get_player_dashboard(
     share_journal = bool(visibility and visibility.share_journal)
     share_mental = bool(visibility and visibility.share_mental)
 
-    matches = (
-        db.query(models.TennisMatch)
-        .filter(models.TennisMatch.user_id == player_id)
-        .order_by(models.TennisMatch.date.desc())
-        .limit(10)
-        .all()
-    )
-    practice_sessions = (
-        db.query(models.TennisPracticeSession)
-        .filter(models.TennisPracticeSession.user_id == player_id)
-        .order_by(models.TennisPracticeSession.date.desc())
-        .limit(10)
-        .all()
-    )
     goals = db.query(models.Goal).filter(models.Goal.user_id == player_id).all()
+    is_tennis = (player.sport or "Basketball") == "Tennis"
 
     result = {
         "player_name": player.name,
         "player_sport": player.sport,
-        "matches": [
-            {"id": m.id, "date": m.date, "opponent": m.opponent, "result": m.result, "score": m.score}
-            for m in matches
-        ],
-        "practice_sessions": [
-            {"id": p.id, "date": p.date, "duration_min": p.duration_min, "focus_area": p.focus_area, "performance_notes": p.performance_notes}
-            for p in practice_sessions
-        ],
+        "matches": [],
+        "practice_sessions": [],
+        "training_sessions": [],
+        "shooting_sessions": [],
         "goals": [{"id": g.id, "title": g.title, "status": g.status.value if hasattr(g.status, "value") else g.status} for g in goals],
         "journal_shared": share_journal,
         "mental_shared": share_mental,
     }
+
+    if is_tennis:
+        matches = (
+            db.query(models.TennisMatch)
+            .filter(models.TennisMatch.user_id == player_id)
+            .order_by(models.TennisMatch.date.desc())
+            .limit(10)
+            .all()
+        )
+        practice_sessions = (
+            db.query(models.TennisPracticeSession)
+            .filter(models.TennisPracticeSession.user_id == player_id)
+            .order_by(models.TennisPracticeSession.date.desc())
+            .limit(10)
+            .all()
+        )
+        result["matches"] = [
+            {"id": m.id, "date": m.date, "opponent": m.opponent, "result": m.result, "score": m.score}
+            for m in matches
+        ]
+        result["practice_sessions"] = [
+            {"id": p.id, "date": p.date, "duration_min": p.duration_min, "focus_area": p.focus_area, "performance_notes": p.performance_notes}
+            for p in practice_sessions
+        ]
+    else:
+        training_sessions = (
+            db.query(models.TrainingSession)
+            .filter(models.TrainingSession.user_id == player_id)
+            .order_by(models.TrainingSession.date.desc())
+            .limit(10)
+            .all()
+        )
+        shooting_sessions = (
+            db.query(models.ShootingLog)
+            .filter(models.ShootingLog.user_id == player_id)
+            .order_by(models.ShootingLog.date.desc())
+            .limit(10)
+            .all()
+        )
+        result["training_sessions"] = [
+            {"id": t.id, "date": t.date, "type": t.type.value if hasattr(t.type, "value") else t.type, "duration_min": t.duration_min, "rpe": t.rpe}
+            for t in training_sessions
+        ]
+        result["shooting_sessions"] = [
+            {"id": s.id, "date": s.date, "shot_type": s.shot_type, "attempts": s.attempts, "makes": s.makes}
+            for s in shooting_sessions
+        ]
 
     if share_journal:
         journal_entries = (
@@ -248,6 +305,8 @@ _TARGET_MODELS = {
     "practice_session": models.TennisPracticeSession,
     "stroke_log": models.TennisStrokeLog,
     "goal": models.Goal,
+    "training_session": models.TrainingSession,
+    "shooting_log": models.ShootingLog,
 }
 
 

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
-import { listMyPlayers, redeemInviteCode, type LinkedPlayer } from "@/lib/api";
+import { listMyPlayers, redeemInviteCode, revokeCoachLink, type LinkedPlayer } from "@/lib/api";
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
@@ -38,6 +38,14 @@ export default function CoachHomePage() {
     }
   }
 
+  async function onRemovePlayer(linkId: string, playerName: string) {
+    if (!window.confirm(`Stop coaching ${playerName}? You'll lose access to their training data until they invite you again.`)) {
+      return;
+    }
+    await revokeCoachLink(linkId);
+    load();
+  }
+
   return (
     <main className="mx-auto max-w-3xl px-6 py-10 space-y-8">
       <PageHeader title="Coach Dashboard" description="Your linked players — comment on their matches and assign drills." />
@@ -67,14 +75,21 @@ export default function CoachHomePage() {
         <h2 className="text-xs uppercase tracking-wide text-fg-dim">Your players</h2>
         {players.length === 0 && <p className="text-sm text-fg-dim">No players linked yet.</p>}
         {players.map((p) => (
-          <Link
+          <div
             key={p.link_id}
-            href={`/coaching/players/${p.player_user_id}`}
-            className="block rounded-lg border border-surface-border bg-surface-panel p-4 hover:bg-surface-panelHover transition-colors"
+            className="rounded-lg border border-surface-border bg-surface-panel p-4 flex items-center justify-between gap-3 hover:bg-surface-panelHover transition-colors"
           >
-            <p className="text-sm text-fg">{p.player_name}</p>
-            <p className="text-xs text-fg-dim">{p.player_sport || "Sport not set"}</p>
-          </Link>
+            <Link href={`/coaching/players/${p.player_user_id}`} className="flex-1 min-w-0">
+              <p className="text-sm text-fg">{p.player_name}</p>
+              <p className="text-xs text-fg-dim">{p.player_sport || "Sport not set"}</p>
+            </Link>
+            <button
+              onClick={() => onRemovePlayer(p.link_id, p.player_name)}
+              className="text-xs text-fg-dim hover:text-warn px-2 py-1 shrink-0"
+            >
+              Remove
+            </button>
+          </div>
         ))}
       </div>
     </main>
