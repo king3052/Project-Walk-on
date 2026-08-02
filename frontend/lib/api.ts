@@ -772,6 +772,8 @@ export type TennisPointRecord = PointSignificance & {
   outcome_type?: string | null;
   mood?: string | null;
   mood_note?: string | null;
+  serve_outcome?: string | null;
+  server?: "Me" | "Opponent";
 };
 
 export type TennisGameState = {
@@ -818,6 +820,7 @@ export type TennisPointLogEntry = {
   outcome_type: string | null;
   mood: string | null;
   mood_note: string | null;
+  serve_outcome: string | null;
   created_at: string;
 };
 
@@ -843,7 +846,8 @@ export function addMatchPoint(
   shotType?: string,
   outcomeType?: string,
   mood?: string,
-  moodNote?: string
+  moodNote?: string,
+  serveOutcome?: string
 ): Promise<TennisMatchState> {
   return post(`/tennis/matches/${matchId}/points`, {
     description,
@@ -852,6 +856,7 @@ export function addMatchPoint(
     outcome_type: outcomeType || null,
     mood: mood || null,
     mood_note: moodNote || null,
+    serve_outcome: serveOutcome || null,
   });
 }
 

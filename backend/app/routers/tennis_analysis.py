@@ -27,7 +27,7 @@ def _match_summary_block(db: Session, match: models.TennisMatch) -> str:
     lines = [f"Match on {match.date} vs {match.opponent or 'unknown'} ({match.result or 'result unknown'}, {match.score or 'no score'})"]
     if rows:
         state = replay_match(
-            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note} for r in rows],
+            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note, "serve_outcome": r.serve_outcome} for r in rows],
             scoring_format=match.scoring_format or "best_of_3",
             no_ad=bool(match.no_ad),
             first_server=match.first_server or "Me",
@@ -45,7 +45,12 @@ def _match_summary_block(db: Session, match: models.TennisMatch) -> str:
                 "  Mood tags: "
                 + ", ".join(f"{m} {s['won']}/{s['count']} won" for m, s in agg["mood_stats"].items())
             )
-    if match.first_serve_pct is not None:
+        sv = agg["serve_stats"]
+        if sv["total_serve_points"]:
+            lines.append(
+                f"  Serve (live-tracked): {sv['first_serve_pct']}% first serves in, {sv['double_faults']} double faults"
+            )
+    if not (rows and agg["serve_stats"]["total_serve_points"]) and match.first_serve_pct is not None:
         lines.append(f"  First serve %: {match.first_serve_pct}")
     if match.unforced_errors is not None:
         lines.append(f"  Unforced errors: {match.unforced_errors}")
@@ -160,7 +165,7 @@ def get_aggregates(
         if not rows:
             continue
         state = replay_match(
-            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note} for r in rows],
+            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note, "serve_outcome": r.serve_outcome} for r in rows],
             scoring_format=m.scoring_format or "best_of_3",
             no_ad=bool(m.no_ad),
             first_server=m.first_server or "Me",

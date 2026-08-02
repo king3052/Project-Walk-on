@@ -37,6 +37,7 @@ const MOODS = [
   { value: "Angry", emoji: "😠" },
   { value: "Discouraged", emoji: "😔" },
 ];
+const SERVE_OUTCOMES = ["First Serve In", "Second Serve In", "Double Fault"];
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
@@ -77,6 +78,7 @@ export default function MatchTrackerPage() {
   const [outcomeType, setOutcomeType] = useState<string | null>(null);
   const [mood, setMood] = useState<string | null>(null);
   const [moodNote, setMoodNote] = useState("");
+  const [serveOutcome, setServeOutcome] = useState<string | null>(null);
 
   const [opponentHistory, setOpponentHistory] = useState<OpponentHistory | null>(null);
 
@@ -115,6 +117,8 @@ export default function MatchTrackerPage() {
   useEffect(load, [matchId, userId]);
 
   const hasPoints = !!state && state.sets.some((s) => s.games.some((g) => g.points.length > 0));
+  const currentGame = state && state.sets.length > 0 ? state.sets[state.sets.length - 1].games.slice(-1)[0] : null;
+  const isMyServe = !!currentGame && currentGame.server === "Me";
 
   async function onSaveSettings() {
     setSavingSettings(true);
@@ -138,7 +142,7 @@ export default function MatchTrackerPage() {
     try {
       const s = await addMatchPoint(
         matchId, description, won, shotType || undefined, outcomeType || undefined,
-        mood || undefined, moodNote || undefined
+        mood || undefined, moodNote || undefined, serveOutcome || undefined
       );
       setState(s);
       setDescription("");
@@ -146,6 +150,7 @@ export default function MatchTrackerPage() {
       setOutcomeType(null);
       setMood(null);
       setMoodNote("");
+      setServeOutcome(null);
       if (s.match_complete) {
         showToast(s.match_winner === "Me" ? "Match won! 🎾" : "Match logged.", "success");
       }
@@ -337,6 +342,29 @@ export default function MatchTrackerPage() {
                 placeholder="Good serve and rally, BH wide error…"
                 className={inputClass}
               />
+
+              {isMyServe && (
+                <div>
+                  <p className="text-xs text-fg-dim mb-1.5">Your serve</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SERVE_OUTCOMES.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setServeOutcome(serveOutcome === s ? null : s)}
+                        className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                          serveOutcome === s
+                            ? s === "Double Fault"
+                              ? "border-warn text-warn bg-warn/10"
+                              : "border-accent text-accent bg-accent/10"
+                            : "border-surface-border text-fg-dim hover:text-fg-muted"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <p className="text-xs text-fg-dim mb-1.5">Shot (optional, tap to tag)</p>

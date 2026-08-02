@@ -57,6 +57,11 @@ export function ScoreBoard({ state }: { state: TennisMatchState }) {
         <>
           <p className="text-xs uppercase tracking-wide text-fg-dim">Current point score</p>
           <p className="font-display text-5xl text-accent tabular-nums">{state.current_score_label}</p>
+          {state.sets.length > 0 && (
+            <p className="text-xs text-fg-dim">
+              {state.sets[state.sets.length - 1].games.slice(-1)[0]?.server === "Me" ? "Your serve" : "Opponent's serve"}
+            </p>
+          )}
           <div className="flex items-center justify-center gap-6 text-sm text-fg-dim pt-2">
             <span>
               This set: <span className="text-fg">{state.current_set_games}</span>
@@ -107,6 +112,12 @@ export function PointLogView({ state }: { state: TennisMatchState }) {
                         <li key={i} className="text-xs text-fg-muted">
                           <span className={p.won ? "text-accent" : "text-warn"}>{p.won ? "W" : "L"}</span>{" "}
                           {tag && <span className="text-fg-dim">[{tag}]</span>} {p.description || "(no description)"}
+                          {p.serve_outcome && (
+                            <span className={p.serve_outcome === "Double Fault" ? "text-warn" : "text-fg-dim"}>
+                              {" "}
+                              ({p.serve_outcome})
+                            </span>
+                          )}
                           {(p.shot_type || p.outcome_type) && (
                             <span className="text-fg-dim">
                               {" "}

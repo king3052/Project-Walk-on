@@ -181,6 +181,23 @@ def summarize_points(state: dict) -> dict:
         if p.get("break_point_for") or p.get("game_point_for") or p.get("set_point_for") or p.get("match_point_for"):
             entry["on_pressure_point"] += 1
 
+    my_serve_points = [p for p in all_points if p.get("server") == "Me" and p.get("serve_outcome")]
+    first_serves_in = sum(1 for p in my_serve_points if p["serve_outcome"] == "First Serve In")
+    second_serves_in = sum(1 for p in my_serve_points if p["serve_outcome"] == "Second Serve In")
+    double_faults = sum(1 for p in my_serve_points if p["serve_outcome"] == "Double Fault")
+    total_serve_points = len(my_serve_points)
+    points_won_on_first_serve = sum(1 for p in my_serve_points if p["serve_outcome"] == "First Serve In" and p["won"])
+    points_won_on_second_serve = sum(1 for p in my_serve_points if p["serve_outcome"] == "Second Serve In" and p["won"])
+    serve_stats = {
+        "total_serve_points": total_serve_points,
+        "first_serve_pct": round(first_serves_in / total_serve_points * 100, 1) if total_serve_points else None,
+        "double_faults": double_faults,
+        "points_won_on_first_serve": points_won_on_first_serve,
+        "first_serves_in": first_serves_in,
+        "points_won_on_second_serve": points_won_on_second_serve,
+        "second_serves_in": second_serves_in,
+    }
+
     return {
         "total_points": len(all_points),
         "points_won": sum(1 for p in all_points if p["won"]),
@@ -190,6 +207,7 @@ def summarize_points(state: dict) -> dict:
         "match_points": conversion("match_point_for"),
         "shot_type_outcomes": shot_type_outcomes,
         "mood_stats": mood_stats,
+        "serve_stats": serve_stats,
     }
 
 
@@ -226,7 +244,7 @@ def replay_match(
 
     def new_game(cur_set):
         game_number = len(cur_set["games"]) + 1
-        total_games_played = sum(len(s["games"]) for s in sets) + game_number - 1
+        total_games_played = sum(len(s["games"]) for s in sets)
         server = first_server if total_games_played % 2 == 0 else ("Opponent" if first_server == "Me" else "Me")
         is_tb_game = cur_set["games_won"]["Me"] == 6 and cur_set["games_won"]["Opponent"] == 6
         return {
@@ -258,6 +276,8 @@ def replay_match(
             "outcome_type": p.get("outcome_type"),
             "mood": p.get("mood"),
             "mood_note": p.get("mood_note"),
+            "serve_outcome": p.get("serve_outcome"),
+            "server": current_game["server"],
             **significance,
         })
         if won:

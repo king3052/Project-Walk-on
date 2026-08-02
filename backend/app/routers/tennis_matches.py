@@ -131,7 +131,7 @@ def generate_match_scouting(
         from app.core.tennis_scoring import replay_match, summarize_points
 
         state = replay_match(
-            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note} for r in point_rows],
+            [{"description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type, "mood": r.mood, "mood_note": r.mood_note, "serve_outcome": r.serve_outcome} for r in point_rows],
             scoring_format=match.scoring_format or "best_of_3",
             no_ad=bool(match.no_ad),
             first_server=match.first_server or "Me",
@@ -152,6 +152,14 @@ def generate_match_scouting(
                 for mood, stats in agg["mood_stats"].items()
             ]
             computed_lines.append("Mood/behavior tags and how they correlate with point outcomes:\n  " + "\n  ".join(mood_lines))
+        sv = agg["serve_stats"]
+        if sv["total_serve_points"]:
+            computed_lines.append(
+                f"Serve (from live tracking): {sv['first_serve_pct']}% first serves in "
+                f"({sv['first_serves_in']}/{sv['total_serve_points']}), {sv['double_faults']} double faults, "
+                f"won {sv['points_won_on_first_serve']}/{sv['first_serves_in']} points on 1st serve, "
+                f"won {sv['points_won_on_second_serve']}/{sv['second_serves_in']} points on 2nd serve"
+            )
 
         point_lines = [
             f"{i+1}. {'WON' if r.won else 'LOST'} — {r.description or '(no description)'}"

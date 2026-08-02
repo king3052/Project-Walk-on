@@ -437,6 +437,7 @@ class TennisPointLog(Base):
     outcome_type = Column(String, nullable=True)  # Winner | Unforced Error | Forced Error | Ace | Double Fault | In Play
     mood = Column(String, nullable=True)  # Confident | Focused | Frustrated | Angry | Nervous | Discouraged
     mood_note = Column(Text, nullable=True)  # short optional context for the mood tag
+    serve_outcome = Column(String, nullable=True)  # "First Serve In" | "Second Serve In" | "Double Fault" — only meaningful on points the tracked athlete served
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

@@ -34,7 +34,7 @@ def _replay(db: Session, match: models.TennisMatch) -> dict:
     points = [
         {
             "description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type,
-            "mood": r.mood, "mood_note": r.mood_note,
+            "mood": r.mood, "mood_note": r.mood_note, "serve_outcome": r.serve_outcome,
         }
         for r in rows
     ]
@@ -126,6 +126,7 @@ def add_point(
         outcome_type=payload.outcome_type,
         mood=payload.mood,
         mood_note=payload.mood_note,
+        serve_outcome=payload.serve_outcome,
     )
     db.add(point)
     db.commit()

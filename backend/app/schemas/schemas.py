@@ -616,6 +616,7 @@ class PointCreate(BaseModel):
     outcome_type: Optional[str] = None
     mood: Optional[str] = None
     mood_note: Optional[str] = None
+    serve_outcome: Optional[str] = None
 
 
 class PointOut(BaseModel):
@@ -628,6 +629,7 @@ class PointOut(BaseModel):
     outcome_type: Optional[str] = None
     mood: Optional[str] = None
     mood_note: Optional[str] = None
+    serve_outcome: Optional[str] = None
     created_at: datetime
 
     class Config:

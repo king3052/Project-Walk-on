@@ -639,7 +639,7 @@ def get_match_points_for_coach(
     points = [
         {
             "description": r.description, "won": r.won, "shot_type": r.shot_type, "outcome_type": r.outcome_type,
-            "mood": r.mood, "mood_note": r.mood_note,
+            "mood": r.mood, "mood_note": r.mood_note, "serve_outcome": r.serve_outcome,
         }
         for r in rows
     ]
