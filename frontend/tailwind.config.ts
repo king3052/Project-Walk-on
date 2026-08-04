@@ -6,24 +6,24 @@ const config: Config = {
     extend: {
       colors: {
         surface: {
-          DEFAULT: "#0A0A0A",
-          panel: "#141414",
-          panelHover: "#1A1A1A",
-          border: "#242424",
+          DEFAULT: "rgb(var(--color-surface) / <alpha-value>)",
+          panel: "rgb(var(--color-surface-panel) / <alpha-value>)",
+          panelHover: "rgb(var(--color-surface-panel-hover) / <alpha-value>)",
+          border: "rgb(var(--color-surface-border) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "#4ADE80",
-          dim: "#22C55E",
-          deep: "#052E16",
+          DEFAULT: "rgb(var(--color-accent) / <alpha-value>)",
+          dim: "rgb(var(--color-accent-dim) / <alpha-value>)",
+          deep: "rgb(var(--color-accent-deep) / <alpha-value>)",
         },
         warn: {
-          DEFAULT: "#F87171",
-          deep: "#450A0A",
+          DEFAULT: "rgb(var(--color-warn) / <alpha-value>)",
+          deep: "rgb(var(--color-warn-deep) / <alpha-value>)",
         },
         fg: {
-          DEFAULT: "#F4F4F5",
-          muted: "#A1A1AA",
-          dim: "#6B6B70",
+          DEFAULT: "rgb(var(--color-fg) / <alpha-value>)",
+          muted: "rgb(var(--color-fg-muted) / <alpha-value>)",
+          dim: "rgb(var(--color-fg-dim) / <alpha-value>)",
         },
       },
       fontFamily: {

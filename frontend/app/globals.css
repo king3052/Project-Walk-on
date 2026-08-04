@@ -6,34 +6,65 @@
   --font-display: "Barlow Condensed", sans-serif;
   --font-body: "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+
+  /* Dark theme (default) — RGB channel triplets, no commas, per Tailwind's
+     rgb(var(--x) / <alpha-value>) convention so opacity modifiers like
+     bg-accent/10 keep working. */
+  --color-surface: 10 10 10;             /* #0A0A0A */
+  --color-surface-panel: 20 20 20;       /* #141414 */
+  --color-surface-panel-hover: 26 26 26; /* #1A1A1A */
+  --color-surface-border: 36 36 36;      /* #242424 */
+  --color-accent: 74 222 128;            /* #4ADE80 */
+  --color-accent-dim: 34 197 94;         /* #22C55E */
+  --color-accent-deep: 5 46 22;          /* #052E16 */
+  --color-warn: 248 113 113;             /* #F87171 */
+  --color-warn-deep: 69 10 10;           /* #450A0A */
+  --color-fg: 244 244 245;               /* #F4F4F5 */
+  --color-fg-muted: 161 161 170;         /* #A1A1AA */
+  --color-fg-dim: 107 107 112;           /* #6B6B70 */
+}
+
+[data-theme="light"] {
+  --color-surface: 244 244 245;          /* #F4F4F5 — page background */
+  --color-surface-panel: 255 255 255;    /* #FFFFFF — card background */
+  --color-surface-panel-hover: 237 237 240; /* #EDEDF0 */
+  --color-surface-border: 224 224 228;   /* #E0E0E4 */
+  --color-accent: 22 163 74;             /* #16A34A — deeper green, readable on white */
+  --color-accent-dim: 21 128 61;         /* #15803D */
+  --color-accent-deep: 5 46 22;          /* unchanged — dark text on bright buttons works in both themes */
+  --color-warn: 220 38 38;               /* #DC2626 — readable red on white */
+  --color-warn-deep: 69 10 10;           /* unchanged, same reasoning as accent-deep */
+  --color-fg: 24 24 27;                  /* #18181B — near-black primary text */
+  --color-fg-muted: 82 82 91;            /* #52525B */
+  --color-fg-dim: 113 113 122;           /* #71717A */
 }
 
 body {
-  background-color: #0A0A0A;
+  background-color: rgb(var(--color-surface));
   overscroll-behavior-y: none; /* stop iOS pull-to-refresh / rubber-band bounce */
   -webkit-tap-highlight-color: transparent; /* no gray flash on tap */
 }
 
 /* Themed scrollbar — replaces the plain white OS-default scrollbar on desktop
-   with something matching the dark theme, for every scrollable element. */
+   with something matching the current theme, for every scrollable element. */
 * {
   scrollbar-width: thin; /* Firefox */
-  scrollbar-color: #2A2A2A #0A0A0A; /* Firefox: thumb, track */
+  scrollbar-color: rgb(var(--color-surface-border)) rgb(var(--color-surface)); /* Firefox: thumb, track */
 }
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: rgb(var(--color-surface));
 }
 ::-webkit-scrollbar-thumb {
-  background-color: #2A2A2A;
+  background-color: rgb(var(--color-surface-border));
   border-radius: 999px;
-  border: 2px solid #0A0A0A; /* creates the inset-thumb look against the track */
+  border: 2px solid rgb(var(--color-surface)); /* creates the inset-thumb look against the track */
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #4ADE80; /* accent green on hover */
+  background-color: rgb(var(--color-accent)); /* accent green on hover */
 }
 
 /* iOS Safari auto-zooms into any input with computed font-size under 16px —
@@ -58,7 +89,7 @@ input, select, textarea {
 }
 
 .skeleton {
-  background-color: #1A1A1A;
+  background-color: rgb(var(--color-surface-panel-hover));
   border-radius: 0.375rem;
   animation: skeletonPulse 1.4s ease-in-out infinite;
 }
