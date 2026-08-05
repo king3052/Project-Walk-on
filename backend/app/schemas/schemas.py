@@ -1127,3 +1127,18 @@ class NotificationPreferencesOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# =====================================================================
+# ASSISTANT — persisted conversation history
+# =====================================================================
+
+class AssistantMessageOut(BaseModel):
+    id: str
+    role: str
+    content: str
+    actions_taken: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

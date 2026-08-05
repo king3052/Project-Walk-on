@@ -725,3 +725,20 @@ class NotificationPreferences(Base):
     user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
     daily_reminders = Column(Boolean, default=True)
     coach_updates = Column(Boolean, default=True)  # comments, assignments, reviews, goals, completions
+
+
+# =====================================================================
+# ASSISTANT — persisted conversation history
+# =====================================================================
+
+class AssistantMessage(Base):
+    """Persisted assistant conversation history, so it survives navigating
+    away and back (or a page refresh) instead of living only in React state."""
+    __tablename__ = "assistant_messages"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    role = Column(String, nullable=False)  # "user" | "assistant"
+    content = Column(Text, nullable=False)
+    actions_taken = Column(Text, nullable=True)  # JSON-serialized list, only ever set on assistant messages
+    created_at = Column(DateTime, default=datetime.utcnow)

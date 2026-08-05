@@ -1379,3 +1379,19 @@ export type AssistantChatResponse = {
 export function chatWithAssistant(messages: AssistantChatMessage[]): Promise<AssistantChatResponse> {
   return post("/assistant/chat", { messages });
 }
+
+export type AssistantMessageRecord = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  actions_taken: string | null;
+  created_at: string;
+};
+
+export function getAssistantHistory(): Promise<AssistantMessageRecord[]> {
+  return apiFetch(`/assistant/history`);
+}
+
+export function clearAssistantHistory() {
+  return apiFetch(`/assistant/history`, { method: "DELETE" });
+}

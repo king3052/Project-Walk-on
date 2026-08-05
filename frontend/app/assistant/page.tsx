@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { chatWithAssistant, type AssistantChatMessage, type AssistantAction } from "@/lib/api";
+import { chatWithAssistant, getAssistantHistory, clearAssistantHistory, type AssistantChatMessage, type AssistantAction } from "@/lib/api";
 
 const inputClass =
   "w-full bg-surface-panelHover border border-surface-border rounded-md px-3 py-2 text-fg focus:outline-none focus:border-accent";
@@ -33,14 +33,36 @@ type DisplayMessage = AssistantChatMessage & { actions?: AssistantAction[] };
 
 export default function AssistantPage() {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [input, setInput] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    getAssistantHistory()
+      .then((records) => {
+        setMessages(
+          records.map((r) => ({
+            role: r.role,
+            content: r.content,
+            actions: r.actions_taken ? JSON.parse(r.actions_taken) : undefined,
+          }))
+        );
+      })
+      .catch(() => {})
+      .finally(() => setHistoryLoading(false));
+  }, []);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  async function onClear() {
+    if (!window.confirm("Start a new conversation? This clears your chat history with the assistant.")) return;
+    await clearAssistantHistory();
+    setMessages([]);
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,13 +88,24 @@ export default function AssistantPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10 flex flex-col" style={{ minHeight: "calc(100dvh - 5rem)" }}>
-      <PageHeader
-        title="Assistant"
-        description="Ask about your training, get it to log things for you, or have it look something up — it knows your real data."
-      />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          title="Assistant"
+          description="Ask about your training, get it to log things for you, or have it look something up — it knows your real data."
+        />
+        {messages.length > 0 && (
+          <button
+            onClick={onClear}
+            className="text-xs text-fg-dim hover:text-warn px-2 py-1 shrink-0 mt-1"
+          >
+            New conversation
+          </button>
+        )}
+      </div>
 
       <div className="flex-1 space-y-4 py-4">
-        {messages.length === 0 && (
+        {historyLoading && <p className="text-xs text-fg-dim">Loading your conversation…</p>}
+        {!historyLoading && messages.length === 0 && (
           <div className="text-sm text-fg-dim space-y-1">
             <p>Try things like:</p>
             <p className="text-fg-muted">&quot;I only have 45 minutes today, what should I focus on?&quot;</p>

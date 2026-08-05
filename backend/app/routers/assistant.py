@@ -1,15 +1,18 @@
 import json
+from datetime import datetime
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.auth import get_current_user_id
 from app.core.rate_limit import check_ai_rate_limit
 from app.core.ai import call_groq_with_tools
 from app.core.agent_tools import TOOL_HANDLERS, TOOL_SCHEMAS
 from app.core.web_search import is_configured as web_search_configured
 from app.models import models
+from app.schemas import schemas
 
 router = APIRouter(prefix="/assistant", tags=["assistant"])
 
@@ -56,6 +59,15 @@ def chat(
     messages = [{"role": "system", "content": _system_prompt(user)}]
     messages += [{"role": m.role, "content": m.content} for m in payload.messages]
 
+    # Persist the new user message now — payload.messages is the full
+    # conversation the frontend is tracking, so the last one is the new turn.
+    if payload.messages:
+        latest_user_message = payload.messages[-1]
+        db.add(models.AssistantMessage(
+            user_id=current_user_id, role=latest_user_message.role, content=latest_user_message.content,
+        ))
+        db.commit()
+
     actions_taken = []
 
     for _ in range(MAX_TOOL_ITERATIONS):
@@ -63,10 +75,13 @@ def chat(
         tool_calls = assistant_message.get("tool_calls")
 
         if not tool_calls:
-            return {
-                "reply": assistant_message.get("content", ""),
-                "actions_taken": actions_taken,
-            }
+            reply = assistant_message.get("content", "")
+            db.add(models.AssistantMessage(
+                user_id=current_user_id, role="assistant", content=reply,
+                actions_taken=json.dumps(actions_taken) if actions_taken else None,
+            ))
+            db.commit()
+            return {"reply": reply, "actions_taken": actions_taken}
 
         messages.append(assistant_message)
 
@@ -94,7 +109,29 @@ def chat(
                 "content": json.dumps(result),
             })
 
-    return {
-        "reply": "I did a few things but I'm not fully done reasoning about this — try asking again if something's missing.",
-        "actions_taken": actions_taken,
-    }
+    fallback_reply = "I did a few things but I'm not fully done reasoning about this — try asking again if something's missing."
+    db.add(models.AssistantMessage(
+        user_id=current_user_id, role="assistant", content=fallback_reply,
+        actions_taken=json.dumps(actions_taken) if actions_taken else None,
+    ))
+    db.commit()
+    return {"reply": fallback_reply, "actions_taken": actions_taken}
+
+
+@router.get("/history", response_model=list[schemas.AssistantMessageOut])
+def get_history(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    return (
+        db.query(models.AssistantMessage)
+        .filter(models.AssistantMessage.user_id == current_user_id)
+        .order_by(models.AssistantMessage.created_at.asc())
+        .all()
+    )
+
+
+@router.delete("/history")
+def clear_history(current_user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    db.query(models.AssistantMessage).filter(models.AssistantMessage.user_id == current_user_id).delete(
+        synchronize_session=False
+    )
+    db.commit()
+    return {"cleared": True}
