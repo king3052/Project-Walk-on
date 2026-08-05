@@ -499,14 +499,33 @@ export function seedWeekFromTemplate(weekStart: string): Promise<{ created: numb
 }
 
 // ---------- Weekly Template (editable) ----------
-export type TemplateItem = { id: string; user_id: string; weekday: string; category: string; task: string };
+export type TemplateItem = {
+  id: string;
+  user_id: string;
+  weekday: string;
+  category: string;
+  subcategory: string | null;
+  task: string;
+  target_count: number | null;
+  target_unit: string | null;
+  priority: number;
+  sort_order: number;
+};
 
 export function getTemplateItems(): Promise<TemplateItem[]> {
   return apiFetch(`/template/items`);
 }
 
-export function createTemplateItem(weekday: string, category: string, task: string): Promise<TemplateItem> {
-  return post("/template/items", { weekday, category, task });
+export function createTemplateItem(data: {
+  weekday: string;
+  category: string;
+  subcategory?: string;
+  task: string;
+  target_count?: number;
+  target_unit?: string;
+  priority?: number;
+}): Promise<TemplateItem> {
+  return post("/template/items", data);
 }
 
 export function updateTemplateItem(id: string, data: Partial<Omit<TemplateItem, "id" | "user_id">>) {
