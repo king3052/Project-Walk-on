@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import { getDashboard, getMe, getTennisMatches, getRankings, type DashboardData } from "@/lib/api";
 import { StatCard, Section } from "@/components/StatCard";
+import { MorningBriefing } from "@/components/MorningBriefing";
 import { TodaySchedule } from "@/components/TodaySchedule";
 import { PlannerCard } from "@/components/PlannerCard";
 
@@ -106,6 +107,8 @@ export default function DashboardPage() {
           )}
         </div>
       </header>
+
+      <MorningBriefing sport={sport} />
 
       {error && (
         <p className="text-warn text-sm rounded-md border border-warn/30 bg-warn/5 px-4 py-3">

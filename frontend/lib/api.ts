@@ -540,11 +540,6 @@ export function analyzeFilmPatterns(): Promise<{ analysis: string }> {
   return apiFetch(`/film-sessions/analyze`);
 }
 
-// ---------- Ask your data ----------
-export function askQuestion(question: string): Promise<{ answer: string }> {
-  return post("/ask/", { question });
-}
-
 // ---------- Push Notifications ----------
 export function subscribePush(sub: { endpoint: string; p256dh: string; auth: string }) {
   return post("/notifications/subscribe", sub);
@@ -582,6 +577,33 @@ export type LearningRecommendation = { picks: LearningPick[]; note?: string };
 
 export function getRecommendedLearning(): Promise<LearningRecommendation> {
   return apiFetch(`/learning/recommended`);
+}
+
+// ---------- Morning Briefing ----------
+export type MorningBriefing = {
+  player_name: string | null;
+  readiness: {
+    acute_load: number;
+    chronic_load: number;
+    acwr: number | null;
+    readiness_score: number;
+    readiness_label: string;
+    readiness_note: string;
+  };
+  weight_projection: {
+    goal_weight_lb: number;
+    current_weight_lb: number | null;
+    rate_lb_per_week: number | null;
+    projected_date: string | null;
+    status: "on_track" | "stalled_or_wrong_direction" | "not_enough_data";
+  } | null;
+  todays_items: { id: string; workout_type: string; title: string }[];
+  goals: { id: string; title: string }[];
+  priority_narrative: string;
+};
+
+export function getMorningBriefing(): Promise<MorningBriefing> {
+  return apiFetch(`/briefing/today`);
 }
 
 export type LearningFeedItem = {
@@ -1338,4 +1360,22 @@ export function getMatchPointsForCoach(playerId: string, matchId: string): Promi
 
 export function getMatchScoutingForCoach(playerId: string, matchId: string): Promise<TennisMatchScouting[]> {
   return apiFetch(`/coach/players/${playerId}/matches/${matchId}/scouting`);
+}
+
+// ---------- Performance Assistant ----------
+export type AssistantChatMessage = { role: "user" | "assistant"; content: string };
+
+export type AssistantAction = {
+  tool: string;
+  args: Record<string, unknown>;
+  result: Record<string, unknown>;
+};
+
+export type AssistantChatResponse = {
+  reply: string;
+  actions_taken: AssistantAction[];
+};
+
+export function chatWithAssistant(messages: AssistantChatMessage[]): Promise<AssistantChatResponse> {
+  return post("/assistant/chat", { messages });
 }

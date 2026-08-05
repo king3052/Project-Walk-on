@@ -24,10 +24,11 @@ from app.routers import (
     scheduled_workouts,
     settings,
     sports_science,
+    briefing,
+    assistant,
     injuries,
     quick_log,
     planner,
-    ask,
     notifications,
     learning,
     template,
@@ -80,10 +81,11 @@ app.include_router(scouting.router)
 app.include_router(scheduled_workouts.router)
 app.include_router(settings.router)
 app.include_router(sports_science.router)
+app.include_router(briefing.router)
+app.include_router(assistant.router)
 app.include_router(injuries.router)
 app.include_router(quick_log.router)
 app.include_router(planner.router)
-app.include_router(ask.router)
 app.include_router(notifications.router)
 app.include_router(learning.router)
 app.include_router(template.router)

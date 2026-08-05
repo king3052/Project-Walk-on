@@ -27,20 +27,11 @@ from sqlalchemy import func
 
 from app.core.database import get_db
 from app.core.auth import get_current_user_id
+from app.core.readiness import compute_readiness
 from app.models import models
 from app.schemas import schemas
 
 router = APIRouter(prefix="/sports-science", tags=["sports-science"])
-
-
-def _acwr_component(acwr: float | None) -> float:
-    if acwr is None:
-        return 70.0
-    if 0.8 <= acwr <= 1.3:
-        return 100.0
-    if acwr < 0.8:
-        return max(50.0, 100.0 - (0.8 - acwr) * 125)
-    return max(0.0, 100.0 - (acwr - 1.3) * 100)
 
 
 @router.get("/{user_id}", response_model=schemas.SportsScienceOut)
@@ -84,62 +75,14 @@ def get_sports_science(
         schemas.DailyLoadPoint(date=d, load=round(load, 1)) for d, load in sorted(daily_totals.items())
     ]
 
-    last_7 = [p.load for p in daily_load if p.date > today - timedelta(days=7)]
-    last_28 = [p.load for p in daily_load]
-    acute_load = round(sum(last_7) / 7, 1)
-    chronic_load = round(sum(last_28) / 28, 1)
-    acwr = round(acute_load / chronic_load, 2) if chronic_load > 0 else None
-
-    recent_start = today - timedelta(days=3)
-    recovery_rows = (
-        db.query(models.RecoveryLog)
-        .filter(models.RecoveryLog.user_id == user_id, models.RecoveryLog.date >= recent_start)
-        .all()
-    )
-    avg_sleep = (
-        sum(r.sleep_hours for r in recovery_rows if r.sleep_hours) / len([r for r in recovery_rows if r.sleep_hours])
-        if any(r.sleep_hours for r in recovery_rows)
-        else None
-    )
-    avg_soreness = (
-        sum(r.soreness for r in recovery_rows if r.soreness) / len([r for r in recovery_rows if r.soreness])
-        if any(r.soreness for r in recovery_rows)
-        else None
-    )
-    avg_energy = (
-        sum(r.energy for r in recovery_rows if r.energy) / len([r for r in recovery_rows if r.energy])
-        if any(r.energy for r in recovery_rows)
-        else None
-    )
-
-    sleep_score = min(avg_sleep / 8.0, 1.0) * 100 if avg_sleep else 70.0
-    soreness_score = (10 - avg_soreness) / 9 * 100 if avg_soreness else 70.0
-    energy_score = (avg_energy - 1) / 9 * 100 if avg_energy else 70.0
-    recovery_component = (sleep_score + soreness_score + energy_score) / 3
-
-    acwr_component = _acwr_component(acwr)
-    readiness_score = round(0.6 * acwr_component + 0.4 * recovery_component)
-
-    if readiness_score >= 80:
-        label, note = "Ready to push", "Workload and recovery both look solid."
-    elif readiness_score >= 60:
-        label, note = "Moderate", "Train as planned — nothing flagging concern right now."
-    elif readiness_score >= 40:
-        label, note = "Caution", "Consider a lighter session today — load or recovery is trending off."
-    else:
-        label, note = "High risk", "Load spike and/or poor recovery — prioritize rest and light work."
-
-    if acwr is not None and acwr > 1.3:
-        note = f"ACWR is {acwr} (above the 1.3 sweet-spot ceiling) — that's the main driver here."
-    elif chronic_load == 0:
-        note = "Not enough logged sessions with duration + RPE yet to compute a real trend."
+    readiness = compute_readiness(db, user_id)
 
     return schemas.SportsScienceOut(
         daily_load=daily_load,
-        acute_load=acute_load,
-        chronic_load=chronic_load,
-        acwr=acwr,
-        readiness_score=readiness_score,
-        readiness_label=label,
-        readiness_note=note,
+        acute_load=readiness["acute_load"],
+        chronic_load=readiness["chronic_load"],
+        acwr=readiness["acwr"],
+        readiness_score=readiness["readiness_score"],
+        readiness_label=readiness["readiness_label"],
+        readiness_note=readiness["readiness_note"],
     )

@@ -27,7 +27,7 @@ import {
   Settings,
   FlaskConical,
   HeartPulse,
-  MessageCircleQuestion,
+  Sparkles,
   GraduationCap,
 } from "lucide-react";
 
@@ -48,7 +48,7 @@ const MORE_LINKS = [
   { href: "/coach", label: "AI Coach", icon: Bot },
   { href: "/scouting", label: "Scouting report", icon: ClipboardCheck },
   { href: "/learning", label: "Learning Center", icon: GraduationCap },
-  { href: "/ask", label: "Ask your data", icon: MessageCircleQuestion },
+  { href: "/assistant", label: "Assistant", icon: Sparkles },
   { href: "/science", label: "Sports Science", icon: FlaskConical },
   { href: "/injuries", label: "Injuries", icon: HeartPulse },
   { href: "/film", label: "Film", icon: Clapperboard },
