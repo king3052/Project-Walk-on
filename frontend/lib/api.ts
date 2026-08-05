@@ -1437,3 +1437,27 @@ export type TodaysMission = {
 export function getTodaysMission(): Promise<TodaysMission> {
   return apiFetch(`/mission/today`);
 }
+
+// ---------- Google Calendar Integration ----------
+export type GoogleCalendarStatus = {
+  connected: boolean;
+  configured: boolean;
+  calendars: { id: string; summary: string; primary: boolean }[];
+  selected_calendar_ids: string[];
+};
+
+export function startGoogleCalendarOAuth(): Promise<{ authorize_url: string }> {
+  return post("/calendar-integration/start", {});
+}
+
+export function getGoogleCalendarStatus(): Promise<GoogleCalendarStatus> {
+  return apiFetch(`/calendar-integration/status`);
+}
+
+export function selectGoogleCalendars(calendarIds: string[]) {
+  return post("/calendar-integration/select-calendars", { calendar_ids: calendarIds });
+}
+
+export function disconnectGoogleCalendar() {
+  return apiFetch(`/calendar-integration`, { method: "DELETE" });
+}

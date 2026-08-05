@@ -748,3 +748,33 @@ class AssistantMessage(Base):
     content = Column(Text, nullable=False)
     actions_taken = Column(Text, nullable=True)  # JSON-serialized list, only ever set on assistant messages
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# =====================================================================
+# GOOGLE CALENDAR INTEGRATION
+# =====================================================================
+
+class OAuthState(Base):
+    """Short-lived, one-time-use token bridging our JWT-authenticated app to
+    Google's browser-redirect OAuth flow. The frontend starts the flow while
+    authenticated (normal JWT header); Google's callback arrives with no auth
+    header at all, just this state value — so this table is how the callback
+    recovers which user actually initiated it. Deleted immediately on use."""
+    __tablename__ = "oauth_states"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    state = Column(String, unique=True, nullable=False)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class GoogleCalendarIntegration(Base):
+    """A user's connected Google Calendar. Read-only, always — this app never
+    creates or modifies anything on the user's real calendar, only reads it."""
+    __tablename__ = "google_calendar_integrations"
+
+    id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), unique=True, nullable=False)
+    refresh_token = Column(Text, nullable=False)
+    selected_calendar_ids = Column(Text, nullable=True)  # JSON list; null/empty = primary calendar only
+    connected_at = Column(DateTime, default=datetime.utcnow)

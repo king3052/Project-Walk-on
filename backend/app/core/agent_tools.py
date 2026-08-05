@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.models import models
 from app.core.web_search import web_search as _web_search
+from app.core import google_calendar
 
 
 def _get_recent_matches(db, user_id, count=5):
@@ -113,6 +114,13 @@ def _get_latest_scouting_summary(db, user_id):
 
 def _web_search_tool(db, user_id, query):
     return _web_search(query)
+
+
+def _get_upcoming_calendar_events(db, user_id, days_ahead=7):
+    events = google_calendar.get_events_for_user(db, models, user_id, days_ahead)
+    if events is None:
+        return {"connected": False, "events": [], "note": "Google Calendar isn't connected."}
+    return {"connected": True, "events": events}
 
 
 def _log_practice_session(db, user_id, duration_min=None, intensity=None, focus_area=None, performance_notes=None):
@@ -233,6 +241,15 @@ TOOLS = [
             "query": {"type": "string", "description": "The search query"}
         }, "required": ["query"]},
     }}, "handler": _web_search_tool},
+
+    {"schema": {"type": "function", "function": {
+        "name": "get_upcoming_calendar_events",
+        "description": "Get the athlete's upcoming Google Calendar events (classes, exams, appointments) "
+                        "for the next several days, if they've connected their calendar.",
+        "parameters": {"type": "object", "properties": {
+            "days_ahead": {"type": "integer", "description": "How many days ahead to look, default 7"}
+        }},
+    }}, "handler": _get_upcoming_calendar_events},
 
     {"schema": {"type": "function", "function": {
         "name": "log_practice_session",

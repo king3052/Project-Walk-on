@@ -26,6 +26,7 @@ from app.routers import (
     sports_science,
     briefing,
     mission,
+    calendar_integration,
     assistant,
     injuries,
     quick_log,
@@ -84,6 +85,7 @@ app.include_router(settings.router)
 app.include_router(sports_science.router)
 app.include_router(briefing.router)
 app.include_router(mission.router)
+app.include_router(calendar_integration.router)
 app.include_router(assistant.router)
 app.include_router(injuries.router)
 app.include_router(quick_log.router)

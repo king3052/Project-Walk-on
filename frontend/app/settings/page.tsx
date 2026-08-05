@@ -7,6 +7,7 @@ import { useToast } from "@/components/ToastProvider";
 import { PageHeader } from "@/components/PageHeader";
 import { NotificationSettings } from "@/components/NotificationSettings";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { GoogleCalendarSettings } from "@/components/GoogleCalendarSettings";
 import {
   getMe,
   updateAccount,
@@ -234,6 +235,11 @@ export default function SettingsPage() {
       <section className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-3">
         <h2 className="text-xs uppercase tracking-wide text-fg-dim">Appearance</h2>
         <ThemeToggle />
+      </section>
+
+      <section className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-3">
+        <h2 className="text-xs uppercase tracking-wide text-fg-dim">Google Calendar</h2>
+        <GoogleCalendarSettings />
       </section>
 
       <section className="rounded-lg border border-surface-border bg-surface-panel p-5 space-y-3">
