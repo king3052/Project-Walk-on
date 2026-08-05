@@ -26,7 +26,8 @@ def call_groq(prompt: str, max_tokens: int = 500, json_mode: bool = False) -> st
             json=body,
             timeout=30,
         )
-        response.raise_for_status()
+        if not response.ok:
+            raise HTTPException(status_code=502, detail=f"AI request failed ({response.status_code}): {response.text}")
         return response.json()["choices"][0]["message"]["content"]
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"AI request failed: {e}")
@@ -55,7 +56,8 @@ def call_groq_with_tools(messages: list, tools: list, max_tokens: int = 600) -> 
             json=body,
             timeout=30,
         )
-        response.raise_for_status()
+        if not response.ok:
+            raise HTTPException(status_code=502, detail=f"AI request failed ({response.status_code}): {response.text}")
         return response.json()["choices"][0]["message"]
     except requests.RequestException as e:
         raise HTTPException(status_code=502, detail=f"AI request failed: {e}")
