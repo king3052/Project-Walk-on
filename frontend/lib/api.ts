@@ -1395,3 +1395,26 @@ export function getAssistantHistory(): Promise<AssistantMessageRecord[]> {
 export function clearAssistantHistory() {
   return apiFetch(`/assistant/history`, { method: "DELETE" });
 }
+
+// ---------- Today's Mission (AI-curated Top 5) ----------
+export type MissionItem = {
+  id: string;
+  title: string;
+  workout_type: string;
+  priority: number;
+  completed: boolean;
+};
+
+export type TodaysMission = {
+  focus_note: string;
+  readiness_score: number;
+  readiness_label: string;
+  top_5: MissionItem[];
+  total_items: number;
+  completed_count: number;
+  remaining_beyond_top_5: number;
+};
+
+export function getTodaysMission(): Promise<TodaysMission> {
+  return apiFetch(`/mission/today`);
+}

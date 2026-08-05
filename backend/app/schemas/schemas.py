@@ -361,6 +361,7 @@ class ScheduledWorkoutOut(BaseModel):
     title: str
     notes: Optional[str] = None
     completed: bool
+    priority: int
 
     class Config:
         from_attributes = True
@@ -447,13 +448,23 @@ class PushSubscriptionCreate(BaseModel):
 class TemplateItemCreate(BaseModel):
     weekday: str  # "Sunday".."Saturday"
     category: str
+    subcategory: Optional[str] = None
     task: str
+    target_count: Optional[int] = None
+    target_unit: Optional[str] = None
+    priority: Optional[int] = 3
+    sort_order: Optional[int] = 0
 
 
 class TemplateItemUpdate(BaseModel):
     weekday: Optional[str] = None
     category: Optional[str] = None
+    subcategory: Optional[str] = None
     task: Optional[str] = None
+    target_count: Optional[int] = None
+    target_unit: Optional[str] = None
+    priority: Optional[int] = None
+    sort_order: Optional[int] = None
 
 
 class TemplateItemOut(BaseModel):
@@ -461,7 +472,12 @@ class TemplateItemOut(BaseModel):
     user_id: str
     weekday: str
     category: str
+    subcategory: Optional[str] = None
     task: str
+    target_count: Optional[int] = None
+    target_unit: Optional[str] = None
+    priority: int
+    sort_order: int
 
     class Config:
         from_attributes = True

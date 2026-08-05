@@ -1,200 +1,180 @@
 """
-Your preset weekly template. Each entry is (category, task). "Seed this
-week" (POST /scheduled-workouts/seed-week) turns this into real
+Your preset weekly template. Each entry is a 6-tuple:
+  (category, subcategory, task, target_count, target_unit, priority)
+
+subcategory/target_count/target_unit are optional (None when not applicable —
+e.g. "Journal" entries don't have a rep count). priority is 1-5 and feeds the
+AI "Today's Top 5" view (app/routers/mission.py), which ranks the day's full
+list down to the highest-impact handful instead of showing everything at once.
+
+"Seed this week" (POST /scheduled-workouts/seed-week) turns this into real
 ScheduledWorkout rows on the calendar for a given week, skipping any
 day/task that's already there so it's safe to run more than once.
 
-mark_category_done() is called by the various logging routers right after
-a real log is saved — it checks off any not-yet-completed scheduled items
-in that category for that date, so you're not re-checking boxes for
-things you already logged elsewhere in the app.
+mark_category_done() / mark_matching_done() are called by the various
+logging routers right after a real log is saved — they check off any
+not-yet-completed scheduled items for that date, so you're not re-checking
+boxes for things you already logged elsewhere in the app.
 """
 from datetime import date, timedelta
 from sqlalchemy.orm import Session
 
-BASKETBALL_WEEKLY_TEMPLATE: dict[str, list[tuple[str, str]]] = {
+# ---------------------------------------------------------------------------
+# Basketball
+# ---------------------------------------------------------------------------
+BASKETBALL_WEEKLY_TEMPLATE: dict[str, list[tuple]] = {
     "Monday": [
-        ("Basketball", "Dynamic warm-up"),
-        ("Basketball", "Ball handling (15 min)"),
-        ("Basketball", "Form shooting (100 makes)"),
-        ("Basketball", "Catch-and-shoot (200 makes)"),
-        ("Basketball", "Game-speed threes (100 makes)"),
-        ("Basketball", "Finishing package (100 reps)"),
-        ("Basketball", "Free throws (50)"),
-        ("Strength", "Back Squat"),
-        ("Strength", "Bulgarian Split Squat"),
-        ("Strength", "Romanian Deadlift"),
-        ("Strength", "Box Jumps"),
-        ("Strength", "Core work"),
-        ("Conditioning", "10 x 20m sprints"),
-        ("Conditioning", "Mobility cooldown"),
-        ("Nutrition", "3,500 kcal"),
-        ("Nutrition", "180g protein"),
-        ("Nutrition", "450g carbs"),
-        ("Nutrition", "80g fat"),
-        ("Nutrition", "4L water"),
-        ("Recovery", "Stretch (15 min)"),
-        ("Recovery", "Foam roll"),
-        ("Recovery", "Mobility"),
-        ("Recovery", "Sleep 8+ hours"),
-        ("Film", "20 min of an elite shooting guard"),
-        ("Film", "Record 3 observations"),
-        ("Analytics", "Log workout"),
-        ("Analytics", "Log body weight"),
-        ("Analytics", "Log energy"),
-        ("Analytics", "Log soreness"),
-        ("Goals", "Review long-term goals"),
-        ("Goals", "Update progress"),
-        ("Mental", "Visualization (10 min)"),
-        ("Mental", "Journal"),
-        ("Life", "Finish assignments"),
-        ("Life", "Calendar review"),
+        ("Basketball", "Warm-up", "Dynamic Warmup", None, None, 3),
+        ("Basketball", "Warm-up", "Band Activation", None, None, 2),
+        ("Basketball", "Shooting", "Form Makes", 100, "makes", 5),
+        ("Basketball", "Shooting", "Midrange", 100, "makes", 5),
+        ("Basketball", "Shooting", "Catch & Shoot", 200, "makes", 5),
+        ("Basketball", "Shooting", "Game-Speed Threes", 100, "makes", 4),
+        ("Basketball", "Shooting", "Free Throws", 50, "makes", 4),
+        ("Strength", None, "Back Squat", 5, "x5", 5),
+        ("Strength", None, "Bulgarian Split Squat", 3, "x8", 4),
+        ("Strength", None, "Romanian Deadlift", 3, "x8", 4),
+        ("Strength", None, "Core work", None, None, 3),
+        ("Conditioning", None, "10x20m sprints", 10, "reps", 4),
+        ("Recovery", None, "Sleep 8 hours", None, None, 4),
     ],
     "Tuesday": [
-        ("Basketball", "Ball handling"),
-        ("Basketball", "Spot-up shooting"),
-        ("Basketball", "Pull-up shooting"),
-        ("Basketball", "Free throws"),
-        ("Strength", "Bench Press"),
-        ("Strength", "Pull-ups"),
-        ("Strength", "Rows"),
-        ("Strength", "Shoulder press"),
-        ("Strength", "Face pulls"),
-        ("Conditioning", "Bike intervals"),
-        ("Recovery", "Stretch"),
-        ("Film", "Defensive rotations"),
-        ("Analytics", "Log everything"),
+        ("Basketball", "Ball Handling", "Stationary Series", 5, "min", 4),
+        ("Basketball", "Ball Handling", "Full Court Combo Series", 10, "min", 4),
+        ("Basketball", "Ball Handling", "Weak Hand Only", 10, "min", 5),
+        ("Basketball", "Finishing", "Mikan", 50, "reps", 4),
+        ("Basketball", "Finishing", "Reverse Mikan", 50, "reps", 4),
+        ("Basketball", "Finishing", "Euro Steps", 30, "reps", 3),
+        ("Basketball", "Finishing", "Contact Finishes", 30, "reps", 4),
+        ("Strength", None, "Bench Press", 5, "x5", 5),
+        ("Strength", None, "Pull-ups", 4, "x8", 4),
+        ("Strength", None, "Face Pulls", 3, "x15", 2),
+        ("Athleticism", None, "Vertical Jumps", 5, "sets", 4),
+        ("Athleticism", None, "Sprint Starts", 6, "reps", 3),
+        ("Recovery", None, "Stretch", None, None, 3),
     ],
     "Wednesday": [
-        ("Basketball", "Live dribble work"),
-        ("Basketball", "Finishing"),
-        ("Basketball", "Midrange"),
-        ("Basketball", "Pick-and-roll reads"),
-        ("Strength", "Olympic lift variation"),
-        ("Strength", "Jump training"),
-        ("Strength", "Single-leg strength"),
-        ("Conditioning", "Shuttle runs"),
-        ("Recovery", "Ice bath (optional)"),
-        ("Recovery", "Mobility"),
+        ("Basketball", "Athletic Skills", "Defensive Slides", 5, "min", 3),
+        ("Basketball", "Athletic Skills", "Closeouts", 20, "reps", 3),
+        ("Recovery", None, "Foam Roll", None, None, 3),
+        ("Recovery", None, "Contrast Shower", None, None, 2),
+        ("Mental", None, "Visualization", 10, "min", 3),
+        ("Mental", None, "Journal", None, None, 2),
+        ("Film", None, "Watch Film — 1 NBA player breakdown", 20, "min", 2),
+        ("Learning", None, "Read Sports Science article", None, None, 2),
     ],
     "Thursday": [
-        ("Basketball", "500 makes"),
-        ("Basketball", "Weak-hand finishing"),
-        ("Basketball", "Floaters"),
-        ("Strength", "Incline Bench"),
-        ("Strength", "Pull-ups"),
-        ("Strength", "DB Rows"),
-        ("Strength", "Lateral Raises"),
-        ("Strength", "Arms"),
+        ("Basketball", "Shooting", "Off Dribble", 100, "makes", 5),
+        ("Basketball", "Shooting", "Movement Shooting", 100, "makes", 4),
+        ("Basketball", "Shooting", "Free Throws", 50, "makes", 4),
+        ("Strength", None, "Front Squat", 4, "x6", 5),
+        ("Strength", None, "Rows", 3, "x10", 3),
+        ("Strength", None, "Core work", None, None, 3),
+        ("Conditioning", None, "Suicide Runs", 6, "reps", 4),
+        ("Recovery", None, "Sleep 8 hours", None, None, 4),
     ],
     "Friday": [
-        ("Basketball", "Shooting under fatigue"),
-        ("Basketball", "Transition finishing"),
-        ("Basketball", "Competitive drills"),
-        ("Strength", "Front Squat"),
-        ("Strength", "Trap Bar Deadlift"),
-        ("Strength", "Jump Squats"),
-        ("Strength", "Sled Push"),
-        ("Conditioning", "Court sprints"),
+        ("Basketball", "Ball Handling", "Game-Speed Moves", 10, "min", 4),
+        ("Basketball", "Finishing", "Floaters", 30, "reps", 4),
+        ("Basketball", "Finishing", "Left Hand", 30, "reps", 4),
+        ("Basketball", "Finishing", "Right Hand", 30, "reps", 4),
+        ("Basketball", "Finishing", "Spin Finishes", 30, "reps", 3),
+        ("Strength", None, "Incline DB Press", 4, "x8", 4),
+        ("Strength", None, "Pull-ups", 4, "x8", 4),
+        ("Athleticism", None, "Broad Jumps", 5, "sets", 4),
+        ("Athleticism", None, "Agility ladder", 10, "min", 3),
+        ("Recovery", None, "Stretch", None, None, 3),
     ],
     "Saturday": [
-        ("Basketball", "Pickup games"),
-        ("Basketball", "Scrimmage"),
-        ("Basketball", "Competitive shooting"),
-        ("Conditioning", "Light cardio"),
-        ("Recovery", "Long mobility session"),
-        ("Film", "Analyze your own game footage"),
+        ("Basketball", "Shooting", "Game-Speed Threes", 100, "makes", 5),
+        ("Basketball", "Athletic Skills", "Sprint Starts", 6, "reps", 3),
+        ("Basketball", "Athletic Skills", "Vertical Work", None, None, 3),
+        ("Conditioning", None, "Tempo Run", 20, "min", 3),
+        ("Learning", None, "Learn a new move", None, None, 2),
+        ("Learning", None, "Notes", None, None, 1),
     ],
     "Sunday": [
-        ("Recovery", "Walk"),
-        ("Recovery", "Stretch"),
-        ("Recovery", "Mobility"),
-        ("Recovery", "Massage gun"),
-        ("Analytics", "Weekly report"),
-        ("Analytics", "Weight trend"),
-        ("Analytics", "Calories"),
-        ("Analytics", "Strength progress"),
-        ("Analytics", "Shooting %"),
-        ("Planning", "Plan next week"),
-        ("Planning", "Meal prep"),
-        ("Planning", "Schedule workouts"),
-        ("Journal", "Weekly reflection"),
-        ("Journal", "Wins"),
-        ("Journal", "Areas to improve"),
+        ("Recovery", None, "Stretch", None, None, 3),
+        ("Recovery", None, "Foam Roll", None, None, 3),
+        ("Recovery", None, "Sleep 9 hours", None, None, 4),
+        ("Analytics", None, "Weight trend", None, None, 2),
+        ("Analytics", None, "Weekly report", None, None, 2),
+        ("Journal", None, "Weekly reflection", None, None, 2),
+        ("Journal", None, "Wins", None, None, 2),
+        ("Journal", None, "Areas to improve", None, None, 2),
+        ("Life", None, "Plan next week", None, None, 2),
+        ("Life", None, "Calendar review", None, None, 1),
     ],
 }
 
-TENNIS_WEEKLY_TEMPLATE: dict[str, list[tuple[str, str]]] = {
+# ---------------------------------------------------------------------------
+# Tennis
+# ---------------------------------------------------------------------------
+TENNIS_WEEKLY_TEMPLATE: dict[str, list[tuple]] = {
     "Monday": [
-        ("Serve", "Dynamic warm-up + shadow serves"),
-        ("Serve", "Toss consistency (20 reps)"),
-        ("Serve", "Flat serve — 50 reps"),
-        ("Serve", "Kick/slice serve — 50 reps"),
-        ("Groundstrokes", "Forehand cross-court — 15 min"),
-        ("Groundstrokes", "Backhand cross-court — 15 min"),
-        ("Footwork", "Ladder + cone footwork circuit"),
-        ("Strength & Conditioning", "Lower body strength session"),
-        ("Strength & Conditioning", "Core work"),
-        ("Nutrition", "3,000+ kcal"),
-        ("Nutrition", "150g protein"),
-        ("Nutrition", "Hydration — 3L water"),
-        ("Recovery", "Stretch (15 min)"),
-        ("Recovery", "Sleep 8+ hours"),
-        ("Film", "Watch 20 min of an elite player's footwork"),
-        ("Analytics", "Log practice session"),
-        ("Analytics", "Log body weight"),
-        ("Goals", "Review long-term goals"),
-        ("Mental", "Visualization (10 min)"),
-        ("Mental", "Journal"),
-        ("Life", "Finish assignments"),
-        ("Life", "Calendar review"),
+        ("Tennis", "Serve", "First Serve Placement", 50, "serves", 5),
+        ("Tennis", "Serve", "Second Serve Consistency", 50, "serves", 5),
+        ("Tennis", "Groundstrokes", "Forehand Crosscourt", 15, "min", 5),
+        ("Tennis", "Groundstrokes", "Backhand Crosscourt", 15, "min", 5),
+        ("Strength", None, "Back Squat", 5, "x5", 5),
+        ("Strength", None, "Core work", None, None, 3),
+        ("Conditioning", None, "Sprint + change-of-direction", 15, "min", 4),
+        ("Recovery", None, "Sleep 8 hours", None, None, 4),
+        ("Life", None, "Calendar review", None, None, 1),
     ],
     "Tuesday": [
-        ("Groundstrokes", "Forehand down-the-line — 15 min"),
-        ("Groundstrokes", "Backhand down-the-line — 15 min"),
-        ("Footwork", "Split-step + recovery drills"),
-        ("Strength & Conditioning", "Upper body strength session"),
-        ("Recovery", "Stretch"),
-        ("Film", "Review own match footage"),
-        ("Analytics", "Log everything"),
+        ("Tennis", "Groundstrokes", "Forehand Down-the-Line", 15, "min", 4),
+        ("Tennis", "Groundstrokes", "Backhand Down-the-Line", 15, "min", 4),
+        ("Tennis", "Footwork", "Split-Step + Recovery Drills", 10, "min", 4),
+        ("Strength", None, "Bench Press", 5, "x5", 5),
+        ("Strength", None, "Pull-ups", 4, "x8", 4),
+        ("Recovery", None, "Stretch", None, None, 3),
+        ("Film", None, "Review own match footage", 20, "min", 2),
+        ("Analytics", None, "Log everything", None, None, 2),
     ],
     "Wednesday": [
-        ("Serve", "Serve placement — targets"),
-        ("Groundstrokes", "Live rally — cross-court consistency"),
-        ("Footwork", "Sprint + change-of-direction conditioning"),
-        ("Strength & Conditioning", "Explosive/plyometric work"),
-        ("Recovery", "Mobility session"),
+        ("Tennis", "Serve", "Serve Placement — Targets", 40, "serves", 5),
+        ("Tennis", "Groundstrokes", "Live Rally — Crosscourt Consistency", 20, "min", 4),
+        ("Tennis", "Footwork", "Sprint + Change-of-Direction Conditioning", 15, "min", 4),
+        ("Athleticism", None, "Explosive/Plyometric Work", None, None, 4),
+        ("Recovery", None, "Mobility Session", None, None, 3),
+        ("Mental", None, "Visualization", 10, "min", 3),
     ],
     "Thursday": [
-        ("Groundstrokes", "Approach shots + volleys"),
-        ("Groundstrokes", "Overheads"),
-        ("Strength & Conditioning", "Full body strength session"),
-        ("Footwork", "Agility ladder circuit"),
+        ("Tennis", "Groundstrokes", "Approach Shots + Volleys", 15, "min", 4),
+        ("Tennis", "Groundstrokes", "Overheads", 20, "reps", 3),
+        ("Strength", None, "Front Squat", 4, "x6", 5),
+        ("Strength", None, "Rows", 3, "x10", 3),
+        ("Tennis", "Footwork", "Agility Ladder Circuit", 10, "min", 3),
+        ("Recovery", None, "Sleep 8 hours", None, None, 4),
     ],
     "Friday": [
-        ("Serve", "Second serve consistency under pressure"),
-        ("Groundstrokes", "Return of serve practice"),
-        ("Footwork", "Court coverage drills"),
-        ("Strength & Conditioning", "Speed/agility session"),
+        ("Tennis", "Serve", "Second Serve Under Pressure", 40, "serves", 5),
+        ("Tennis", "Groundstrokes", "Return of Serve Practice", 15, "min", 4),
+        ("Tennis", "Footwork", "Court Coverage Drills", 15, "min", 4),
+        ("Athleticism", None, "Speed/Agility Session", None, None, 4),
+        ("Recovery", None, "Stretch", None, None, 3),
     ],
     "Saturday": [
-        ("Groundstrokes", "Match play / practice sets"),
-        ("Footwork", "Match-intensity movement"),
-        ("Recovery", "Long mobility session"),
-        ("Film", "Analyze your own match footage"),
+        ("Tennis", "Match Play", "Practice Sets", None, None, 5),
+        ("Tennis", "Footwork", "Match-Intensity Movement", 15, "min", 3),
+        ("Recovery", None, "Long Mobility Session", None, None, 3),
+        ("Film", None, "Analyze your own match footage", 20, "min", 2),
+        ("Learning", None, "Learn a new tactic", None, None, 2),
     ],
     "Sunday": [
-        ("Recovery", "Walk"),
-        ("Recovery", "Stretch"),
-        ("Recovery", "Mobility"),
-        ("Analytics", "Weekly report"),
-        ("Analytics", "Weight trend"),
-        ("Analytics", "First-serve percentage trend"),
-        ("Planning", "Plan next week"),
-        ("Planning", "Schedule court time"),
-        ("Journal", "Weekly reflection"),
-        ("Journal", "Wins"),
-        ("Journal", "Areas to improve"),
+        ("Recovery", None, "Walk", None, None, 2),
+        ("Recovery", None, "Stretch", None, None, 3),
+        ("Recovery", None, "Mobility", None, None, 3),
+        ("Recovery", None, "Sleep 9 hours", None, None, 4),
+        ("Analytics", None, "Weekly report", None, None, 2),
+        ("Analytics", None, "Weight trend", None, None, 2),
+        ("Analytics", None, "First-serve percentage trend", None, None, 2),
+        ("Life", None, "Plan next week", None, None, 2),
+        ("Life", None, "Schedule court time", None, None, 1),
+        ("Journal", None, "Weekly reflection", None, None, 2),
+        ("Journal", None, "Wins", None, None, 2),
+        ("Journal", None, "Areas to improve", None, None, 2),
     ],
 }
 
@@ -218,8 +198,12 @@ def get_or_bootstrap_template(db: Session, models, user_id: str, sport: str = "B
     default = TEMPLATES_BY_SPORT.get(sport, BASKETBALL_WEEKLY_TEMPLATE)
     new_items = []
     for weekday_name, tasks in default.items():
-        for category, task in tasks:
-            item = models.TemplateItem(user_id=user_id, weekday=weekday_name, category=category, task=task)
+        for sort_order, (category, subcategory, task, target_count, target_unit, priority) in enumerate(tasks):
+            item = models.TemplateItem(
+                user_id=user_id, weekday=weekday_name, category=category, subcategory=subcategory,
+                task=task, target_count=target_count, target_unit=target_unit, priority=priority,
+                sort_order=sort_order,
+            )
             db.add(item)
             new_items.append(item)
     db.commit()
@@ -252,12 +236,16 @@ def seed_week(db: Session, models, user_id: str, week_start: date, sport: str = 
     created = 0
     for i, day in enumerate(week_dates):
         weekday_name = WEEKDAY_NAMES[i]
-        for item in by_weekday.get(weekday_name, []):
-            if (day, item.task) in existing:
+        for item in sorted(by_weekday.get(weekday_name, []), key=lambda x: x.sort_order):
+            title = item.task
+            if item.target_count and item.target_unit:
+                title = f"{item.task} ({item.target_count} {item.target_unit})"
+            if (day, title) in existing:
                 continue
             db.add(
                 models.ScheduledWorkout(
-                    user_id=user_id, date=day, workout_type=item.category, title=item.task
+                    user_id=user_id, date=day, workout_type=item.category, title=title,
+                    priority=item.priority,
                 )
             )
             created += 1
@@ -265,9 +253,12 @@ def seed_week(db: Session, models, user_id: str, week_start: date, sport: str = 
     return created
 
 
-def mark_category_done(db: Session, models, user_id: str, log_date: date, categories: list[str]) -> None:
-    """Checks off any not-yet-completed scheduled items in these categories for this date."""
-    (
+def mark_category_done(db: Session, models, user_id: str, log_date: date, categories: list) -> None:
+    """Checks off any not-yet-completed scheduled items whose category is in
+    `categories` for this date — called right after a real log (nutrition,
+    recovery, etc.) is saved, for holistic categories where one log covers
+    the whole category."""
+    items = (
         db.query(models.ScheduledWorkout)
         .filter(
             models.ScheduledWorkout.user_id == user_id,
@@ -275,33 +266,31 @@ def mark_category_done(db: Session, models, user_id: str, log_date: date, catego
             models.ScheduledWorkout.workout_type.in_(categories),
             models.ScheduledWorkout.completed.is_(False),
         )
-        .update({"completed": True}, synchronize_session=False)
+        .all()
     )
+    for item in items:
+        item.completed = True
     db.commit()
 
 
-def mark_matching_done(
-    db: Session, models, user_id: str, log_date: date, category: str, keywords: list[str]
-) -> None:
-    """Like mark_category_done, but only checks off scheduled items whose title matches one
-    of the given keywords (e.g. the specific exercise name) — not every item in the category.
-    If nothing matches, nothing is checked off; the rest of the category stays untouched."""
-    from sqlalchemy import or_
-
-    clean_keywords = [k.strip() for k in keywords if k and k.strip()]
-    if not clean_keywords:
-        return
-
-    conditions = [models.ScheduledWorkout.title.ilike(f"%{kw}%") for kw in clean_keywords]
-    (
+def mark_matching_done(db: Session, models, user_id: str, log_date: date, category: str, name_fragments: list) -> None:
+    """Like mark_category_done, but only checks off scheduled items in
+    `category` whose title contains one of `name_fragments` — for itemized
+    categories (Strength, Conditioning, Basketball/Tennis drills) where each
+    exercise is its own checklist item, not one blanket category checkbox."""
+    items = (
         db.query(models.ScheduledWorkout)
         .filter(
             models.ScheduledWorkout.user_id == user_id,
             models.ScheduledWorkout.date == log_date,
             models.ScheduledWorkout.workout_type == category,
             models.ScheduledWorkout.completed.is_(False),
-            or_(*conditions),
         )
-        .update({"completed": True}, synchronize_session=False)
+        .all()
     )
+    fragments_lower = [f.lower() for f in name_fragments]
+    for item in items:
+        title_lower = item.title.lower()
+        if any(fragment in title_lower for fragment in fragments_lower):
+            item.completed = True
     db.commit()

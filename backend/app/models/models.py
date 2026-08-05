@@ -198,6 +198,7 @@ class ScheduledWorkout(Base):
     title = Column(String, nullable=False)
     notes = Column(Text, nullable=True)
     completed = Column(Boolean, default=False)
+    priority = Column(Integer, default=3)  # 1-5, carried over from the template item when seeded
 
 
 class TemplateItem(Base):
@@ -206,8 +207,13 @@ class TemplateItem(Base):
     id = Column(UUID(as_uuid=False), primary_key=True, default=gen_uuid)
     user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
     weekday = Column(String, nullable=False)  # "Sunday".."Saturday"
-    category = Column(String, nullable=False)
-    task = Column(String, nullable=False)
+    category = Column(String, nullable=False)  # e.g. "Basketball", "Strength", "Recovery"
+    subcategory = Column(String, nullable=True)  # e.g. "Shooting", "Finishing" — groups items within a category
+    task = Column(String, nullable=False)  # the specific drill/exercise name
+    target_count = Column(Integer, nullable=True)  # e.g. 100
+    target_unit = Column(String, nullable=True)  # e.g. "makes", "reps", "min"
+    priority = Column(Integer, default=3)  # 1-5, used by the AI Top-5 view to rank what matters most today
+    sort_order = Column(Integer, default=0)
 
 
 class UserSettings(Base):
