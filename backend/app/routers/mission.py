@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.core.rate_limit import check_ai_rate_limit
 from app.core.ai import call_groq
 from app.core.readiness import compute_readiness
+from app.core import google_calendar
 from app.models import models
 
 router = APIRouter(prefix="/mission", tags=["mission"])
@@ -25,6 +26,7 @@ def get_todays_mission(current_user_id: str = Depends(check_ai_rate_limit), db: 
 
     readiness = compute_readiness(db, current_user_id)
     low_readiness = readiness["readiness_score"] < 50
+    calendar_events = google_calendar.get_events_for_user(db, models, current_user_id, days_ahead=1)
 
     def effective_priority(item):
         p = item.priority or 3
@@ -40,12 +42,21 @@ def get_todays_mission(current_user_id: str = Depends(check_ai_rate_limit), db: 
     focus_note = ""
     if top_5:
         item_lines = "\n".join(f"- {i.title} ({i.workout_type})" for i in top_5)
+        calendar_line = ""
+        if calendar_events:
+            events_str = ", ".join(
+                f"{e['summary']} ({'all day' if e['all_day'] else e['start']})" for e in calendar_events
+            )
+            calendar_line = f"\n\nToday's real calendar events: {events_str}"
+
         prompt = (
             f"An athlete's readiness today is {readiness['readiness_score']}/100 ({readiness['readiness_label']}). "
-            f"Their top 5 priorities for today, already ranked by importance, are:\n{item_lines}\n\n"
+            f"Their top 5 priorities for today, already ranked by importance, are:\n{item_lines}"
+            f"{calendar_line}\n\n"
             "Write ONE short sentence (max 25 words) framing today's overall focus — don't just repeat the "
-            "list, tie it together. If readiness is low, acknowledge that framing. Don't invent anything "
-            "not implied by the list above."
+            "list, tie it together. If readiness is low, acknowledge that framing. If the calendar shows "
+            "something demanding today (exam, packed schedule, travel), factor that into the framing too. "
+            "Don't invent anything not implied by the data above."
         )
         focus_note = call_groq(prompt, max_tokens=60)
 
@@ -53,6 +64,8 @@ def get_todays_mission(current_user_id: str = Depends(check_ai_rate_limit), db: 
         "focus_note": focus_note,
         "readiness_score": readiness["readiness_score"],
         "readiness_label": readiness["readiness_label"],
+        "calendar_connected": calendar_events is not None,
+        "calendar_events": calendar_events or [],
         "top_5": [
             {
                 "id": i.id, "title": i.title, "workout_type": i.workout_type,

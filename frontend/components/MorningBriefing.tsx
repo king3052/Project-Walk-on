@@ -91,6 +91,25 @@ export function MorningBriefing({ sport }: { sport: string }) {
         </div>
       </div>
 
+      {data.calendar_connected && data.calendar_events.length > 0 && (
+        <div className="pt-2 border-t border-surface-border">
+          <p className="text-xs uppercase tracking-wide text-fg-dim mb-1">On your calendar</p>
+          <div className="space-y-0.5">
+            {data.calendar_events.map((e, i) => (
+              <p key={i} className="text-xs text-fg-dim">
+                {e.summary}
+                {!e.all_day && (
+                  <span>
+                    {" — "}
+                    {new Date(e.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                  </span>
+                )}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="pt-2 border-t border-surface-border">
         <p className="text-xs uppercase tracking-wide text-fg-dim mb-1">Today&apos;s priority</p>
         <p className="text-sm text-fg leading-relaxed">{data.priority_narrative}</p>

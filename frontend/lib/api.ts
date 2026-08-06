@@ -618,6 +618,8 @@ export type MorningBriefing = {
   } | null;
   todays_items: { id: string; workout_type: string; title: string }[];
   goals: { id: string; title: string }[];
+  calendar_connected: boolean;
+  calendar_events: { summary: string; start: string; end: string; all_day: boolean }[];
   priority_narrative: string;
 };
 
@@ -1428,6 +1430,8 @@ export type TodaysMission = {
   focus_note: string;
   readiness_score: number;
   readiness_label: string;
+  calendar_connected: boolean;
+  calendar_events: { summary: string; start: string; end: string; all_day: boolean }[];
   top_5: MissionItem[];
   total_items: number;
   completed_count: number;
