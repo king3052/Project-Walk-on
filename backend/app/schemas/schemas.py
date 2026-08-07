@@ -293,7 +293,7 @@ class FilmSessionCreate(BaseModel):
     user_id: str
     date: date
     title: str
-    video_url: str
+    video_url: Optional[str] = None
     notes: Optional[str] = None
 
 
@@ -1158,3 +1158,36 @@ class AssistantMessageOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# =====================================================================
+# MISSION — expandable checklist item detail capture
+# =====================================================================
+
+class MissionDetailStrength(BaseModel):
+    exercise: str
+    sets: int
+    reps: int
+    weight_lb: float
+
+
+class MissionDetailShootingSpot(BaseModel):
+    shot_type: str
+    attempts: int
+    makes: int
+
+
+class MissionDetailShooting(BaseModel):
+    spots: list[MissionDetailShootingSpot]
+
+
+class MissionDetailFilm(BaseModel):
+    title: str
+    notes: Optional[str] = None
+
+
+class MissionCompleteWithDetail(BaseModel):
+    detail_type: str  # "strength" | "shooting" | "film"
+    strength: Optional[MissionDetailStrength] = None
+    shooting: Optional[MissionDetailShooting] = None
+    film: Optional[MissionDetailFilm] = None

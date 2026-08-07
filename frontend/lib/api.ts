@@ -1442,6 +1442,16 @@ export function getTodaysMission(): Promise<TodaysMission> {
   return apiFetch(`/mission/today`);
 }
 
+// ---------- Mission item detail capture ----------
+export type MissionDetailPayload =
+  | { detail_type: "strength"; strength: { exercise: string; sets: number; reps: number; weight_lb: number } }
+  | { detail_type: "shooting"; shooting: { spots: { shot_type: string; attempts: number; makes: number }[] } }
+  | { detail_type: "film"; film: { title: string; notes?: string } };
+
+export function completeMissionItemWithDetail(itemId: string, payload: MissionDetailPayload) {
+  return post(`/mission/${itemId}/complete-with-detail`, payload);
+}
+
 // ---------- Google Calendar Integration ----------
 export type GoogleCalendarStatus = {
   connected: boolean;

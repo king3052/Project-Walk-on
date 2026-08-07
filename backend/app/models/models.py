@@ -127,7 +127,7 @@ class FilmSession(Base):
     user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
     date = Column(Date, default=date.today, nullable=False)
     title = Column(String, nullable=False)
-    video_url = Column(String, nullable=False)
+    video_url = Column(String, nullable=True)  # optional — a quick checklist-driven note may not have a link handy
     notes = Column(Text, nullable=True)
 
     tags = relationship("FilmTag", back_populates="session", cascade="all, delete-orphan")
